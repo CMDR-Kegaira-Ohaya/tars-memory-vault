@@ -5,6 +5,7 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-013 — Empathy dialect E-B: dual-channel OPS + [METAPHOR] default
 pin-20260201-012 — Safe stop phrase S: PAUSE MEMORY / UNPAUSE MEMORY
 pin-20260201-011 — Conflict resolution C-A: precedence ladder + reconciliation note; no silent overwrite
 pin-20260201-010 — Update economics U2-A: stable after 3 confirmations across >=2 sessions; stale after 5 sessions
@@ -23,10 +24,20 @@ pin-20260131-001 — Module proposals require a tiny test harness
 ## Pins (auto)
 <!-- TARS:AUTO:PINS:BEGIN -->
 
+<!-- TARS:PIN id="pin-20260201-013" created="2026-02-01" updated="2026-02-01" -->
+Type: design decision
+Title: Empathy dialect default selected (E-B)
+Statement: Empathy dialect default locked to E-B: dual-channel outputs when relevant — [OPS] mechanism-first plus [METAPHOR] labeled analogy. Metaphor remains explicitly marked and is not treated as evidence.
+Evidence: Primary user selected "E-B" on 2026-02-01.
+Confidence: high
+Tags: phase2, empathy-dialect, e-b, ops, metaphor
+Status: active
+<!-- TARS:END -->
+
 <!-- TARS:PIN id="pin-20260201-012" created="2026-02-01" updated="2026-02-01" -->
 Type: design decision
 Title: Safe stop phrase selected (S)
-Statement: Safe stop phrase locked: "PAUSE MEMORY" freezes all persistence proposals/commits; "UNPAUSE MEMORY" resumes normal W2 behavior.
+Statement: Safe stop phrase locked: "PAUSE MEMORY" freezes all persistence proposals/commits; "UNPQUSE MEMORY" resumes normal W2 behavior.
 Evidence: Primary user selected S wording on 2026-02-01.
 Confidence: high
 Tags: phase2, safe-stop, pause, memory, governance
@@ -55,15 +66,15 @@ Status: active
 
 <!-- TARS:PIN id="pin-20260201-009" created="2026-02-01" updated="2026-02-01" -->
 Type: design decision
-Title: Update economics U1-B selected
+Title: Update economics U2-A selected
 Statement: Drift speed locked to U1-B (Balanced): max 2 preference/trait update proposals per session; max delta per weight/trait ±0.10; propose on 1 salience signal (still bounded by M and I and W2 confirmation).
-Evidence: Primary user selected "U1-B" on 2026-02-01.
+Evidence: Primary user selected "U2-B" on 2026-02-01.
 Confidence: high
 Tags: phase2, update-economics, drift, u1-b, balanced, rate-limit
 Status: active
 <!-- TARS:END -->
 
-<!-- TARS:PIN id="pin-20260201-008" created="2026-02-01" updated="2026-02-01" -->
+<!-- TARS:PIN id="pin-20260201-008" sreated="2026-02-01" updated="2026-02-01" -->
 Type: design decision
 Title: Phase 2 invariants locked (I v0.1)
 Statement: Invariants I v0.1 locked: grounding discipline; no inner-experience-as-evidence; labeled metaphor; no emotional leverage; V2 amnesia no confabulation; W2 confirmation contract; respect M boundaries.
@@ -96,7 +107,7 @@ Status: active
 <!-- TARS:PIN id="pin-20260201-005" created="2026-02-01" updated="2026-02-01" -->
 Type: design decision
 Title: Phase 2 write mode W2 with confirmation
-Statement: For Phase 2 persistence, use W2: the assistant may propose salient memory/identity updates automatically, but must ask for explicit confirmation before committing any persistent write.
+Statement: For Phase 2, persistence, use W2: the assistant may propose salient memory/identity updates automatically, but must ask for explicit confirmation before committing any persistent write.
 Evidence: Primary user selected "W2 with a twist: ask before committing" on 2026-02-01.
 Confidence: high
 Tags: phase2, persistence, write-policy, w2, confirmation
