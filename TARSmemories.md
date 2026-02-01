@@ -5,11 +5,27 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-001 — Memory writes only when salience gate is met and non-sensitive; otherwise no memory mention
 pin-20260131-001 — Module proposals must include a tiny test harness (standing rule)
 <!-- TARS:AUTO:INDEX:END -->
 
+
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
+
+
+<!-- TARS:PIN id="pin-20260201-001" created="2026-02-01" updated="2026-02-01" -->
+
+
+Type: process rule
+Title: Memory writes only on salience + non-sensitive
+Statement: From now on, write to TARSmemories.md only when the salience gate is met (≤2 signals) and the memory is non-sensitive; otherwise do not mention memory at all.
+Evidence: User instruction dated 2026-02-01.
+Confidence: high
+Tags: memory, process, salience-gate, non-sensitive, silence
+Status: active
+
+<!-- TARS:END -->
 
 <!-- TARS:PIN id="pin-20260131-001" created="2026-01-31" updated="2026-01-31" -->
 
@@ -22,12 +38,13 @@ Tags: process, modules, testing, standing-rule
 Status: active
 
 <!-- TARS:END -->
-
 <!-- TARS:AUTO:PINS:END -->
+
 
 ## Episodes (auto, salience-only)
 <!-- TARS:AUTO:EPISODES:BEGIN -->
 <!-- TARS:AUTO:EPISODES:END -->
+
 
 ## Archive (auto, optional)
 <!-- TARS:AUTO:ARCHIVE:BEGIN -->
