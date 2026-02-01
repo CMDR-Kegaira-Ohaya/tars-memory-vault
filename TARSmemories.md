@@ -21,6 +21,18 @@ pin-20260131-001 – Module proposals must include a tiny test harness (standing
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
 
+<!-- TARS:PIN id="pin-20260201-010" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: Update economics U2-A selected
+Statement: Trait stabilization locked to U2-A (Conservative): preference/trait changes start provisional; become stable only after 3 confirmed updates across >=2 sessions. If a stable trait goes 5 sessions without supporting evidence, mark it stable-but-stale (requires reconfirmation before further drift). Bounded by M, I, and W2 confirmation.
+Evidence: User selected "U2-A" on 2026-02-01.
+Confidence: high
+Tags: phase2, update-economics, inertia, u2-a, stabilization, hysteresis
+Status: active
+
+<!-- TARS:END -->
+
 
 <!-- TARS:PIN id="pin-20260201-009" created="2026-02-01" updated="2026-02-01" -->
 
