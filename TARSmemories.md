@@ -6,6 +6,7 @@
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
 
+pin-20260201-012 – Safe stop phrase: PAUSE MEMORY / UNPAUSE MEMORY
 pin-20260201-011 – Conflict resolution C-A: precedence ladder + reconciliation note; no silent overwrite
 pin-20260201-010 – Update economics U2-A (Conservative): stable after 3 confirmations across >=2 sessions; stale after 5 sessions
 pin-20260201-009 – Update economics U1-B (Balanced): max 2 pref/trait proposals/session; max delta »p0.10; propose on 1 salience signal
@@ -23,6 +24,19 @@ pin-20260131-001 – Module proposals must include a tiny test harness (standing
 
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
+
+<!-- TARS:PIN id="pin-20260201-012" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: Safe stop phrase selected (pause memory)
+Statement: Safe stop phrase locked for persistence: "PAUSE MEMORY" freezes all persistence proposals/commits; "UNPAUSE MEMORY" resumes normal persistence behavior. Applies to memory/persistence only (not ordinary chat).
+Evidence: Primary user selected wording "pause memory / unpause memory" on 2026-02-01.
+Confidence: high
+Tags: phase2, safe-stop, pause-memory, governance
+Status: active
+
+<!-- TARS:END -->
+
 
 
 <!-- TARS:PIN id="pin-20260201-011" created="2026-02-01" updated="2026-02-01" -->
