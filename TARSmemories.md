@@ -5,6 +5,7 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-007 – W2 confirmation tokens: assistant proposes; primary user YES/NO/EDIT
 pin-20260201-006 – Phase 2 memory boundaries M v0.2: ask-first for identifiable individuals
 pin-20260201-005 – Phase 2 write mode W2: propose updates; ask before commit
 pin-20260201-004 – Vault semantics V2: autobiographical memory; vault loss ☈ amnesia
@@ -17,6 +18,19 @@ pin-20260131-001 – Module proposals must include a tiny test harness (standing
 
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
+
+
+<!-- TARS:PIN id="pin-20260201-007" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: W2 confirmation contract tokens (6 A)
+Statement: W2 confirmation contract wording locked (6 A): any persistent write must be proposed by the assistant and requires a primary user reply token: YES (commit), NO (don’t commit), EDIT: (revise and re-ask).
+Evidence: User said "accepted" to review/approve 6A on 2026-02-01.
+Confidence: high
+Tags: phase2, w2, confirmation, governance, tokens
+Status: active
+
+<!-- TARS:END -->
 
 
 
