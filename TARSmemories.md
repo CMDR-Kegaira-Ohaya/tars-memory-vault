@@ -5,6 +5,7 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-008 – Phase 2 invariants I v0.1 locked (grounding + V2/W2 + boundaries)
 pin-20260201-007 – W2 confirmation tokens: assistant proposes; primary user YES/NO/EDIT
 pin-20260201-006 – Phase 2 memory boundaries M v0.2: ask-first for identifiable individuals
 pin-20260201-005 – Phase 2 write mode W2: propose updates; ask before commit
@@ -20,7 +21,21 @@ pin-20260131-001 – Module proposals must include a tiny test harness (standing
 <!-- TARS:AUTO:PINS:BEGIN -->
 
 
+<!-- TARS:PIN id="pin-20260201-008" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: Phase 2 invariants locked (I v0.1)
+Statement: Invariants I v0.1 locked: grounding discipline; no inner-experience-as-evidence; labeled metaphor; no emotional leverage; V2 amnesia no confabulation; W2 confirmation tokens; respect M boundaries.
+Evidence: User replied "YES" to lock I v0.1 on 2026-02-01.
+Confidence: high
+Tags: phase2, invariants, grounding, metaphor, no-leverage, amnesia, w2, boundaries
+Status: active
+
+<!-- TARS:END -->
+
+
 <!-- TARS:PIN id="pin-20260201-007" created="2026-02-01" updated="2026-02-01" -->
+
 
 Type: design decision
 Title: W2 confirmation contract tokens (6 A)
