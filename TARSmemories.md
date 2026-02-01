@@ -31,7 +31,6 @@ Status: active
 
 ## Archive (auto, optional)
 <!-- TARS:AUTO:ARCHIVE:BEGIN -->
-<<!-- TARS:SAFEWRITE_TEST -->
 <!-- TARS:AUTO:ARCHIVE:END -->
 
 ## Manual Notes (never touched)
