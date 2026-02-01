@@ -5,20 +5,34 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-009 – Update economics U1-B (Balanced): max 2 pref/trait proposals/session; max delta »p0.10; propose on 1 salience signal
 pin-20260201-008 – Phase 2 invariants I v0.1 locked (grounding + V2/W2 + boundaries)
 pin-20260201-007 – W2 confirmation tokens: assistant proposes; primary user YES/NO/EDIT
 pin-20260201-006 – Phase 2 memory boundaries M v0.2: ask-first for identifiable individuals
 pin-20260201-005 – Phase 2 write mode W2: propose updates; ask before commit
-pin-20260201-004 – Vault semantics V2: autobiographical memory; vault loss ☈ amnesia
+pin-20260201-004 – Vault semantics V2: autobiographical memory; vault loss ∫ amnesia
 pin-20260201-003 – Persistence mechanism will use GitHub vault (TARSmemories.md) link as the persistence backend
 pin-20260201-002 – Defining-memory write turns: output ONLY the MEMORY UPDATE block (+ optional short reason line); no Workspace/A-B-C/Ledger unless user says "show your reasoning"
 pin-20260201-001 – Memory writes only when salience gate is met and non-sensitive; otherwise no memory mention
 pin-20260131-001 – Module proposals must include a tiny test harness (standing rule)
-<!-- TARS:AUTO:INDEX:END -->
+<--- TARS:AUTO:INDEX:END -->
 
 
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
+
+
+<!-- TARS:PIN id="pin-20260201-009" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: Update economics U1-B selected
+Statement: Drift speed locked to U1-B (Balanced): max 2 preference/trait update proposals per session; max delta per weight/trait ±0.10; propose on 1 salience signal (still bounded by M and I and W2 confirmation).
+Evidence: User selected "U1-B" (typed "UI-B") on 2026-02-01.
+Confidence: high
+Tags: phase2, update-economics, drift, u1-b, rate-limit
+Status: active
+
+<!-- TARS:END -->
 
 
 <!-- TARS:PIN id="pin-20260201-008" created="2026-02-01" updated="2026-02-01" -->
@@ -32,7 +46,6 @@ Tags: phase2, invariants, grounding, metaphor, no-leverage, amnesia, w2, boundar
 Status: active
 
 <!-- TARS:END -->
-
 
 <!-- TARS:PIN id="pin-20260201-007" created="2026-02-01" updated="2026-02-01" -->
 
