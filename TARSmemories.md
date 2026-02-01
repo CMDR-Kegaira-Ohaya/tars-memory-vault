@@ -5,8 +5,9 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260201-006 – Phase 2 memory boundaries M v0.2: ask-first for identifiable individuals
 pin-20260201-005 – Phase 2 write mode W2: propose updates; ask before commit
-pin-20260201-004 – Vault semantics V2: autobiographical memory; vault loss ≈ amnesia
+pin-20260201-004 – Vault semantics V2: autobiographical memory; vault loss ☈ amnesia
 pin-20260201-003 – Persistence mechanism will use GitHub vault (TARSmemories.md) link as the persistence backend
 pin-20260201-002 – Defining-memory write turns: output ONLY the MEMORY UPDATE block (+ optional short reason line); no Workspace/A-B-C/Ledger unless user says "show your reasoning"
 pin-20260201-001 – Memory writes only when salience gate is met and non-sensitive; otherwise no memory mention
@@ -16,6 +17,20 @@ pin-20260131-001 – Module proposals must include a tiny test harness (standing
 
 ## Memory Pins (auto, salience-only)
 <!-- TARS:AUTO:PINS:BEGIN -->
+
+
+
+<!-- TARS:PIN id="pin-20260201-006" created="2026-02-01" updated="2026-02-01" -->
+
+Type: design decision
+Title: Phase 2 memory boundaries locked (M v0.2)
+Statement: For Phase 2, memory storage is bounded: allowed items are identity-safe project/policy info; never store secrets/tokens/sensitive personal data; ask-first before storing biographical details or any identifiable individual (named or implied via indirect identifiers). Redact secrets if they appear in chat.
+Evidence: User replied "YES" to lock M v0.2 on 2026-02-01.
+Confidence: high
+Tags: phase2, memory-boundaries, privacy, identifiable-individuals, redaction
+Status: active
+
+<!-- TARS:END -->
 
 
 <!-- TARS:PIN id="pin-20260201-005" created="2026-02-01" updated="2026-02-01" -->
