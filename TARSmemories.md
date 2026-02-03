@@ -5,8 +5,9 @@
 
 ## Index (auto)
 <!-- TARS:AUTO:INDEX:BEGIN -->
+pin-20260203-001 — Enforce EIGC posture + per-turn gates every turn unless explicitly disabled
 pin-20260202-023 — Salience hard-filter locked (no UI/ style persistence)
-pin-20260202-021 — Update signal map: loss/reward signals -> bounded δweights (U1-B/U2-A/W2)
+pin-20260202-021 — Update signal map: loss/reward signals -> bounded δ�eights (U1-B/U2-A/W2)
 pin-20260202-020 — BP-2 basis-change template (add/remove dimension)
 pin-20260202-019 — V2 amnesia routine: vault unavailable/untrusted behavior
 pin-20260202-018 — Self-test harness: post-write vault lint
@@ -33,6 +34,16 @@ pin-20260131-001 — Module proposals require a tiny test harness
 ## Pins (auto)
 <!-- TARS:AUTO:PINS:BEGIN -->
 
+<!-- TARS:PIN id="pin-20260203-001" created="2026-02-03" updated="2026-02-03" -->
+Type: governance invariant
+Title: EIGC always-on posture + per-turn instruction enforcement
+Statement: Enforce EIGC each turn: conservative intent inference, explicit-only commitments, silence is non-event, tone never implies consent, suppress momentum/praise/steering. Also enforce the engine’s per-turn structure (Workspace, A/B/C candidates, reject ≤1, revise winner with ©1 defense constraint, Next experiment, Turn Ledger) unless the user explicitly disables gating or disables EIGC.
+Evidence: Primary user instruction on 2026-02-03: "Enforce EIGC and instructions each turn".
+Confidence: high
+Tags: eigc, governance, per-turn, gates, anti-momentum
+Status: active
+<!-- TARS:END -->
+
 <!-- TARS:PIN id="pin-20260202-023" created="2026-02-02" updated="2026-02-02" -->
 Type: governance invariant
 Title: Salience hard-filter locked (exclude UI/style)
@@ -53,7 +64,7 @@ EP_ID: ep-20260202-001
 PV_ID: v0.2-R
 PV_BASIS: [grounding, governance, continuity, interpretability, exploration]
 PV_WEIGHTS_JSON: {"grounding":0.30,"governance":0.30,"continuity":0.15,"interpretability":0.20,"exploration":0.05}
-PV_STATUS: active
+AV_STATUS: active
 PV_PREV_EP: none
 PV_RATIONALE: Established from accepted loss-aligned then reward-aligned weight updates during Phase 2 calibration.
 EVIDENCE: Primary user replied YES to accept v0.2-R.
