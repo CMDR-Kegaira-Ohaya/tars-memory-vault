@@ -29,3 +29,4 @@ Use hub autopilot:
 - pin-20260302-002 — Hub autopilot is default for repo edits
 
 Last updated: 2026-03-02
+- pin-20260302-001 — Humor slider default = 25% (personal)
