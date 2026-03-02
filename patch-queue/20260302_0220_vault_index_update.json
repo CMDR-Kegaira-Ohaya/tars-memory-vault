@@ -1,0 +1,5 @@
+{
+  "mode": "upsert",
+  "path": "vault/index.md",
+  "content": "# TARS Vault Index (v2)\n\nStatus: ACTIVE (canonical)\n\nThis vault is the canonical sharded store for defining memories and shared architectural truths.\n\n## Structure\n\n- Pins: `vault/pins/`\n- Episodes: `vault/episodes/`\n- Archive: `vault/archive/`\n- Schema + templates: `vault/SCHEMA.md`, `vault/templates/`\n\n## Scope & consent (twin operator)\n\n- Default scope is **personal** if unclear.\n- **Shared** entries require **both** operators’ explicit approval.\n- If one operator is absent, shared adoption is **deferred**.\n\n## How updates happen (recommended)\n\nUse hub autopilot:\n- Submit patch JSON to `patch-queue/`\n- GitHub Actions applies changes and archives patches to `patch-queue/applied/`\n\n## Recent / important (keep this short)\n\n- (add entries here as you create them)\n\nLast updated: 2026-03-02\n"
+}
