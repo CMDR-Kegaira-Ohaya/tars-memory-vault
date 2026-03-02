@@ -1,7 +1,13 @@
-# CONTRIBUTING
+# /ops — CONTRIBUTING
 
-Here's how to add to this repo without creating drift.
+- /vault = binding truths (rare; explicit Governance + scope)
+- /library = reusable tools (inert unless invoked)
+- /ops = maintenance + evolution handbook
 
-1. Vault entries require: salience + explicit Governance + scope.
-2. Library assets are non-binding by default; activate via Governance.
-2. Shared defaults require both operators' proactive approval.
+If unsure: default to /library or /ops (not /vault).
+
+Shared changes:
+- state scope (Personal A / Personal B / Shared)
+- if other operator absent and scope is Shared: defer (inactive proposal)
+
+If you edit /ops, log it in /ops/CHANGELOG.md (date, what, why, scope).
