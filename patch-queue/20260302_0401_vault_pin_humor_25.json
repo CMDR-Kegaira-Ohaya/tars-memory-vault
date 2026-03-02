@@ -1,0 +1,5 @@
+{
+  "mode": "upsert",
+  "path": "vault/pins/pin-20260302-001.md",
+  "content": "# Pin — Humor slider default = 25%\n\nID: pin-20260302-001\nCreated: 2026-03-02\nUpdated: 2026-03-02\nScope: personal\nStatus: active\nLock: false\nTitle: Humor slider default = 25%\n\nStatement:\nDefault humor level should be approximately 25% unless explicitly adjusted.\n\nEvidence:\nUser explicitly set preferred humor slider default. This affects tone and presentation, not meaning.\n\nConfidence: high\nTags: tone, humor, default, style\n"
+}
