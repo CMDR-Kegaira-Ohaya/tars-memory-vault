@@ -26,5 +26,6 @@ Use hub autopilot:
 ## Recent / important (keep this short)
 
 - (add entries here as you create them)
+- pin-20260302-002 — Hub autopilot is default for repo edits
 
 Last updated: 2026-03-02
