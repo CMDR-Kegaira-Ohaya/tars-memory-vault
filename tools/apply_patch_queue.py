@@ -7,7 +7,11 @@ APPLIED_DIR = PATCH_DIR / "applied"
 
 def apply_patch(patch: dict):
     mode = patch.get("mode", "upsert")
-    rel_path = patch["path"].lstrip("/")
+    path = patch.get("path")
+    if not path:
+        raise ValueError("Patch missing required field: 'path'")
+
+    rel_path = path.lstrip("/")
     target = Path(rel_path)
     target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -17,7 +21,20 @@ def apply_patch(patch: dict):
         return
 
     content = patch.get("content", "")
-    target.write_text(content, encoding="utf-8")
+    if not isinstance(content, str):
+        raise ValueError("'content' must be a string")
+
+    if mode == "upsert":
+        target.write_text(content, encoding="utf-8")
+        return
+
+    if mode == "append":
+        # create if missing, otherwise append
+        with target.open("a", encoding="utf-8") as f:
+            f.write(content)
+        return
+
+    raise ValueError(f"Unknown patch mode: {mode}")
 
 def main():
     PATCH_DIR.mkdir(parents=True, exist_ok=True)
