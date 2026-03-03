@@ -42,7 +42,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "tars-ops-bot"
             git config user.email "tars-ops-bot@users.noreply.github.com"
-            git add ops/RECENT_COMMITS^md
+            git add ops/RECENT_COMMITS.md
             git commit -m "ops: refresh RECENT_COMMITS"
             git push
           else
