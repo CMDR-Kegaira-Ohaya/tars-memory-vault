@@ -1,0 +1,7 @@
+{
+  "mode": "replace_text",
+  "path": "ops/token_smoketest.md",
+  "find": "ok",
+  "replace": "ok (patched)",
+  "replace_all": false
+}
