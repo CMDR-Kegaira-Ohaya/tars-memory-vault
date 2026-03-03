@@ -32,8 +32,8 @@ jobs:
           for f in patch-queue/*.json; do
             [ -e "$f" ] || continue
             case "$f" in
-              *op-a_*) has_a=true ;;
-              *op-b_*) has_b=true ;;
+              op-a_*) has_a=true ;;
+              op-b_*) has_b=true ;;
             esac
           done
           if $has_a && ! $has_b; then
