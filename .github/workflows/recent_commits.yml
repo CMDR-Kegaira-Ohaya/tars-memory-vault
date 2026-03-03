@@ -1,0 +1,50 @@
+name: Refresh Recent Commits Log
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: recent-commits
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate ops/RECENT_COMMITS.md
+        shell: bash
+        run: |
+          set -e
+          mkdir -p ops
+          {
+            echo "# Recent commits"
+            echo ""
+            echo "Generated: $(date -u '+%Y-%m-%d %H:%M %UDT')"
+            echo ""
+            echo "Format: date | author | committer | message | sha"
+            echo ""
+            git log -n 500 --date=short --pretty=format:"- %ad | %an <%ae> | %cn <%ce> | %s | %h"
+          } > ops/RECENT_COMMITS.md
+
+      - name: Commit and push if changed
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "tars-ops-bot"
+            git config user.email "tars-ops-bot@users.noreply.github.com"
+            git add ops/RECENT_COMMITS^md
+            git commit -m "ops: refresh RECENT_COMMITS"
+            git push
+          else
+            echo "No changes."
+          fi
