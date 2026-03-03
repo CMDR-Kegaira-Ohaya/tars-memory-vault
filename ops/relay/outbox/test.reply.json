@@ -1,0 +1,8 @@
+{
+  "from": "tars",
+  "to": "op-a",
+  "channel": "general",
+  "type": "ack",
+  "body": "received",
+  "in_reply_to": "test.json"
+}
