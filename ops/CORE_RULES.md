@@ -7,4 +7,6 @@ This is deliberately short. If it grows, split it.
 3) Shared rules require both operators' explicit approval. If one is absent, adoption is deferred.
 4) No silent overwrites. Conflicts must offer a menu: Personal / Replace / Review / Defer.
 5) The vault is sparse and structural (not a diary).
-6) Library is inert by default (activate explicitly).
+6) Toolkit is inert by default (activate explicitly).
+
+7) Curated resources live under /toolkit/library/.
