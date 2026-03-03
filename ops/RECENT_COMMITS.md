@@ -1,9 +1,40 @@
 # Recent commits
 
-Generated: 2026-03-03 16:26 09DT
+Generated: 2026-03-03 16:35 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: fix recent_commits workflow to rebase before push (avoid non-fast-forward) | 0412792
+- 2026-03-03 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | e93bd2c
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/style-guides/.gitkeep | 39c1059
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/schemas/.gitkeep | 1bf21fd
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/rpg-toolkit/.gitkeep | 0b07c22
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/psych-toolkit/hypothesis_ladder.md | 89e6bdb
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/psych-toolkit/README.md | b1d942a
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/psych-toolkit/.gitkeep | 48cf752
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/prompts/.gitkeep | 197614f
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy personality preset in /library | 3ab3a1d
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/personality-presets/.gitkeep | 6b11888
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/manuals/.gitkeep | 804bf6f
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/examples/.gitkeep | cb39d2f
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/checklists/.gitkeep | 117f844
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy zzz_probe | 773c498
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library benchmarks md | 0b1c1d7
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy library/benchmarks/.gitkeep | 856deeb
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: delete legacy /library README | 07deb65
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: ensure psych-toolkit README newline normalization | dcdba3a
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate hypothesis_ladder to /toolkit | 12f0296
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate psych-toolkit README to /toolkit | 5064943
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate psych-toolkit .gitkeep to /toolkit | 5e3d5f6
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate rpg-toolkit placeholder to /toolkit | b0c554a
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate style-guides placeholder to /toolkit | 57aca2b
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate schemas placeholder to /toolkit | 0830518
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate manuals placeholder to /toolkit | 6c65da1
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate examples placeholder to /toolkit | 5a791e9
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate checklists placeholder to /toolkit | f8a4ee1
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate prompts placeholder to /toolkit | 4557a0e
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate personality preset to /toolkit | 0783ad4
+- 2026-03-03 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | 88d0972
 - 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate personality-presets .gitkeep to /toolkit | e39e823
 - 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate probe file to /toolkit | 541f8a7
 - 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | hub: migrate benchmarks file to /toolkit | 89a886f
