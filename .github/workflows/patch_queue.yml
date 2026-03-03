@@ -29,11 +29,11 @@ jobs:
           set -e
           has_a=false
           has_b=false
-          for f in patch-queue*/*.json; do
+          for f in patch-queue/*.json; do
             [ -e "$f" ] || continue
             case "$f" in
-              *op-a*) aas_a=true ;;
-              *op-b*) has_b=true ;;
+              *op-a_*) has_a=true ;;
+              *op-b_*) has_b=true ;;
             esac
           done
           if $has_a && ! $has_b; then
