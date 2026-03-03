@@ -1,0 +1,111 @@
+# Recent commits
+
+Generated: 2026-03-03 15:25 09DT
+
+Format: date | author | committer | message | sha
+
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update recent_commits.yml | e0c8940
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add OP tag prefix based on patch filename | d92abcd
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add workflow to generate ops/RECENT_COMMITS.md | 52d4be3
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | add QoL benchmark summary (TARS vs other GPT) | ac3d834
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | probe direct write into library/benchmarks | 2d26039
+- 2026-03-03 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 7938789
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | test base64 write | 32540a6
+- 2026-03-03 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 460063b
+- 2026-03-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: create library/benchmarks folder (.gitkeep) | 44fccab
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 2192ba6
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: update vault/index.md (add ep-20260302-001) | 395d49e
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 78d16f3
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add episode ep-20260302-001 (Tier 0 stack shipped) | b4e38ae
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | cleanup: clear failed 0210 schema error log | cc6cdeb
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | cleanup: clear failed 0210 schema patch | fea95fe
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | cleanup: clear failed 0402 error log | 488817a
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | cleanup: clear failed 0402 index rewrite patch | 35d21ea
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 63109af
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: append humor pin to vault index | ec52b9f
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | caa80c1
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: update vault index (add humor pin) [sanitized] | 48d5e8e
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 247f540
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: update vault index (add humor pin) | c5078e8
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 95d9d40
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add personal humor slider pin (25%) | 27d3b1d
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 5a4c836
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: update vault index (add autopilot pin) [safe b64] | 5519316
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | bcf2500
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add vault pin (autopilot default) [safe b64 v2] | bb9ce60
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | vault: add SCHEMA.md (v2, sharded) | 55276a9
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 8f32945
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add ops AUTOPILOT doc | 54d6916
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | aff535d
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: convert TARSmemories.md to legacy pointer | 9c0bb16
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 0849470
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: update vault index v2 | 82230a7
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 43a3f86
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add episode template | 347b49b
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 53f0b41
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add pin template | 2a110ba
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 0158329
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add vault schema | bdcf6b2
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 4caa2ca
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: scaffold vault templates folder | 1406eee
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: scaffold vault archive folder | b0bdad9
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: scaffold vault episodes folder | 498932c
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: scaffold vault pins folder | dbd58ed
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update apply_patch_queue.py | aaed3ee
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update apply_patch_queue.py | e22af20
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 8f4a635
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: fix hypothesis ladder patch content (placeholder) | 0ec2ba4
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add psych hypothesis ladder | 4b1a1f0
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 1998291
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: psych-toolkit README (placeholder) | f7f3cc3
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 27f16db
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: upsert ops/CONTRIBUTING.md (minimal) | b708435
+- 2026-03-02 | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | tars-patch-bot <tars-patch-bot@users.noreply.github.com> | patch-queue: apply pending patches | 52591f6
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: propose ops REVIEW_RULES | 03c6659
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Create patch_queue.yml | a9c3d27
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: add apply script | 99d1dd6
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | patch-queue: scaffold folder | 7f84dd4
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add LINT_RULES (integrity checks) | 0733049
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library: add shared rigorous-warm preset v1 (python base64) | c0af40b
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add CHANGELOG for ops evolution | d18fda5
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add DRIFT_CHECK checklist | 2ab9522
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add CONFLICT_PROTOCOL (minimal) | bcf1492
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add CORE_RULES (minimal, stable invariants) | df5f725
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops: add lightweight change protocol (ops can evolve without vault) | 9a84883
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | ops scaffold: add CONTRIBUTING | 227a628
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add examples folder | 32dcb0e
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add style-guides folder | c34cbba
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add psych-toolkit folder | da9df5f
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add rpg-toolkit folder | 9c0790b
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add schemas folder | e5ffbe3
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add manuals folder | dc3a9c2
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add checklists folder | 8039c8e
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add prompts folder | 1deae6a
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add personality-presets folder | 93b1a6a
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library scaffold: add library README | 14e71f0
+- 2026-03-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | library/vault v2 scaffold: add vault index | b7ef594
+- 2026-02-03 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260203-001 (EIGC per-turn enforcement) | 3655d25
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: lock salience hard-filter (phase-2) | 0deeee5
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update TARSmemories.md | b6aa27a
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update TARSmemories.md | a813b62
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: add preference vector v0.2-R pin | cffacee
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-014 (BP-2 basis policy) | 760d64f
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update TARSmemories.md | 2ce3a0f
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | fix: normalize pins (typos/markers) | e813a3e
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin E-B empathy dialect default | 6325269
+- 2026-02-02 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Update TARSmemories.md | 977ba89
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: safe stop phrase pause/unpause memory | e7bcc3b
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-011 | fd7273b
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-010 (U2-A inertia) | f6969f7
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-009 (U1-B update economics) | 7a75288
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin invariants i v0.1 | 52d6f68
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-007 | e97c0d7
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-006 (memory boundaries M v0.2) | dc62da9
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | restore TARSmemories.md after accidental empty commit | 10453f5
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: add pins 20260201-004/005 | 9c12958
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-003 | fdff302
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-002 (memory update output only) | d233703
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | memory: pin pin-20260201-001 | e1089b7
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | cleanup safe write test | 242dc86
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | safe write test | 32619f0
+- 2026-02-01 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | GitHub <noreply@github.com> | Create TARSmemories.md | 8d47072
