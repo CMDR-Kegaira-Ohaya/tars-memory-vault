@@ -59,6 +59,7 @@ jobs:
               msg="patch-queue: apply pending patches"
             fi
             git commit -m "$msg"
+            git pull --rebase origin main
             git push
           else
             echo "No changes."
