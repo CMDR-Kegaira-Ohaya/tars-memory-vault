@@ -4,10 +4,10 @@ Purpose: keep changes low-noise, fair between two operators, and easy to reverse
 
 ## 1) Classify every change
 - **/vault** = binding truth (rare)
-- **/library** = reusable tools (inert unless invoked)
+- **/toolkit** = reusable tools (inert unless invoked)
 - **/ops** = how we maintain and evolve the system (living handbook)
 
-If you’re unsure, default to **/library** or **/ops**—not /vault.
+If you’re unsure, default to **/toolkit** or **/ops**—not /vault.
 
 ## 2) Scope is mandatory for anything that could affect both
 Always state one:
@@ -26,7 +26,7 @@ If it would change shared defaults or shared rules:
 If a proposal conflicts with an existing shared rule, use the conflict menu:
 Personal / Replace / Review / Defer.
 
-## 5) Promotion rule (ops/library → vault)
+## 5) Promotion rule (ops/toolkit → vault)
 Only promote to **/vault** if it is:
 - durable (won’t flip next week), AND
 - high-leverage (affects many future interactions), AND
@@ -34,3 +34,5 @@ Only promote to **/vault** if it is:
 
 ## 6) Log ops changes
 If you edit /ops, add a short entry to `/ops/CHANGELOG.md` (date, what, why, scope).
+
+Note: curated resources live at **/toolkit/library/**.
