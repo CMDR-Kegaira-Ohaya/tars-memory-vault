@@ -26,9 +26,11 @@ Use hub autopilot:
 ## Recent / important (keep this short)
 
 - (add entries here as you create them)
+- pin-20260304-001 — Next architectural pase: operationalize hub substrate (personal)
 - pin-20260302-002 — Hub autopilot is default for repo edits
 - ep-20260302-001 — Tier 0 stack shipped: hub read confirmed; governance write-brief rule
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
+- pin-20260304-001 — Next architectural phase: operationalize hub substrate (personal)
 - pin-20260302-001 — Humor slider default = 25% (personal)
 - ep-20260302-001 — Today: rebuilt TARS stack + manual; hub handshake verified (personal)
