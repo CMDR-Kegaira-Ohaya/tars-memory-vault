@@ -1,6 +1,0 @@
-{
-  "from": "op-a",
-  "to": "tars",
-  "channel": "manual",
-  "body": "manual: search ops-critical v1"
-}

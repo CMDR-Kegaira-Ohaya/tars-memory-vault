@@ -1,6 +1,0 @@
-{
-  "from": "op-a",
-  "to": "tars",
-  "channel": "manual",
-  "body": "manual: open chapters/CH05A2_opb_tandem_switchboard.md --lines 80 v1"
-}

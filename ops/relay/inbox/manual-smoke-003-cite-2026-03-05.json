@@ -1,6 +1,0 @@
-{
-  "from": "op-a",
-  "to": "tars",
-  "channel": "manual",
-  "body": "manual: cite stop-point v1"
-}
