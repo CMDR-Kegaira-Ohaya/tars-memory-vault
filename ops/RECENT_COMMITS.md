@@ -1,9 +1,11 @@
 # Recent commits
 
-Generated: 2026-03-05 01:25 09DT
+Generated: 2026-03-05 01:28 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add safe manual import script (zip -> repo-native markdown) | 0390d94
+- 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | d678872
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add manual zip import workflow | 5143a92
 - 2026-03-05 | tars-relay-bot <tars-relay-bot@users.noreply.github.com> | tars-relay-bot <tars-relay-bot@users.noreply.github.com> | relay: process inbox | a242583
 - 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | b091e26
