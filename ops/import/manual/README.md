@@ -1,39 +1,19 @@
-# Manual import drop-zone
+# Manual import (legacy convenience)
 
-Drop a manual release zip here and the repo will unpack it into repo-native markdown.
+This drop-zone exists for backwards compatibility:
+- Put manual zips under `ops/import/manual/`
+- The manual importer unpacks into `toolkit/manuals/tars-manual/vN/<zip-stem>/`
+- It then moves the zip to `ops/import/manual/archive/`
 
-## How to use
-
-1) Upload a zip into this folder:
-
-- `ops/import/manual/<something>.zip`
-
-Example:
-- `ops/import/manual/TARS-manual-v1-text-2026-03-04.zip`
-
-2) Push to `main`.
-
-3) GitHub Actions will:
-- validate the zip (anti-zip-slip; no symlinks)
-- extract it
-- copy it into:
-
-`toolkit/manuals/tars-manual/vN/>zip-stem/ `
-
-Where `v` is inferred from the zip filename (e.g. `-v1-` -> `v1`).
-
-4) The zip is then moved to:
-
-- `ops/import/manual/archive/<zipname>.zip`
+**New preferred path (general importer):**
+1) Put the zip in `ops/import/zips/`
+2) Create a job spec in `ops/import/jobs/` (see `ops/import/README.md`)
+3) Push to `main`.
 
 ## Required zip structure (at extracted root)
-
 - `TOC.md` (install marker)
 - `chapters/`
-- `appendices/`
-
-If your zip wraps everything in a single top-level folder, that's fine. The importer will treat that folder as the root.
+- `appendices/ `
 
 ## Limits
-
-- Default max zip size: 200 MB (override with `~MANUAL_IMPORT_MAX_ZIP_BYTES~` in workflow env if needed).
+- Default max zip size: 200 MB (override via env in workflow if needed)
