@@ -15,11 +15,11 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@2
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Run guardrail tests
         run: |
-          set -euo pipefaile
+          set -euo pipefail
           python tools/import_guardrail_tests.py
