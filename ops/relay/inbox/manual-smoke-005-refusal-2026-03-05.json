@@ -1,0 +1,6 @@
+{
+  "from": "op-a",
+  "to": "tars",
+  "channel": "manual",
+  "body": "manual: open ../../../../../vault/index.md --lines 40 v1"
+}
