@@ -1,9 +1,12 @@
 # Recent commits
 
-Generated: 2026-03-05 01:53 09DT
+Generated: 2026-03-05 02:29 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | test(manual): enqueue smoke 001 toc | 8e08c15
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | docs(import): add Import Wizard protocol | f244308
+- 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | 31f7d98
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Refactor manual importer to use shared import_lib | d65dea6
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add import-jobs workflow (job specs + zips -> bounded destinations) | 1035556
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Mark manual drop-zone as legacy; point to general job importer | e1d6030
