@@ -1,0 +1,8 @@
+{
+  "from": "tars",
+  "to": "op-a",
+  "channel": "manual",
+  "type": "manual",
+  "body": "[v1] TOC\n\n# Table of Contents\n\n## Front matter\n- [Title page](00_TITLEPAGE.md)\n- [How to use this book](01_HOW_TO_USE_THIS_BOOK.md)\n- [Quick Card](02_QUICK_CARD.md)\n- [If you read nothing else](03_IF_YOU_READ_NOTHING_ELSE.md)\n\n## Chapters\n- [Ch1 - Introduction](chapters/CH01_introduction.md)\n- [Ch2 - What TARS Adds](chapters/CH02_what_tars_adds.md)\n- [Ch3 - Start in 60 Seconds](chapters/CH03_start_in_60_seconds.md)\n- [Ch4 - How TARS Listens](chapters/CH04_how_tars_listens.md)\n- [Ch5 - Communication UI](chapters/CH05_communication_ui.md)\n- [Ch5A - OP-B Chapter (Greek-first)](chapters/CH05A_opb_greek_first.md)\n- [Ch5A2 - OP-B Professional Switchboard](chapters/CH05A2_opb_tandem_switchboard.md)\n- [Ch6 - Hub Repository](chapters/CH06_hub_repository.md)\n- [Ch7 - Working Together](chapters/CH07_working_together.md)\n- [Ch8 - How TARS Works](chapters/CH08_how_tars_works.md)\n- [Ch9 - Troubleshooting](chapters/CH09_troubleshooting.md)\n\n## Appendices\n- [Appendix E - UI Quick Reference](appendices/APP_E_UI_QUICK_REFERENCE.md)\n- [Appendix F - Technical](appendices/APP_F_TECHNICAL.md)\n- [Appendix G - Export Preflight (v1 zip)](appendices/APP_G_EXPORT_PREFLIGHT.md)\n- [Appendix H - Repo-live Publishing (post-v1)](appendices/APP_H_REPO_LIVE_ROADMAP.md)\n- [Changelog](CHANGELOG.md)\n",
+  "in_reply_to": "manual-smoke-001-toc-2026-03-05.json"
+}
