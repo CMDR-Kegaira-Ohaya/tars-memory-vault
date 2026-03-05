@@ -1,9 +1,20 @@
 # Recent commits
 
-Generated: 2026-03-05 01:46 09DT
+Generated: 2026-03-05 01:53 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Refactor manual importer to use shared import_lib | d65dea6
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add import-jobs workflow (job specs + zips -> bounded destinations) | 1035556
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Mark manual drop-zone as legacy; point to general job importer | e1d6030
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add manual import job template for general importer | 3f8b7a4
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Create import templates folder | 259ab9d
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Create import archive jobs folder | 7562c5c
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Create import archive zips folder | c85b3d2
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Create import jobs drop-zone | a2f286c
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Create import zips drop-zone | 0adf564
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Document general job-spec importer and safety policy | ea64f68
+- 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | b7224e0
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add general job-spec importer (zip -> bounded destinations) | ad157a4
 - 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | a125ccb
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add shared import library for safe zip ingestion | 1ed0331
