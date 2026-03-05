@@ -1,0 +1,53 @@
+name: Manual Import
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "ops/import/manual/*.zip"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  import_manual:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Import all dropped zips
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          zips=(ops/import/manual/*.zip)
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "No zips found."
+            exit 0
+          fi
+          for z in "${zips[@]}"; do
+            echo "Importing: $z"
+            python tools/manual_import.py "$z"
+          done
+
+      - name: Commit and push results
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "manual import: ${GITHUB_SHA}"
+            git push
+          else
+            echo "No changes."
+          fi
