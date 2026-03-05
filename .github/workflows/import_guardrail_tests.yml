@@ -1,0 +1,25 @@
+name: Import Guardrail Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "tools/import_guardrail_tests.py"
+      - ".github/workflows/import_guardrail_tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run guardrail tests
+        run: |
+          set -euo pipefaile
+          python tools/import_guardrail_tests.py
