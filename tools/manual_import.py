@@ -17,7 +17,7 @@ import os
 import re
 from pathlib import Path
 
-from tools import import_lib
+from import_lib
 
 BASE = Path("toolkit/manuals/tars-manual")
 DEFAULT_VERSION = 1
