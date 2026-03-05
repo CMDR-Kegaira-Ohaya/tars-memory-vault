@@ -1,6 +1,0 @@
-{
-  "from": "op-a",
-  "channel": "manual",
-  "type": "request",
-  "body": "manual: versions"
-}
