@@ -1,9 +1,11 @@
 # Recent commits
 
-Generated: 2026-03-05 00:26 09DT
+Generated: 2026-03-05 00:27 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add v1 manual release mountpoint README | 56d849a
+- 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | a98e40c
 - 2026-03-05 | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | CMDR-Kegaira-Ohaya <101864926+CMDR-Kegaira-Ohaya@users.noreply.github.com> | Add manual v1 skeleton README | 4d863f4
 - 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | 6509a56
 - 2026-03-05 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | c4fb294
