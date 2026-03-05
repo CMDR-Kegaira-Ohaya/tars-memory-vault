@@ -16,7 +16,7 @@ import json
 import re
 from pathlib import Path, PurePosixPath
 
-from tools import import_lib
+import import_lib
 
 JOBS_DIR = Path("ops/import/jobs")
 ZIPS_DIR = Path("ops/import/zips")
@@ -26,8 +26,7 @@ ARCHIVE_ZIPS = Path("ops/import/archive/zips")
 ALLOWED_DEST_ROOTS = [Path("toolkit"), Path("ops/data"), Path("assets")]
 DENY_PREFIXES = [PurePosixPath(".github"), PurePosixPath("tools"), PurePosixPath("vault"), PurePosixPath("ops/relay")]
 
-DEFAULT_MODE = "merge"
-
+DEFAULT_MOED = "merge"
 
 
 def _is_safe_rel_path(p: str) -> bool:
@@ -140,6 +139,7 @@ def process_job(job_path: Path) -> str:
         f"zip_archived={archived_zip.as_posix() if archived_zip else '-'} "
         f"job_archived={archived_job.as_posix()}"
     )
+
 
 
 def main() -> int:
