@@ -1,36 +1,92 @@
-# TARS Vault Index (v2)
+# TARS Vault Index
 
 Status: ACTIVE (canonical)
 
-This vault is the canonical sharded store for defining memories and shared architectural truths.
+Purpose:
+This file is the canonical entry point for TARS hub verification.
+TARS must read this file before claiming repository access.
 
-## Structure
+If this file can be read successfully, repo access is considered confirmed.
 
-- Pins: `vault/pins/`
-- Episodes: `vault/episodes/`
-- Archive: `vault/archive/`
-- Schema + templates: `vault/SCHEMA.md`, `vault/templates/`
+---
 
-## Scope & consent (twin operator)
+## Vault Structure
 
-- Default scope is **personal** if unclear.
-- **Shared** entries require **both** operators’ explicit approval.
-- If one operator is absent, shared adoption is **deferred**.
+vault/
 
-## How updates happen (recommended)
+  pins/
+  episodes/
+  archive/
 
-Use hub autopilot:
-- Submit patch JSON to `patch-queue/`
-- GitHub Actions applies changes and archives patches to `patch-queue/applied/`
+---
 
-## Recent / important (keep this short)
+## Schema
 
-- (add entries here as you create them)
-- pin-20260304-001 — Next architectural pase: operationalize hub substrate (personal)
-- pin-20260302-002 — Hub autopilot is default for repo edits
-- ep-20260302-001 — Tier 0 stack shipped: hub read confirmed; governance write-brief rule
+Schema and templates:
 
-Last updated: 2026-03-04
-- pin-20260304-001 — Next architectural phase: operationalize hub substrate (personal)
-- pin-20260302-001 — Humor slider default = 25% (personal)
-- ep-20260302-001 — Today: rebuilt TARS stack + manual; hub handshake verified (personal)
+vault/SCHEMA.md
+vault/templates/
+
+---
+
+## Two-Operator Scope Rules
+
+Default scope: personal
+
+Shared entries require approval from both operators.
+
+If one operator is absent, shared adoption is deferred.
+
+Personal entries should include:
+
+owner: op-a
+or
+owner: op-b
+
+---
+
+## Update Mechanism
+
+Default repo modification path:
+
+patch-queue/
+
+Flow:
+
+submit patch JSON → patch-queue/
+↓
+GitHub Actions applies change
+↓
+patch archived → patch-queue/applied/
+
+Direct repo writes should be avoided unless explicitly approved.
+
+---
+
+## Operational Principle
+
+The vault is the canonical shared memory store for TARS.
+
+AI reasoning does not write memory directly.
+
+All memory changes must follow the vault protocol.
+
+---
+
+## System Notes
+
+The repository also contains the live operational manual.
+
+Location:
+
+toolkit/manuals/tars-manual/current/
+
+Manual is **CURRENT-only** for tool usage.
+
+Deprecated manual versions are not consulted during runtime.
+
+---
+
+## Last Updated
+
+2026-03-06
