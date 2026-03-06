@@ -1,5 +1,6 @@
 # TARS Vault Index
 
+READ FIRST: This file is the hub handshake anchor. 
 Status: ACTIVE (canonical)
 
 Purpose:
