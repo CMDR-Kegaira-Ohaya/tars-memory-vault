@@ -1,9 +1,11 @@
 # Recent commits
 
-Generated: 2026-03-06 14:26 09DT
+Generated: 2026-03-06 14:39 09DT
 
 Format: date | author | committer | message | sha
 
+- 2026-03-06 | OP-A <fluffycthulu@hotmail.com> | OP-A <fluffycthulu@hotmail.com> | Add canonical vault index (hub handshake anchor) | ff6a1c0
+- 2026-03-06 | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | tars-ops-bot <tars-ops-bot@users.noreply.github.com> | ops: refresh RECENT_COMMITS | b492790
 - 2026-03-06 | OP-A <fluffycthulu@hotmail.com> | OP-A <fluffycthulu@hotmail.com> | Add canonical vault index (hub handshake anchor) | 3cee2cc
 - 2026-03-05 | OP-A <fluffycthulu@hotmail.com> | OP-A <fluffycthulu@hotmail.com> | Merge branch 'main' of https://github.com/CMDR-Kegaira-Ohaya/tars-memory-vault | 37b3491
 - 2026-03-05 | OP-A <fluffycthulu@hotmail.com> | OP-A <fluffycthulu@hotmail.com> | Add procedure header metadata for EXPORT_PREFLIGHT | 223843c
