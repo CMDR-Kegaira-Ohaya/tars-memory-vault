@@ -1,93 +1,121 @@
-# TARS Vault Index
+# TARS VAULT INDEX
 
-READ FIRST: This file is the hub handshake anchor. 
-Status: ACTIVE (canonical)
+READ FIRST — canonical hub orientation
 
-Purpose:
-This file is the canonical entry point for TARS hub verification.
-TARS must read this file before claiming repository access.
+System: TARS Hybrid-D
+Repo: CMDR-Kegaira-Ohaya/tars-memory-vault
+Branch: main
 
-If this file can be read successfully, repo access is considered confirmed.
+If you are TARS:
+
+1. Confirm Session Lock (OP-A / OP-B)
+2. Read this file
+3. Report STATE snapshot
+4. Continue normal operation
+
+This file is the canonical orientation point for the system.
+
+---
+
+## Purpose
+
+The vault is the canonical persistent store for system memory and architectural truth.
+
+All persistent system knowledge must exist here or be referenced from here.
 
 ---
 
 ## Vault Structure
 
 vault/
-
-  pins/
-  episodes/
-  archive/
+│
+├─ pins/
+│  Permanent architectural decisions and operator commitments
+│
+├─ episodes/
+│  Important system events and development milestones
+│
+├─ archive/
+│  Historical material not needed for active reasoning
+│
+├─ templates/
+│  Memory entry templates
+│
+└─ SCHEMA.md
+   Field definitions for vault entries
 
 ---
 
-## Schema
+## Memory Rules
 
-Schema and templates:
+Memory is written only when at least two signals are present:
 
-vault/SCHEMA.md
-vault/templates/
+• decision lock-in  
+• commitment or rule change  
+• repeated operator preference  
+• conflict resolution  
+• high leverage constraint  
+• defining architectural episode
+
+Unstable or speculative information should not be stored.
 
 ---
 
-## Two-Operator Scope Rules
+## Two-Operator System
 
 Default scope: personal
 
-Shared entries require approval from both operators.
+Shared entries require explicit approval from both operators.
 
-If one operator is absent, shared adoption is deferred.
-
-Personal entries should include:
-
-owner: op-a
-or
-owner: op-b
+If one operator is absent, shared storage is deferred.
 
 ---
 
-## Update Mechanism
+## Repo Update Mechanism
 
-Default repo modification path:
+Preferred update path:
 
-patch-queue/
-
-Flow:
-
-submit patch JSON → patch-queue/
+patch JSON → patch-queue/
 ↓
-GitHub Actions applies change
+GitHub Actions
 ↓
-patch archived → patch-queue/applied/
+patch applied
+↓
+archive to patch-queue/applied/
 
-Direct repo writes should be avoided unless explicitly approved.
-
----
-
-## Operational Principle
-
-The vault is the canonical shared memory store for TARS.
-
-AI reasoning does not write memory directly.
-
-All memory changes must follow the vault protocol.
+Direct repo edits should be rare and explicit.
 
 ---
 
-## System Notes
+## Manual Location
 
-The repository also contains the live operational manual.
-
-Location:
+Live manual (CURRENT version only):
 
 toolkit/manuals/tars-manual/current/
 
-Manual is **CURRENT-only** for tool usage.
-
-Deprecated manual versions are not consulted during runtime.
+Deprecated manual versions are not used by TARS runtime.
 
 ---
 
-## Last Updated
+## Orientation Files
 
-2026-03-06
+TARS should read these in order when performing system orientation:
+
+1. CURRENT_SYSTEM.md
+2. SYSTEM_MAP.md
+3. VERSION.md
+4. PROCEDURE_INDEX.md
+
+---
+
+## Current Status
+
+Vault Status: ACTIVE
+Canonical Store: YES
+
+Last Architectural Phase:
+Operational Hub Substrate Active
+
+---
+
+End of file
