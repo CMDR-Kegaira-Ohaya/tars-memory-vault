@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "vault/templates/ep_template.md",
-  "content": "# Episode Template\n\nID: ep-YYYYMMDDD-###\nSreated: YYYY-MM-DD\nUpdated: YYYY-MM-DD\nScope: personal|shared\nStatus: active|retired\nLock: false|true\nTitle: <short>\n\nMoment:\n<what happened / what changed>\n\nChange:\n<what rule/principle changed because of it>\n\nEvidence:\n<why this is a defining turning point>\n\nConfidence: low|medium|high\nTags: <comma-separated>\n"
-}

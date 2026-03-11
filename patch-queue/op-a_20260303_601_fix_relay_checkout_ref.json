@@ -1,8 +1,0 @@
-{
-  "mode": "replace_text",
-  "path": ".github/workflows/relay.yml",
-  "find": "actions/checkout@2v4",
-  "replace": "actions/checkout@v4",
-  "replace_all": false,
-  "allow_workflows": true
-}

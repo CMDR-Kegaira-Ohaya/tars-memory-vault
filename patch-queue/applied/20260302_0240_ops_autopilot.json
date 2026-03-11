@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "ops/AUTOPILOT.md",
-  "content": "# Autopilot (Hub Patch Queue)\n\nDefault rule: **hub edits go through the patch queue**.\n\nWhy:\n- phone-friendly\n- reliable\n- avoids brittle monolithic writes\n- creates an audit trail\n\n## How to apply a change\n\n1) Create a patch JSON in `patch-queue/` with:\n   - `mode`: `upsert` | `append` | `delete`\n   - `path`: repo file path to change\n   - `content`: text to write (for upsert/append)\n\n2) Push/commit.\n\n3) GitHub Actions:\n   - applies the patch via `tools/apply_patch_queue.py`\n   - moves it to `patch-queue/applied/` (or `patch-queue/failed/` if malformed)\n\n## Guardrails\n\n- Never commit empty patch files.\n- Prefer small, sharded files over large monolithic documents.\n- Shared defaults still require explicit Governance + mutual approval (human rule), regardless of automation.\n\n---\nASP Explorer Log (optional)\n“Queue the patch. Let the ship do the work.”\n"
-}

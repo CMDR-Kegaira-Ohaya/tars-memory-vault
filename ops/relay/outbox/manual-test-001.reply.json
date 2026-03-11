@@ -1,8 +1,0 @@
-{
-  "from": "tars",
-  "to": "op-a",
-  "channel": "manual",
-  "type": "manual",
-  "body": "manual versions:\n- v1: toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04\n",
-  "in_reply_to": "manual-test-001.json"
-}

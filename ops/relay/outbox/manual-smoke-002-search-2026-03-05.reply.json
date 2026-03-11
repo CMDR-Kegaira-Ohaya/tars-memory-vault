@@ -1,8 +1,0 @@
-{
-  "from": "tars",
-  "to": "op-a",
-  "channel": "manual",
-  "type": "manual",
-  "body": "[v1] search 'ops-critical' (top 5)\n- (6) toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04/chapters/CH05A2_opb_tandem_switchboard.md | ## 1) \u0393\u03c1\u03ae\u03b3\u03bf\u03c1\u03bf\u03c2 \u03c7\u03ac\u03c1\u03c4\u03b7\u03c2: \u03c4\u03b9 \u03b1\u03bb\u03bb\u03ac\u03b6\u03b5\u03b9 \u03cc\u03c4\u03b1\u03bd \u03b1\u03bb\u03bb\u03ac\u03b6\u03b5\u03b9 \u03ad\u03bd\u03b1\u03c2 \u03b4\u03b9\u03b1\u03ba\u03cc\u03c0\u03c4\u03b7\u03c2 | `EIGC: ON/OFF | Governance: ON/OFF | Memory: ON/OFF | Ops-critical: ON/OFF | Trace: ON/OFF`\n- (5) toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04/chapters/CH05A_opb_greek_first.md | ## \u039a\u03b1\u03c4\u03ac\u03c3\u03c4\u03b1\u03c3\u03b7 (ON/OFF) | `EIGC: ON/OFF | Governance: ON/OFF | Memory: ON/OFF | Ops-critical: ON/OFF | Trace: ON/OFF`\n- (4) toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04/chapters/CH08_how_tars_works.md | ## Ops-critical mode | ## Ops-critical mode\n- (3) toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04/appendices/APP_E_UI_QUICK_REFERENCE.md | ## State line | `EIGC: ON/OFF | Governance: ON/OFF | Memory: ON/OFF | Ops-critical: ON/OFF | Trace: ON/OFF`\n- (3) toolkit/manuals/tars-manual/v1/TARS-manual-v1-text-2026-03-04/chapters/CH03_start_in_60_seconds.md | ## Boot / Sync (recommended) | What state are we in? (ON/OFF: EIGC, Governance, Memory, Ops-critical, Trace)\n",
-  "in_reply_to": "manual-smoke-002-search-2026-03-05.json"
-}

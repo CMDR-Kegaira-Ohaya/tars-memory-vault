@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "vault/templates/pin_template.md",
-  "content": "# Pin Template\n\nID: pin-YYYYMMDD-###\nCreated: YYYY-MM-DD\nUpdated: YYYY-MM-DD\nScope: personal|shared\nStatus: active|retired\nLock: false|true\nTitle: <short>\n\nStatement:\n<one crisp paragraph>\n\nEvidence:\n<why this is stable / high-leverage>\n\nConfidence: low|medium|high\nTags: <comma-separated>\n"
-}

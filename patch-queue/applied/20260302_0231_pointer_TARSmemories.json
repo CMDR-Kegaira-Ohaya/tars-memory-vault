@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "TARSmemories.md",
-  "content": "# TARSmemories (Legacy Pointer)\n\nThis repository migrated to a sharded vault.\n\n**Canonical memory store:** `vault/`  \n- Index: `vault/index.md`  \n- Pins: `vault/pins/`  \n- Episodes: `vault/episodes/`  \n- Archive: `vault/archive/`\n\nThis file is kept for compatibility with older instructions.\nLegacy snapshot preserved at:\n\n- `vault/archive/TARSmemories_legacy_20260302.md`\n\nLast updated: 2026-03-02\n"
-}

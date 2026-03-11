@@ -1,8 +1,0 @@
-{
-  "from": "tars",
-  "to": "op-a",
-  "channel": "manual",
-  "type": "manual",
-  "body": "manual tool: refused (outside base)\n",
-  "in_reply_to": "manual-smoke-005-refusal-2026-03-05.json"
-}

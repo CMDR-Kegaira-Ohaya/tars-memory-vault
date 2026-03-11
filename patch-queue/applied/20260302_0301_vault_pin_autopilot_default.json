@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "vault/pins/pin-20260302-002.md",
-  "content": "# Pin — Hub Autopilot Default\n\nID: pin-20260302-002\nCreated: 2026-03-02\nUpdated: 2026-03-02\nScope: shared\nStatus: active\nLock: false\nTitle: Hub autopilot is default for repo edits\n\nStatement:\nAll hub edits should go through the autopilot (patch-queue + GitHub Actions). Direct edits are exception-only (emergency fix, or small manual change when Actions are down).\n\nEvidence:\nPatch-queue autopilot has been used successfully to apply repo changes and archive applied patches, enabling reliable edits from phone or any client.\n\nConfidence: high\nTags: autopilot, patch-queue, github-actions, hub, reliability, shared\n"
-}

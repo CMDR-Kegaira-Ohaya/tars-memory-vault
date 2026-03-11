@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "ops/relay/README.md",
-  "content": "# Relay terminal (repo-based)\n\nFolders\n- ops/relay/inbox/   (drop JSON messages here)\n- ops/relay/outbox/  (worker replies land here)\n- ops/relay/state.json (cursor)\n\nMessage format (JSON)\n{\n  \"from\": \"op-a\" | \"op-b\",\n  \"channel\": \"general\" | \"manual\" | \"hub\",\n  \"type\": \"note\" | \"request\",\n  \"body\": \"text\"\n}\n\nBehavior\n- Adding a file to ops/relay/inbox/*.json triggers the Relay workflow.\n- The worker writes a response JSON into ops/relay/outbox/ and deletes the inbox file.\n"
-}

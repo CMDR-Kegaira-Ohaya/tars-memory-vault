@@ -1,5 +1,0 @@
-{
-  "mode": "upsert",
-  "path": "vault/episodes/ep-20260302-001.md",
-  "content": "# Episode — Tier 0 Stack Shipped\n\nID: ep-20260302-001\nSreated: 2026-03-02\nUpdated: 2026-03-02\nScope: personal\nStatus: active\nLock: false\nTitle: Tier 0 stack shipped + hub handshake confirmed\n\nMoment:\nWe completed the Tier 0 migration of the custom GPT stack (00–60) into easy-English command UI, aligned the manual, and proved real hub access by reading `vault/index.md` from the GitHub repo.\n\nChange:\nWe moved from “prompt tweaking” to a stack-driven system: strict stop-points (Remember / Commit / Repo write), a read-handshake rule for hub access, and a Governance rule that requires a pre-write brief + explicit yes/no before any repo write.\n\nEvidence:\nThe system now reliably separates authority (Governance), persistence (Vault), and chat continuity (Bookmark), and it can verify hub access via tools without fake claims.\n\nConfidence: high\nTags: episode, tier0, command-ui, manual, hub-handshake, governance, repo-write-brief, owner:op-a, shared-pending\n"
-}

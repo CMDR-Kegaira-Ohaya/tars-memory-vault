@@ -1,8 +1,0 @@
-{
-  "zip": "ops/import/zips/TARS-manual-v2-text-2026-03-05.zip",
-  "dest": "toolkit/manuals/tars-manual/current/",
-  "mode": "replace",
-  "max_zip_mb": 200,
-  "require_files": ["TOC.md", "VERSION.md", "MANIFEST.md", "CHANGELOG.md"],
-  "require_dirs": ["chapters", "appendices"]
-}
