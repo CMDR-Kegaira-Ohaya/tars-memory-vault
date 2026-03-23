@@ -6,6 +6,26 @@ Live connector surface for the repo-locked GitHub action bound to `CMDR-Kegaira-
 ## Purpose
 Record the currently exposed GitHub operations available to TARS for this repository, with notes about what has been validated live.
 
+## Current connector profile
+- Action title: `TARS GitHub Repo Connector`
+- Action version: `1.3.0`
+- Auth model: GPT Action editor `API Key -> Bearer`
+- Token model: fine-grained GitHub PAT stored in the editor, not in the schema
+- Ref path model: fresh ref operations only
+- Legacy ref operations: removed from the current action schema
+
+## Current repository permission profile
+- Metadata: read
+- Actions: read/write
+- Actions variables: read/write
+- Code: read/write
+- Commit statuses: read/write
+- Custom properties for repositories: read/write
+- Deployments: read/write
+- Pages: read/write
+- Pull requests: read/write
+- Workflows: read/write
+
 ## Capability groups
 
 ### Auth
@@ -70,6 +90,10 @@ The connector is working for:
 - live ref reads through `getGitRefFresh`
 - live ref movement through `updateGitRefFresh`
 
+## Permission note
+The current fine-grained PAT permission profile is sufficient for the live connector surface currently in use.
+That conclusion is based both on the configured permission set and on successful live validation of reads, file writes, branch creation, and fresh ref movement.
+
 ## Working rule
 For normal repo work:
 - prefer `saveFile`
@@ -81,5 +105,5 @@ For low-level ref movement:
 - use `updateGitRefFresh`
 
 ## Boundary
-This file records connector surface and current practical availability.
-It does not by itself define repo policy or permission guarantees.
+This file records connector surface, current action profile, and current practical availability.
+It does not by itself define repo policy or permission guarantees beyond the current validated connector state.
