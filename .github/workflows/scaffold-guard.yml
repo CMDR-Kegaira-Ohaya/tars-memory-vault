@@ -1,0 +1,30 @@
+name: scaffold-guard
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scaffold-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@4
+
+      - name: Fail if known old-shape paths return
+        run: |
+          set -euo
+          test ! -e work/DEV
+          test ! -e logs/decisions/DEV
+          test ! -e logs/decisions/incidents
+
+      - name: Fail if legacy ref action mentions return in repo docs
+        run: |
+          set -euo
+          if grep -RInq "(`getRef`|`updateRef`)" repo-manual; then
+            echo "Legacy ref mention found in repo-manual."
+            exit 1
+          fi
