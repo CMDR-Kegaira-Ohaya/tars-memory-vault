@@ -21,18 +21,11 @@ Record the currently exposed GitHub operations available to TARS for this reposi
 - `deleteFile`
 
 ### Branches and refs
-Legacy ref operations:
-- `getRef`
-- `updateRef`
-
-Fresh validated ref operations:
-- `getGitRefFresh`
-- `updateGitRefFresh`
-
-Other branch/ref operations:
 - `listBranches`
 - `getBranchRef`
 - `createBranch`
+- `getGitRefFresh`
+- `updateGitRefFresh`
 
 ### Git objects
 - `getTree`
@@ -77,16 +70,6 @@ The connector is working for:
 - live ref reads through `getGitRefFresh`
 - live ref movement through `updateGitRefFresh`
 
-## Legacy vs fresh ref status
-Legacy ref path:
-- `getRef` and especially `updateRef` should be treated as legacy behavior
-- legacy `updateRef` was the unstable path during earlier validation
-
-Fresh ref path:
-- `getGitRefFresh` is validated live
-- `updateGitRefFresh` is validated live
-- disposable-branch validation succeeded by moving `test-update-ref` to a newly created commit
-
 ## Working rule
 For normal repo work:
 - prefer `saveFile`
@@ -94,8 +77,8 @@ For normal repo work:
 - include the current `sha` on file updates
 
 For low-level ref movement:
-- use the fresh ref operations
-- treat the legacy ref operations as historical and non-preferred
+- use `getGitRefFresh`
+- use `updateGitRefFresh`
 
 ## Boundary
 This file records connector surface and current practical availability.
