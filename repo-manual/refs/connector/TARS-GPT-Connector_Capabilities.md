@@ -4,7 +4,7 @@
 Live connector surface for the repo-locked GitHub action bound to `CMDR-Kegaira-Ohaya/tars-memory-vault`.
 
 ## Purpose
-Record the currently exposed GitHub operations available to TARS for this repository.
+Record the currently exposed GitHub operations available to TARS for this repository, with notes about what has been validated live.
 
 ## Capability groups
 
@@ -21,10 +21,17 @@ Record the currently exposed GitHub operations available to TARS for this reposi
 - `deleteFile`
 
 ### Branches and refs
-- `listBranches`
-- `getBranchRef`
+Legacy ref operations:
 - `getRef`
 - `updateRef`
+
+Fresh validated ref operations:
+- `getGitRefFresh`
+- `updateGitRefFresh`
+
+Other branch/ref operations:
+- `listBranches`
+- `getBranchRef`
 - `createBranch`
 
 ### Git objects
@@ -57,7 +64,7 @@ Record the currently exposed GitHub operations available to TARS for this reposi
 - `getPagesSite`
 
 ## Count
-30 operations total.
+30 operations total in the intended action surface.
 
 ## Runtime note
 The connector is working for:
@@ -65,17 +72,31 @@ The connector is working for:
 - private repo reads
 - root and path reads
 - direct file writes through `saveFile`
+- branch creation
+- low-level git object creation
+- live ref reads through `getGitRefFresh`
+- live ref movement through `updateGitRefFresh`
 
-A current low-level limitation remains:
-- `updateRef` is exposed, but in live use it has not behaved reliably through this connector path
+## Legacy vs fresh ref status
+Legacy ref path:
+- `getRef` and especially `updateRef` should be treated as legacy behavior
+- legacy `updateRef` was the unstable path during earlier validation
+
+Fresh ref path:
+- `getGitRefFresh` is validated live
+- `updateGitRefFresh` is validated live
+- disposable-branch validation succeeded by moving `test-update-ref` to a newly created commit
 
 ## Working rule
 For normal repo work:
 - prefer `saveFile`
 - use `getPath` before updating an existing file
 - include the current `sha` on file updates
-- reserve low-level git-object flows for special cases or later troubleshooting
+
+For low-level ref movement:
+- use the fresh ref operations
+- treat the legacy ref operations as historical and non-preferred
 
 ## Boundary
 This file records connector surface and current practical availability.
-It does not by uself define repo policy or permission guarantees.
+It does not by itself define repo policy or permission guarantees.
