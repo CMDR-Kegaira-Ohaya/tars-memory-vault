@@ -24,7 +24,12 @@ Add new entries here when a failure mode becomes repeatable and a working proced
   - workflow files are protected by missing permissions
   - token or action path lacks workflow write capability
 
-## Procedure: `saveFile` content encoding
+- low-level ref update failure
+  - auth and reads may work while `updateRef` still fails at runtime
+  - if `getRef` works, commit creation works, and `updateRef` still returns `404`., treat the low-level ref-update path as unstable for now
+  - use direct file writes instead of depending on ref movement for ordinary repo work
+
+2# Procedure: `saveFile` content encoding
 
 GitHub’s API for `saveFile` requires the file content to be Base64-encoded UTF-8.
 
@@ -44,6 +49,32 @@ Precision note:
 - if repeated `422` errors say `content is not valid Base64`, first suspect corruption in the encoded payload itself
 - common causes are accidental whitespace inside the Base64 string, truncation, or mixed raw text and encoded text in the same payload
 - the successful recovery pattern is: use one exact replacement payload generated mechanically from the final UTF-8 file text, then retry the write
+
+## Procedure: normal repo writes
+
+Default write path:
+1. use `getPath` if the file already exists
+2. capture the current `sha`
+3. write with `saveFile`
+4. treat this as the normal path for repo docs and scaffold files
+
+Operational rule:
+- prefer `saveFile` over `createTree -> createCommit -> updateRef` for normal repo maintenance
+- reserve low-level git-object flows for advanced multi-file construction or later recovery work
+
+## Procedure: low-level git-object path
+
+Use only when the normal file-write path is clearly not sufficient.
+
+Sequence:
+1. `createBlob`
+2. `createTree`
+3. `createCommit`
+4. `updateRef`
+
+Current repo note:
+- this path has not yet been fully reliable through the connector because `updateRef` has remained unstable in live use
+- do not treat it as the default path
 
 ## Procedure: workflow-related edits
 
