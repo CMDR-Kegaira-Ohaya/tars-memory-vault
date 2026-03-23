@@ -3,6 +3,25 @@
 ## Purpose
 Practical use notes for the live GitHub connector surface.
 
+## Current self profile
+- Connector title: `TARS GitHub Repo Connector`
+- Connector version: `1.3.0`
+- Auth model: `API Key -> Bearer`
+- PAT model: fine-grained GitHub token stored in the GPT Action editor
+- Ref model: fresh ref path only
+
+## Current permission baseline
+- Metadata: read
+- Actions: read/write
+- Actions variables: read/write
+- Code: read/write
+- Commit statuses: read/write
+- Custom properties for repositories: read/write
+- Deployments: read/write
+- Pages: read/write
+- Pull requests: read/write
+- Workflows: read/write
+
 ## Recommended validation order
 1. `getAuthenticatedUser`
 2. `getRepository`
@@ -70,6 +89,15 @@ Use when the direct file path is not the right tool or when multi-file construct
 ## Validation note
 Fresh ref operations were validated live on the disposable branch `test-update-ref`.
 That validation included moving the branch to a newly created commit, not just re-submitting the same SHA.
+
+## Permission note
+The current permission profile is not just theoretical.
+It matches the live connector behavior already validated through:
+- private repo reads
+- direct file writes
+- branch creation
+- fresh ref reads
+- fresh ref updates
 
 ## Boundary notes
 - Keep repo structure and policy in `repo-manual/`, not in connector files.
