@@ -1,30 +1,59 @@
 # 10_ROUTER.md
 
-## Routing rules
+## Purpose
+This file routes operators and future repo-side logic to the correct section of the repository.
 
-### For repo guidance
-Go to `repo-manual/core/`.
+## Route by intent
 
-### For navigation help
-Go to `repo-manual/navigation/`.
+### Understand repo state
+Go to:
+- `REPO_BOOTSTRAP.md`
+- `repo-manual/core/00_ORIENTATION.md`
+- `repo-manual/core/01_SYSTEM_MAP.md`
 
-### For procedures
-Go to `repo-manual/procedures/`.
+### Find the governing map
+Go to:
+- `repo-manual/core/10_ROUTER.md`
+- `repo-manual/core/11_PIPELINES.md`
 
-### For workflow documentation
-Go to `repo-manual/workflows/`.
+### Find stable repo guidance
+Go to:
+- `repo-manual/core/`
 
-### For troubleshooting and recovery patterns
-Go to `repo-manual/troubleshooting/`.
+### Find navigation help
+Go to:
+- `repo-manual/navigation/`
 
-### For connector surface and operation reference
-Go to `repo-manual/refs/connector/`.
+### Find procedures
+Go to:
+- `repo-manual/procedures/`
 
-### For unstable drafts or in-progress work
-Go to `work/`.
+### Find workflow documentation
+Go to:
+- `repo-manual/workflows/`
 
-### For domain/content holdings
-Go to `collections/`.
+### Find troubleshooting or recovery patterns
+Go to:
+- `repo-manual/troubleshooting/`
 
-### For decision memory and incidents
-Go to `logs/`.
+### Find connector surface and connector-use notes
+Go to:
+- `repo-manual/refs/connector/`
+
+### Find unstable drafts or active work
+Go to:
+- `work/`
+
+### Find content or domain holdings
+Go to:
+- `collections/`
+
+### Find decision memory or incidents
+Go to:
+- `logs/`
+
+## Practical rule
+If the material explains how the repo should behave, place it in `repo-manual/`.
+If it is still being shaped, keep it in `work/`.
+If it is subject matter or holdings, place it in `collections/`.
+If it records what changed or what broke, place it in `logs/`.
