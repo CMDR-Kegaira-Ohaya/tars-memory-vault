@@ -18,7 +18,7 @@ Terminal should function like a distinct console shell:
 - a clear boundary between shell, content, and engines
 
 The terminal should become its own thing.
-The old "device shell" idea is the functional model, not a stylistic limit.
+The old "device-shell" idea is the functional model, not a stylistic limit.
 
 ## What terminal is
 
@@ -48,14 +48,7 @@ Terminal should treat cartridges as intentional, typed, loadable units, not as a
 Early cartridge types:
 - markdown
 - text
-- JSON
-
-#A Later types:
-- book modules
-- interactive modules
-- games
-- tools
-- engine-backed applications
+- json
 
 ## Cartridge source classes
 
@@ -64,6 +57,30 @@ Early cartridge types:
 - drag-and-drop cartridges ― external loads from dropped input
 
 External cartridges should be treated as external input, not as automatically installed repo content.
+
+## Canonical repo cartridge roots
+
+The first canonical repo cartridge root is:
+
+- `collections/`
+
+This is the first normal repo-facing content surface for terminal.
+
+Within `collections/`, the shell should be able to surface:
+- `collections/books/`
+- `collections/entertainment/`
+- `collections/various/`
+
+Other repo areas may become loadable later, but they should not be assumed as default cartridge roots unless explicitly approved.
+
+## Non-default repo surfaces
+
+These are real repo surfaces, but they should not define the normal user-content shell in v1:
+- `repo-manual/`
+- `logs/`
+- `work/`
+
+They can be surfaced later as admin, system, or special purpose views when that is desired.
 
 ## Loading rule
 
@@ -82,10 +99,10 @@ Over time, each loadable cartridge should be selectable by a small, explicit des
 Renderers display content.
 Engines run behavior.
 
-Example renderers:/
+Example renderers:
 - markdown reader
 - text viewer
-- JSON-driven viewer or player
+- json-driven viewer or player
 
 Example engines:
 - book system
@@ -124,17 +141,16 @@ This provides:
 
 The shell should eventually have a small, recognizable set of modes.
 
-Example mode families:
-- home
-- library
-- data
-- games
-- tools
-- cartridges / loads
-- saves
-- settings
+V1 mode families:
+- Home
+- Collections
+- Cartridges
+- Runs
+- Saves
+- System
 
-These names may change, but the idea should stay the same: mode-based navigation inside one persistent shell.
+Collections is the repo-true content moe for v1.
+It maps directly to the `collections/` surface instead of inventing a parallel library vocabulary too early.
 
 ## Cartridge lifecycle
 
@@ -157,19 +173,19 @@ Mockups, PNG concepts, and CSS should eventually define:
 - the content viewport
 - the save/memory surface
 
-The bhehavior should not depend on the final skin.
+The behavior should not depend on the final skin.
 The shell model comes first; the skin makes it alive later.
 
 ## Growth path
 
 Phase 1:
 - shell
-- basic modes
+- v1 modes
 - repo / disk / drag-drop loading
-- markdown text JSON cartridges
+- markdown text json cartridges
 
 Phase 2:
-- library and book loading
+- collections-driven reading
 - richer structured modules
 - stable save/slot behavior
 
