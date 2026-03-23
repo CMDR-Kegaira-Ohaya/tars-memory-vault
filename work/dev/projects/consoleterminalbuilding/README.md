@@ -2,36 +2,37 @@
 
 ## Purpose
 
-This file is the single working board for building the terminal system.
+This is the single working board for building the terminal system.
 
 It combines:
-- the terminal charter
-- the corrected shell model
-- the structural architecture
-- the current build direction
-- the current board-mode rules
+- terminal charter
+- corrected shell model
+- structural architecture
+- current build direction
+- current Boards-mode rules
+- current Save / Export model
 
 This board lives under:
 
 `work/dev/projects/consoleterminalbuilding/`
 
-so the terminal design-and-build plan is kept in project work space, not inside the runtime-facing `terminal/` layer itself.
+so terminal design-and-build planning stays in project workspace, not inside the runtime-facing `terminal/` layer.
 
 ## Relationship to `terminal/`
 
-`terminal/` remains the repo layer reserved for the terminal system itself.
+`terminal/` remains the repo layer reserved for the terminal runtime itself.
 
-This working board is moved out of `terminal/` on purpose:
-- to keep `terminal/` clean as a runtime-facing layer
-- to keep planning and build orchestration in project work space
-- to let the implementation grow later without mixing runtime surfaces and active design planning
+This working board is intentionally outside `terminal/`:
+ - to keep `terminal/` clean as a runtime-facing layer
+- to keep planning and build orchestration in project workspace
+- to let implementation grow later without mixing runtime surfaces and active design planning
 
 ## Core identity
 
 Terminal is the repo’s user-facing shell and cartridge host.
 
 It is not just a web page or a link hub.
-It is the contained device-like interface through which the user loads, reads, runs, and saves repo-contained or external cartridges.
+It is the contained device-like interface through which the user loads, reads, runs, exports, and saves repo-contained or external cartridges.
 
 Terminal should behave like:
 - one persistent shell
@@ -39,7 +40,8 @@ Terminal should behave like:
 - mounted cartridges and modules
 - persistent shell state
 - bounded save behavior
-- a clear separation between shell, content, and engines
+- clear export behavior
+- a clean separation between shell, content, and engines
 
 The terminal should become its own thing.
 The old “device shell” idea is a functional reference, not a stylistic limit.
@@ -59,13 +61,18 @@ It may write only under:
 
 `terminal/saves/<tag>/`
 
-### 4. Repo-true content roots
+### 4. Export is outbound, not persistence
+Export is not Save.
+Export lets the user take content out.
+It does not create repo writes and does not imply terminal persistence.
+
+### 5. Repo-true content roots
 Terminal should mirror real repo domains where those domains already exist.
 
-### 5. External cartridges stay external
+### 6. External cartridges stay external
 Disk and drag-drop cartridges do not automatically become repo content.
 
-### 6. Boards mode is live readout only
+### 7. Boards mode is live readout only
 Working boards are read at source and displayed in terminal.
 They are not saved through terminal GUI and do not use `terminal/saves/`.
 
@@ -111,7 +118,7 @@ It only creates a special-purpose readout path for working boards.
 
 ### Home
 Shell overview.
-Shows current mount, recent saves, quick actions, and system context.
+Shows current mount, recent saves, export availability, quick actions, and system context.
 
 ### Collections
 The main repo-facing content mode.
@@ -163,23 +170,93 @@ The terminal screen updates its readout from the live source.
 ### Save rule in Boards mode
 Boards never write to `terminal/saves/`.
 
+### Export rule in Boards mode
+Boards may be exported.
+Export is allowed because it does not modify workspace.
+Save remains disabled.
+
 ### GUI behavior rule
 In Boards mode:
 - Save should be greyed out or disabled
-- selecting Save may show an explanation popup
+- Export Source may stay enabled
+- Export Output should appear as a greyed-out placeholder for later implementation
+- selecting disabled Save may show an explanation popup
 
 Suggested explanation:
 
-> Working boards are source files in workspace.
-> Update them at their live path, not through terminal GUI.
+^ Working boards are source files in workspace.  
+^ Update them at their live path, not through terminal GUI.
 
 ### Status-strip rule
 Boards mode should visibly identify itself as read-only live board display.
 
-Example status indicators:
+Example indicators:
 - `MODE: BOARDS`
 - `SOURCE: work/dev/projects/...`
 - `STATE: READ-ONLY LIVE BOARD`
+- `SAVE: DISABLED`
+- `EXPORT SOURCE: AVAILABLE`
+- `EXPORT OUTPUT: PLACEHOLDER`
+
+## Terminal actions: Save and Export
+
+Save and Export should sit next to each other in the shell, but they must mean different things.
+
+### Save
+Save = terminal-side persistence of allowed state.
+
+Save:
+- writes only into `terminal/saves/<tag>/`
+- is used for state, progress, or terminal-bounded persistence
+- does not mean “take a file out”
+
+### Export
+Export = outbound user grab / download / extract action.
+
+Export:
+- does not create repo writes
+- does not require terminal save state
+- lets the user take content out cleanly
+
+### Export forms
+
+#### Export Source
+Take the mounted source file or declared package.
+
+This is the first-priority export form for v1.
+It supports the “grab a file from library” use case.
+
+### Export Output
+Take the rendered or transformed output form.
+
+This should exist in the UI as a placeholder, but remain greyed out in early builds until implemented.
+
+## Save / Export behavior by mode
+
+### Collections
+- Save: enabled when a cartridge supports state
+- Export Source: enabled when the mounted item is exportable
+- Export Output: greyed-out placeholder initially
+
+### Boards
+- Save: disabled
+- Export Source: enabled
+- Export Output: greyed-out placeholder
+
+### Cartridges
+- Save: depends on mounted cartridge
+- Export Source: usually available when a source exists
+- Export Output: placeholder initially
+
+### Runs
+- Save: depends on mounted cartridge or engine
+- Export Source: depends on mounted item
+- Export Output: placeholder initially
+
+### Saves
+- Save: not the action focus here; this is the management mode
+- Export Source: export save package or slot data later
+- Export Output: not primary
 
 ## Cartridge source classes
 
@@ -266,48 +343,23 @@ Boards may later use a lighter descriptor or approved-root enumeration instead o
 ## Cartridge and board lifecycle
 
 ### Normal cartridge lifecycle
-
 1. detect
 2. classify
 3. resolve
 4. mount
 5. render or run
 6. save if applicable
-7. resume or eject
-
-#### Detect
-Input arrives from repo, disk, or drag-drop.
-
-#### Classify
-Terminal determines:
-- source class
-- cartridge type
-- trust class
-- supported or unsupported status
-
-#### Resolve
-Terminal selects the correct renderer or engine.
-
-#### Mount
-The cartridge becomes the active mounted unit in shell state.
-
-#### Render or run
-The cartridge is displayed or executed inside `Runs`.
-
-#### Save
-If the cartridge supports persistence, it writes only into its dedicated save slot.
-
-#### Resume or eject
-The cartridge can be resumed from saved state or cleanly ejected.
+7. export if requested
+8. resume or eject
 
 ### Board lifecycle
-
 1. enumerate
 2. select
 3. mount
 4. display live readout
-5. refresh on source change
-6. unmount or switch board
+5. export source if requested
+6. refresh on source change
+7. unmount or switch board
 
 Boards do not have a save step in terminal.
 
@@ -385,6 +437,9 @@ The shell should always know:
 - cartridge or board type
 - active renderer or engine
 - active save tag if applicable
+- save availability
+- export-source availability
+- export-output availability
 - dirty or saved state if applicable
 - read-only live-board state when in Boards mode
 
@@ -398,6 +453,9 @@ Conceptually:
   "type": "markdown",
   "renderer": "markdown-reader",
   "saveTag": "books-example-001",
+  "save": "enabled",
+  "exportSource": "available",
+  "exportOutput": "placeholder",
   "dirty": false
 }
 ```
@@ -413,6 +471,9 @@ Boards-mode conceptually:
   "type": "markdown-board-readout",
   "renderer": "markdown-reader",
   "saveTag": null,
+  "save": "disabled",
+  "exportSource": "available",
+  "exportOutput": "placeholder",
   "dirty": null,
   "state": "read-only-live-board"
 }
@@ -427,6 +488,8 @@ Terminal should follow these behavioral rules:
 - boards are mounted as live readouts, not copied into terminal state
 - active state is always visible somewhere in the shell
 - save behavior is visible and bounded
+- export behavior is visible and distinct from save
+- Export Output may appear before implementation, but should be visibly placeholder / disabled
 - eject and resume are first-class operations where applicable
 - board readout visibly communicates read-only status
 
@@ -464,20 +527,23 @@ terminal/
 - repo/disk/drop loading
 - markdown/text/json cartridge handling
 - bounded save model
-- boards mode live readout
+- Export Source for basic supported items
+- Export Output visible as placeholder
+- Boards mode live readout
 
 ### Phase 2
 - collections-driven reading
 - richer structured modules
 - stronger save/resume behavior
-- more complete shell state
 - better board enumeration and board status UX
+- broader export support
 
 ### Phase 3
 - engine-backed modules
 - game cartridges
 - deeper identity and visual system
 - richer runtime coordination
+- real Export Output flows where useful
 
 ## Immediate build board
 
@@ -502,14 +568,22 @@ Create the main render/run viewport.
 ### Build target F — save manager
 Route all allowed writes only into `terminal/saves/<tag>/`.
 
-### Build target G — manifest system
+### Build target G — export controls
+Implement:
+- Export Source for supported mounted items
+- greyed-out Export Output placeholder in the shell action set
+- clear figural distinction between Save and Export
+
+### Build target H — manifest system
 Introduce manifest-driven cartridge selection for canonical repo cartridges.
 
-### Build target H — boards-mode guardrails
+### Build target I — boards-mode guardrails
 Implement:
 - greyed-out Save in Boards mode
-- explanation popup for disabled save
+- explanation popup for disabled Save
 - read-only live-board status indicators
+- Export Source enabled in Boards mode
+- Export Output placeholder disabled in Boards mode
 
 ## Working rule
 
@@ -520,6 +594,7 @@ Terminal architecture must remain clear and bounded:
 - persistent shell
 - repo-true content surfaces
 - special-purpose board readout from approved work paths
+- distinct Save vs Export behavior
 - its own visual and behavioral identity
 
 The terminal should become more coherent as it grows, not merely larger.
