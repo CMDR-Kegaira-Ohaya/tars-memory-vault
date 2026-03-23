@@ -24,12 +24,12 @@ Add new entries here when a failure mode becomes repeatable and a working proced
   - workflow files are protected by missing permissions
   - token or action path lacks workflow write capability
 
-- legacy low-level ref update failure
-  - auth and reads may work while legacy `updateRef` still fails at runtime
-  - if `getRef` works, commit creation works, and legacy `updateRef` still returns `404`, treat the legacy low-level ref-update path as unstable
-  - do not use legacy `updateRef` as the preferred path
+- low-level ref-update path issues
+  - if auth and reads work but a ref-update path faails at runtime, treat the ref-update path as suspect
+  - use the validated fresh ref path in this action surface when low-level ref movement is required
 
-## Confirmed connector updateRef resolution
+## Confirmed connector ref-update resolution
+
 Fresh ref operations were validated live:
 
 - `getGitRefFresh` works
@@ -37,8 +37,7 @@ Fresh ref operations were validated live:
 - disposable-branch validation succeeded by moving `test-update-ref` to a newly created commit
 
 Working rule:
-- legacy `getRef` / `updateRef` = unstable / non-preferred
-- fresh `getGitRefFresh` / `updateGitRefFresh` = validated live
+- for low-level ref movement, use the fresh ref path
 - for normal repo maintenance, still prefer `saveFile`
 
 ## Procedure: `saveFile` content encoding
@@ -53,7 +52,7 @@ Use this as the default procedure unless a smaller direct path is clearly safe:
 
 Markdown default:
 - for `.md` files, prefer one exact replacement payload generated mechanically from the final Markdown text
-- do not hand-edit Base64 for Markdown writes
+- do not hand-edit Base64 for Markdown writers
 - do not mix raw Markdown text and encoded payload text in the same write path unless the tool explicitly requires it
 - prefer this Markdown rule even when the file is small, because it reduces payload corruption risk and keeps repo behavior consistent
 
@@ -71,7 +70,7 @@ Default write path:
 4. treat this as the normal path for repo docs and scaffold files
 
 Operational rule:
-- prefer `saveFile` over `createTree -> createCommit -> updateRef` for normal repo maintenance
+- prefer `saveFile` over `createTree -> createCommit -> update a ref` for normal repo maintenance
 - reserve low-level git-object flows for advanced multi-file construction or later recovery work
 
 ## Procedure: low-level git-object path
@@ -83,10 +82,6 @@ Preferred sequence now:
 2. `createTree`
 3. `createCommit`
 4. `updateGitRefFresh`
-
-Legacy note:
-- do not default to legacy `updateRef`
-- use the fresh ref path when low-level ref movement is required
 
 ## Procedure: workflow-related edits
 
