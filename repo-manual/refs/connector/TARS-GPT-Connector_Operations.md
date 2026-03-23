@@ -33,25 +33,15 @@ Use when the direct file path is not the right tool or when multi-file construct
 - `createBlob`
 - `createTree`
 - `createCommit`
-- fresh ref read/update operations
-
-### Branch and ref work
-Preferred ref path:
 - `getGitRefFresh`
 - `updateGitRefFresh`
 
-Other branch/ref operations:
+### Branch and ref work
 - `listBranches`
 - `getBranchRef`
 - `createBranch`
-
-Legacy ref path:
-- `getRef`
-- `updateRef`
-
-Operational note:
-- treat the legacy ref path as historical and non-preferred
-- use the fresh ref path for actual low-level ref movement
+- `getGitRefFresh`
+- `updateGitRefFresh`
 
 ### Pull request flow
 - `listPullRequests`
