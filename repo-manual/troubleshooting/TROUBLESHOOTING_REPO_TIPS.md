@@ -24,12 +24,24 @@ Add new entries here when a failure mode becomes repeatable and a working proced
   - workflow files are protected by missing permissions
   - token or action path lacks workflow write capability
 
-- low-level ref update failure
-  - auth and reads may work while `updateRef` still fails at runtime
-  - if `getRef` works, commit creation works, and `updateRef` still returns `404`., treat the low-level ref-update path as unstable for now
-  - use direct file writes instead of depending on ref movement for ordinary repo work
+- legacy low-level ref update failure
+  - auth and reads may work while legacy `updateRef` still fails at runtime
+  - if `getRef` works, commit creation works, and legacy `updateRef` still returns `404`, treat the legacy low-level ref-update path as unstable
+  - do not use legacy `updateRef` as the preferred path
 
-2# Procedure: `saveFile` content encoding
+## Confirmed connector updateRef resolution
+Fresh ref operations were validated live:
+
+- `getGitRefFresh` works
+- `updateGitRefFresh` works
+- disposable-branch validation succeeded by moving `test-update-ref` to a newly created commit
+
+Working rule:
+- legacy `getRef` / `updateRef` = unstable / non-preferred
+- fresh `getGitRefFresh` / `updateGitRefFresh` = validated live
+- for normal repo maintenance, still prefer `saveFile`
+
+## Procedure: `saveFile` content encoding
 
 GitHub’s API for `saveFile` requires the file content to be Base64-encoded UTF-8.
 
@@ -66,15 +78,15 @@ Operational rule:
 
 Use only when the normal file-write path is clearly not sufficient.
 
-Sequence:
+Preferred sequence now:
 1. `createBlob`
 2. `createTree`
 3. `createCommit`
-4. `updateRef`
+4. `updateGitRefFresh`
 
-Current repo note:
-- this path has not yet been fully reliable through the connector because `updateRef` has remained unstable in live use
-- do not treat it as the default path
+Legacy note:
+- do not default to legacy `updateRef`
+- use the fresh ref path when low-level ref movement is required
 
 ## Procedure: workflow-related edits
 
