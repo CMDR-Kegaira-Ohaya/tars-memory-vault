@@ -4,9 +4,9 @@
 Live connector surface for the repo-locked GitHub action bound to `CMDR-Kegaira-Ohaya/tars-memory-vault`.
 
 ## Purpose
-Record the currently available GitHub operations exposed to TARS for this repository.
+Record the currently exposed GitHub operations available to TARS for this repository.
 
-## Operation groups
+## Capability groups
 
 ### Auth
 - `getAuthenticatedUser`
@@ -59,7 +59,23 @@ Record the currently available GitHub operations exposed to TARS for this reposi
 ## Count
 30 operations total.
 
-## Notes
-- This file records connector availability, not repo policy.
-- Successful runtime use still depends on token scope, repo permissions, and path correctness.
-- Contents writes use Base64 payloads through the connector layer.
+## Runtime note
+The connector is working for:
+- authentication
+- private repo reads
+- root and path reads
+- direct file writes through `saveFile`
+
+A current low-level limitation remains:
+- `updateRef` is exposed, but in live use it has not behaved reliably through this connector path
+
+## Working rule
+For normal repo work:
+- prefer `saveFile`
+- use `getPath` before updating an existing file
+- include the current `sha` on file updates
+- reserve low-level git-object flows for special cases or later troubleshooting
+
+## Boundary
+This file records connector surface and current practical availability.
+It does not by uself define repo policy or permission guarantees.
