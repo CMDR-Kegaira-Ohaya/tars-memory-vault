@@ -29,18 +29,29 @@ Use this order to separate auth failures from repo-targeting failures.
 - `deleteFile` with the current file `sha`
 
 ### Low-level git path
-Use when the direct file path is unstable or when multi-file construction needs finer control:
+Use when the direct file path is not the right tool or when multi-file construction needs finer control:
 - `createBlob`
 - `createTree`
 - `createCommit`
-- `updateRef`
+- fresh ref read/update operations
 
 ### Branch and ref work
+Preferred ref path:
+- `getGitRefFresh`
+- `updateGitRefFresh`
+
+Other branch/ref operations:
 - `listBranches`
 - `getBranchRef`
-- `getRef`
 - `createBranch`
+
+Legacy ref path:
+- `getRef`
 - `updateRef`
+
+Operational note:
+- treat the legacy ref path as historical and non-preferred
+- use the fresh ref path for actual low-level ref movement
 
 ### Pull request flow
 - `listPullRequests`
@@ -66,7 +77,11 @@ Use when the direct file path is unstable or when multi-file construction needs 
 ### Pages
 - `getPagesSite`
 
+## Validation note
+Fresh ref operations were validated live on the disposable branch `test-update-ref`.
+That validation included moving the branch to a newly created commit, not just re-submitting the same SHA.
+
 ## Boundary notes
 - Keep repo structure and policy in `repo-manual/`, not in connector files.
 - Promote repeated recovery knowledge into `repo-manual/troubleshooting/`.
-- Treat connector operations as capabilities, not permissions guarantees.
+- Treat connector operations as capabilities first, and as trusted paths only after live validation.
