@@ -11,6 +11,7 @@ It combines:
 - current build direction
 - current Boards-mode rules
 - current Save / Export model
+- anti-drift handoff guidance for fresh implementation chats
 
 This board lives under:
 
@@ -18,12 +19,31 @@ This board lives under:
 
 so terminal design-and-build planning stays in project workspace, not inside the runtime-facing `terminal/` layer.
 
+## Fresh-session implementation note
+
+A fresh chat instance should be able to continue terminal implementation from this file alone.
+That is a design goal.
+
+This file is meant to carry enough structure, rationale, and boundary logic that a new instance does not need hidden chat continuity in order to scaffold and implement the terminal safely.
+
+If future work depends on a rule, boundary, or rationale, that rule should be written into this file rather than left only in chat memory.
+
+## Implementation authority for fresh instances
+
+When implementing terminal work from a fresh chat:
+
+1. Treat this file as the terminal implementation source of truth.
+2. Do not redesign the architecture unless the user explicitly asks for redesign.
+3. Prefer implementing the locked decisions already written here.
+4. If something is not specified here, choose the smallest non-drifting implementation that preserves the current architecture.
+5. If an implementation choice would weaken a listed boundary, stop and ask.
+
 ## Relationship to `terminal/`
 
 `terminal/` remains the repo layer reserved for the terminal runtime itself.
 
 This working board is intentionally outside `terminal/`:
- - to keep `terminal/` clean as a runtime-facing layer
+- to keep `terminal/` clean as a runtime-facing layer
 - to keep planning and build orchestration in project workspace
 - to let implementation grow later without mixing runtime surfaces and active design planning
 
@@ -45,6 +65,80 @@ Terminal should behave like:
 
 The terminal should become its own thing.
 The old “device shell” idea is a functional reference, not a stylistic limit.
+
+## Anti-drift implementation rules
+
+These rules exist specifically to prevent redesign drift in future implementation work.
+
+### 1. Do not turn `terminal/` into a planning folder
+`terminal/` is the runtime root, not the project-board root.
+Planning boards live under project workspace.
+
+### 2. Do not turn `work/` into normal content navigation
+`work/` is not a standard user-content domain.
+Boards mode is a special-purpose readout exception, not a license to treat all work paths as normal content surfaces.
+
+### 3. Do not collapse Boards into ordinary save-capable cartridges
+Boards may use the markdown reader technically, but behaviorally they are not normal cartridges.
+Boards are live readout only.
+They do not save through terminal GUI.
+
+### 4. Do not collapse Export into Save
+Save persists state inward.
+Export takes content outward.
+They may sit next to each other in UI, but they must remain distinct actions.
+
+### 5. Do not let convenience break the write boundary
+Terminal may read broadly, but terminal writes stay limited to `terminal/saves/<tag>/`.
+Boards are outside even that save behavior.
+
+### 6. Do not let the shell disappear into page-hopping
+The shell stays present while content changes inside it.
+Implementation should preserve a device-shell feel, not devolve into scattered pages.
+
+### 7. Do not invent parallel names where repo names already work
+Use `Collections` because the repo already has `collections/`.
+Do not invent a fake top-level `Library` abstraction unless explicitly requested later.
+
+## Why these boundaries exist
+
+These boundaries are not arbitrary.
+They exist to preserve:
+- clean runtime vs planning separation
+- one source of truth for working boards
+- low-drift fresh-chat handoff
+- a console-shell feel instead of a website feel
+- safe terminal write behavior
+- long-horizon project continuity without mixing lanes
+
+If a future implementation feels easier by weakening these boundaries, it is likely a drift move rather than a real improvement.
+
+## Locked decisions vs open decisions
+
+### Locked now
+The following are considered active design truth unless explicitly changed by the user:
+- `terminal/` stays a clean runtime root
+- the working board lives at `work/dev/projects/consoleterminalbuilding/README.md`
+- v1 mode set includes `Boards`
+- `Collections` maps directly to `collections/`
+- first canonical repo cartridge root is `collections/`
+- first approved board root is `work/dev/projects/`
+- Boards mode is live readout only
+- Boards never save through terminal GUI
+- Boards never use `terminal/saves/`
+- Save and Export remain distinct actions
+- Export Source is the first export priority
+- Export Output exists as a greyed-out placeholder initially
+
+### Open later
+The following are still open design space:
+- final visual language
+- exact shell layout details
+- exact renderer implementation details
+- exact manifest location/shape refinements beyond v0
+- final export packaging details beyond v1 source export
+- animation and motion behavior
+- deeper engine architecture after basic shell exists
 
 ## Non-negotiable rules
 
@@ -184,8 +278,8 @@ In Boards mode:
 
 Suggested explanation:
 
-^ Working boards are source files in workspace.  
-^ Update them at their live path, not through terminal GUI.
+> Working boards are source files in workspace.  
+> Update them at their live path, not through terminal GUI.
 
 ### Status-strip rule
 Boards mode should visibly identify itself as read-only live board display.
@@ -226,7 +320,7 @@ Take the mounted source file or declared package.
 This is the first-priority export form for v1.
 It supports the “grab a file from library” use case.
 
-### Export Output
+#### Export Output
 Take the rendered or transformed output form.
 
 This should exist in the UI as a placeholder, but remain greyed out in early builds until implemented.
@@ -572,7 +666,7 @@ Route all allowed writes only into `terminal/saves/<tag>/`.
 Implement:
 - Export Source for supported mounted items
 - greyed-out Export Output placeholder in the shell action set
-- clear figural distinction between Save and Export
+- clear visual distinction between Save and Export
 
 ### Build target H — manifest system
 Introduce manifest-driven cartridge selection for canonical repo cartridges.
@@ -584,6 +678,16 @@ Implement:
 - read-only live-board status indicators
 - Export Source enabled in Boards mode
 - Export Output placeholder disabled in Boards mode
+
+## Fresh-chat bootstrap for implementation
+
+Use this file as the implementation source of truth.
+Do not redesign the architecture unless explicitly asked.
+Build the smallest implementation that preserves the listed boundaries.
+Do not move the working board back into `terminal/`.
+Do not make Boards save-capable.
+Do not blur Save and Export.
+If a build choice threatens those rules, stop and ask.
 
 ## Working rule
 
