@@ -1,20 +1,19 @@
 # WORKFLOW_MAPS.md
 
 ## Purpose
-This file is the landing surface for workflow maps and workflow-related explanation.
+This file holds simplified workflow maps and human-readable flows for the initial workflow set.
 
-## What belongs here
-- workflow flow maps
-- trigger to action sequences
-- input to output mapping
-- workflow boundaries and splits
-- how a workflow fits the repo-manual layer
+## Map 1 – repo-health
+`trigger -> checkout -> verify canonical entry files -> verify core repo-manual files -> pass/fail`
 
-## Current state
-No real workflow maps are installed here yet.
-Use this file as the first canonical entry when a workflow becomes complex enough to need a map.
+Use this workflow to make sure the repo still has the basic shope it needs to be navigable and operable.
 
-## Next likely entries
+## Map 2 – scaffold-guard
+`trigger -> checkout -> search for known old-shape drift paths -> fail if found -> pass if clean`
+
+Use this workflow to prevent old scaffold variants from re-appearing after the cleanup pass.
+
+## Next maps to add
 - pages deployment map
-- repo bootstrap workflow map
-- connector-validation workflow map
+- markdown lint map
+- connector validation map
