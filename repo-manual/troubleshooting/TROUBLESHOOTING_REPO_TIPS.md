@@ -83,6 +83,52 @@ Preferred sequence now:
 3. `createCommit`
 4. `updateGitRefFresh`
 
+
+
+## Procedure: ref-path fallback when `saveFile` stalls or becomes unreliable
+
+This recovery path was validated live during a real documentation update.
+
+Use it when:
+1. reads work
+2. normal `saveFile` writes are unstable, ambiguous, or failing repeatedly
+3. the desired change is a clean full-file replacement or another tree-safe update
+
+Validated working sequence:
+1. `getGitRefFresh` on `heads/main`
+2. `getCommit` for the current head
+3. capture the current base tree SHA from that commit
+4. `createTree` with the replacement file content inline
+5. `createCommit` with the new tree and the current head as parent
+6. `updateGitRefFresh` on `heads/main` to the new commit SHA
+
+Live-confirmed note:
+- `createTree` with inline `content` worked as a practical fallback when the direct blob path glitched
+- this means the lowest-risk recovery sequence in this connector surface is now:
+
+Preferred recovery order:
+1. try normal `saveFile` with correct Base64 if the path is simple and stable
+2. if that becomes unreliable, use:
+   - `getGitRefFresh`
+   - `getCommit`
+   - `createTree`
+   - `createCommit`
+   - `updateGitRefFresh`
+
+Operational rule:
+- prefer the simple file-write path for routine maintenance
+- prefer the fresh-ref tree/commit path when write certainty matters more than tool simplicity
+- verify that `heads/main` actually advanced before claiming success
+
+Anti-false-positive check:
+- after `createCommit`, success is not enough by itself
+- the change is not live until `updateGitRefFresh` succeeds and a follow-up `getGitRefFresh` confirms the new head SHA
+
+Why this matters:
+- some write attempts can appear partially successful in conversation flow while `main` does not move
+- the explicit ref-advance check prevents false claims about landed changes
+
+
 ## Procedure: workflow-related edits
 
 If edits are required and they touch workflow behavior or workflow files, include:
