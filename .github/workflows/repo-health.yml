@@ -1,0 +1,46 @@
+name: repo-health
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  repo-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@4
+
+      - name: Verify repo entry surfaces
+        run: |
+          set -euo
+          test -f README.md
+          test -f REPO_BOOTSTRAP.md
+          test -f repo-manual/core/00_ORIENTATION.md
+          test -f repo-manual/core/01_SYSTEM_MAP.md
+          test -f repo-manual/core/10_ROUTER.md
+          test -f repo-manual/core/11_PIPELINES.md
+
+      - name: Verify procedure layer
+        run: |
+          set -euo
+          test -f repo-manual/procedures/00_PROCEDURES_INDEX.md
+          test -f repo-manual/procedures/build/BUILD_PROCEDURES.md
+          test -f repo-manual/procedures/runtime/RUNTIME_PROCEDURES.md
+          test -f repo-manual/procedures/maintenance/MAINTENANCE_PROCEDURES.md
+
+      - name: Verify connector reference layer
+        run: |
+          set -euo
+          test -f repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md
+          test -f repo-manual/refs/connector/TARS-GPT-Connector_Operations.md
+
+      - name: Verify workflow landing surfaces
+        run: |
+          set -euo
+          test -f repo-manual/workflows/30_WORKFLOWS.md
+          test -f repo-manual/workflows/maps/WORKFLOW_MAPS.md
+          test -f .github/workflows/README.md
