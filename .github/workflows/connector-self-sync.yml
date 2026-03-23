@@ -1,0 +1,39 @@
+name: connector-self-sync
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  connector-self-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify connector self-layer files exist
+        run: |
+          set -euo pipefail
+          test -f repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md
+          test -f repo-manual/refs/connector/TARS-GPT-Connector_Operations.md
+
+      - name: Verify connector version and fresh ref operations are aligned
+        run: |
+          set -euo pipefail
+          grep -Fq '`1.3.0`' repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md
+          grep -Fq '`1.3.0`' repo-manual/refs/connector/TARS-GPT-Connector_Operations.md
+          grep -Fq 'getGitRefFresh' repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md
+          grep -Fq 'updateGitRefFresh' repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md
+          grep -Fq 'getGitRefFresh' repo-manual/refs/connector/TARS-GPT-Connector_Operations.md
+          grep -Fq 'updateGitRefFresh' repo-manual/refs/connector/TARS-GPT-Connector_Operations.md
+
+      - name: Fail if legacy ref operation names return in connector self-layer
+        run: |
+          set -euo pipefail
+          if grep -RInq '(`getRef`\|`updateRef`)' repo-manual/refs/connector; then
+            echo "Legacy ref operation mention found in connector self-layer."
+            exit 1
+          fi

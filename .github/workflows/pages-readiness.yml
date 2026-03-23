@@ -1,0 +1,44 @@
+name: pages-readiness
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pages-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect whether Pages has been introduced
+        id: detect
+        run: |
+          set -euo pipefail
+          if [ -f index.html ] || [ -f docs/index.html ] || [ -f .github/workflows/deploy-pages.yml ] || [ -f .github/workflows/pages.yml ]; then
+            echo "pages_mode=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "pages_mode=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip strict checks until Pages exists
+        if: steps.detect.outputs.pages_mode == '0'
+        run: echo "Pages not introduced yet; readiness checks skipped."
+
+      - name: Verify Pages docs and surface once Pages exists
+        if: steps.detect.outputs.pages_mode == '1'
+        run: |
+          set -euo pipefail
+          grep -iq 'pages' repo-manual/workflows/30_WORKFLOWS.md
+          grep -iq 'pages' repo-manual/workflows/maps/WORKFLOW_MAPS.md
+          if [ -f index.html ]; then
+            test -f index.html
+          elif [ -f docs/index.html ]; then
+            test -f docs/index.html
+          else
+            echo "Pages mode detected but no index.html or docs/index.html surface was found."
+            exit 1
+          fi

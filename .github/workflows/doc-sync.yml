@@ -1,0 +1,33 @@
+name: doc-sync
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  doc-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify workflow docs exist
+        run: |
+          set -euo pipefail
+          test -f repo-manual/workflows/30_WORKFLOWS.md
+          test -f repo-manual/workflows/maps/WORKFLOW_MAPS.md
+          test -f .github/workflows/README.md
+
+      - name: Verify every workflow file is listed in workflow docs
+        run: |
+          set -euo pipefail
+          for f in .github/workflows/*.yml; do
+            base="$(basename "$f")"
+            grep -Fq "$base" repo-manual/workflows/30_WORKFLOWS.md || {
+              echo "Missing $base in repo-manual/workflows/30_WORKFLOWS.md"
+              exit 1
+            }
+          done

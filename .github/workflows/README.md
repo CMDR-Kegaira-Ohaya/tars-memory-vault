@@ -1,4 +1,5 @@
 # WORKFLOWS.
+
 ## Purpose
 This directory holds executable GitHub Actions workflow files.
 
@@ -6,6 +7,13 @@ This directory holds executable GitHub Actions workflow files.
 - Explanation, maps, and rationale belong in `repo-manual/workflows/`
 - Actual runnable workflow YAML files belong here
 
-## Current state
-No real workflows are installed yet.
-When workflows are added, keep them small, clear, and mapped back to the repo-manual where needed.
+## Current live workflow set
+- `repo-health.yml`
+- `scaffold-guard.yml`
+- `doc-sync.yml`
+- `connector-self-sync.yml`
+- `pages-readiness.yml`
+- `internal-link-guard.yml`
+
+## Working rule
+Keep workflows small, clear, and tied to a documented purpose in the repo-manual layer.
