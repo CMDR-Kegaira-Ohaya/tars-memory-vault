@@ -30,6 +30,7 @@
     "repoCartridge": {
       "match": {
         "mountedKind": "cartridge",
+        "exportSourceState": "enabled|conditional",
         "pathPrefix": "collections/"
       },
       "derive": {
@@ -43,6 +44,7 @@
     "liveBoard": {
       "match": {
         "mountedKind": "board",
+        "exportSourceState": "enabled|conditional",
         "pathPrefix": "work/dev/projects/"
       },
       "derive": {
@@ -51,6 +53,20 @@
         "sourcePath": "mounted-source-path",
         "suggestedFilename": "from-source-filename",
         "detail": "mounted-live-board-source-export-available"
+      }
+    },
+    "mountedButUnavailable": {
+      "match": {
+        "mountedKind": "cartridge|board",
+        "sourcePath": "non-null",
+        "exportSourceState": "disabled"
+      },
+      "derive": {
+        "enabled": false,
+        "status": "disabled",
+        "sourcePath": "mounted-source-path",
+        "suggestedFilename": "from-source-filename",
+        "detail": "mounted-source-present-but-export-source-disabled"
       }
     },
     "mountedButUnsupported": {

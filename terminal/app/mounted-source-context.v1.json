@@ -1,0 +1,58 @@
+{
+  "id": "terminal-mounted-source-context-v1",
+  "version": "v1",
+  "role": "dedicated-runtime-source-context-field-contract",
+  "uses": {
+    "mountedViewport": "terminal/app/mounted-viewport.v1.json",
+    "actionState": "terminal/app/action-state.v1.json",
+    "exportSource": "terminal/app/export-source.v1.json"
+  },
+  "inputs": [
+    "currentMountedKind",
+    "currentSourcePath",
+    "exportSourceState"
+  ],
+  "fields": [
+    "status",
+    "mountedKind",
+    "sourcePath",
+    "exportSourceState",
+    "suggestedFilename",
+    "source"
+  ],
+  "states": {
+    "noMountedSource": {
+      "match": {
+        "currentMountedKind": null
+      },
+      "derive": {
+        "status": "disabled",
+        "mountedKind": null,
+        "sourcePath": "none",
+        "exportSourceState": "disabled",
+        "suggestedFilename": "none",
+        "source": "dedicated-runtime-field"
+      }
+    },
+    "mountedSourceContext": {
+      "match": {
+        "currentMountedKind": "cartridge|board",
+        "currentSourcePath": "non-null"
+      },
+      "derive": {
+        "status": "available",
+        "mountedKind": "from-current-mounted-kind",
+        "sourcePath": "from-current-source-path",
+        "exportSourceState": "from-current-export-source-state",
+        "suggestedFilename": "from-source-filename",
+        "source": "dedicated-runtime-field"
+      }
+    }
+  },
+  "guardrails": [
+    "Mounted source context is a dedicated runtime field for downstream consumers like Export Source.",
+    "Consumers should read this field instead of parsing runtime text readout directly.",
+    "The field stays read-oriented and does not create new write authority.",
+    "Boards may appear here while remaining read-only and outside terminal/saves/."
+  ]
+}

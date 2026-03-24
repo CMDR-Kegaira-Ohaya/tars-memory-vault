@@ -16,6 +16,7 @@
     "applySaveRequest": "terminal/app/apply-save-request.v1.json",
     "applySaveStatus": "terminal/app/apply-save-status.v1.json",
     "exportSource": "terminal/app/export-source.v1.json",
+    "mountedSourceContext": "terminal/app/mounted-source-context.v1.json",
     "mountedSaveContext": "terminal/app/mounted-save-context.v1.json",
     "requestHistorySurface": "terminal/app/request-history-surface.v1.json",
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
@@ -38,6 +39,7 @@
     "apply-save-request",
     "apply-save-status",
     "export-source",
+    "mounted-source-context",
     "mounted-save-context",
     "request-history-surface",
     "repo-verified-save-status",
@@ -85,8 +87,12 @@
       "handoff-bounded-request-to-repo-save-handler",
       "refresh-apply-save-status-surface"
     ],
+    "deriveMountedSourceContext": [
+      "read-current-mounted-source-context-from-dedicated-runtime-field",
+      "refresh-mounted-source-context-output"
+    ],
     "exportSource": [
-      "read-mounted-source-context",
+      "read-mounted-source-context-field",
       "derive-export-source-surface",
       "download-mounted-source-without-repo-write"
     ],
@@ -127,6 +133,7 @@
     "Browser save-write staging remains bounded to terminal/saves/<tag>/.",
     "Apply-save-request handoff remains explicit and consent-gated.",
     "Apply-save status surface must not claim repo mutation by browser code alone.",
+    "Mounted source context path refs are the shared runtime source for Export Source reads.",
     "Export Source remains outbound user download behavior and distinct from Save.",
     "Mounted save context path refs are the shared runtime source for request history and repo verified status reads.",
     "Request history surface must enumerate from index data rather than path guessing.",

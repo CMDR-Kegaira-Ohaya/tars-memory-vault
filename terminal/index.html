@@ -87,6 +87,7 @@
     }
   </style>
   <script src="app/browser-runtime.js" defer></script>
+  <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
@@ -151,6 +152,17 @@
       <div class="panel">
         <div class="label">SAVE WRITE REQUEST PREVIEW</div>
         <pre id="saveBridgePreview">loading...</pre>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">MOUNTED SOURCE CONTEXT</div>
+        <div id="mountedSourceContextSummary" class="value">loading...</div>
+      </div>
+      <div class="panel">
+        <div class="label">MOUNTED SOURCE CONTEXT PREVIEW</div>
+        <pre id="mountedSourceContextPreview">loading...</pre>
       </div>
     </section>
 

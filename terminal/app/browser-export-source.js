@@ -2,6 +2,7 @@
   const runtime = {
     contract: null,
     surface: null,
+    mountedSourceContext: null,
     lastEvent: {
       status: "idle",
       detail: "no-export-attempt-yet",
@@ -21,24 +22,16 @@
     return response.json();
   }
 
-  function parseViewportText() {
-    const text = document.getElementById("runsViewport")?.textContent || "";
-    const lines = text.split("\n");
-    const result = {};
-    for (const line of lines) {
-      const parts = line.split(": ");
-      if (parts.length < 2) continue;
-      const key = parts.shift();
-      result[key] = parts.join(": ");
+  function parseJsonText(text) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
     }
-    return result;
   }
 
-  function parseExportSourceState() {
-    const buttons = Array.from(document.querySelectorAll("#actions button"));
-    const target = buttons.find((button) => String(button.textContent || "").startsWith("exportSource :"));
-    if (!target) return "disabled";
-    return String(target.textContent || "").split(": ")[1] || "disabled";
+  function readMountedSourceContext() {
+    return parseJsonText(document.getElementById("mountedSourceContextPreview")?.textContent || "");
   }
 
   function matches(match, input) {
@@ -58,6 +51,12 @@
       }
       return String(actual) === String(expected);
     });
+  }
+
+  function deriveFilename(sourcePath) {
+    if (!sourcePath) return "none";
+    const segments = String(sourcePath).split("/");
+    return segments[segments.length - 1] || "export-source";
   }
 
   function resolveTemplate(value, input) {
@@ -82,12 +81,6 @@
     }
   }
 
-  function deriveFilename(sourcePath) {
-    if (!sourcePath) return "none";
-    const segments = String(sourcePath).split("/");
-    return segments[segments.length - 1] || "export-source";
-  }
-
   function deriveSurface(input) {
     const states = runtime.contract?.states || {};
     for (const stateConfig of Object.values(states)) {
@@ -105,11 +98,12 @@
   }
 
   function buildInput() {
-    const viewport = parseViewportText();
+    const mountedSourceContext = readMountedSourceContext();
+    runtime.mountedSourceContext = mountedSourceContext;
     return {
-      mountedKind: viewport.mountedKind === "none" ? null : viewport.mountedKind || null,
-      sourcePath: viewport.source && viewport.source !== "none" ? viewport.source : null,
-      exportSourceState: parseExportSourceState()
+      mountedKind: mountedSourceContext?.mountedKind || null,
+      sourcePath: mountedSourceContext?.sourcePath && mountedSourceContext.sourcePath !== "none" ? mountedSourceContext.sourcePath : null,
+      exportSourceState: mountedSourceContext?.exportSourceState || "disabled"
     };
   }
 
@@ -132,6 +126,7 @@
     ].join("");
 
     preview.textContent = JSON.stringify({
+      mountedSourceContext: runtime.mountedSourceContext,
       surface,
       lastEvent: runtime.lastEvent
     }, null, 2);
@@ -187,15 +182,13 @@
     runtime.contract = await loadJson("app/export-source.v1.json");
     await refresh();
 
-    const observerTargets = [
-      document.getElementById("runsViewport"),
-      document.getElementById("actions")
-    ].filter(Boolean);
-
-    const observer = new MutationObserver(() => {
-      refresh().catch(() => {});
-    });
-    observerTargets.forEach((target) => observer.observe(target, { childList: true, subtree: true, characterData: true }));
+    const contextTarget = document.getElementById("mountedSourceContextPreview");
+    if (contextTarget) {
+      const observer = new MutationObserver(() => {
+        refresh().catch(() => {});
+      });
+      observer.observe(contextTarget, { childList: true, subtree: true, characterData: true });
+    }
 
     const actions = document.getElementById("actions");
     if (actions) {
