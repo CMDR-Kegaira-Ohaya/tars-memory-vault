@@ -112,6 +112,44 @@
       display: grid;
       gap: 8px;
     }
+    .inspector-shell {
+      display: grid;
+      gap: 8px;
+    }
+    .inspector-hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .inspector-panel {
+      border: 1px solid var(--line);
+      background: #10161c;
+    }
+    .inspector-panel > summary {
+      cursor: pointer;
+      color: var(--muted);
+      padding: 10px;
+      list-style: none;
+      user-select: none;
+    }
+    .inspector-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+    .inspector-panel > summary::before {
+      content: "+ ";
+      color: var(--accent);
+    }
+    .inspector-panel[open] > summary::before {
+      content: "− ";
+    }
+    .inspector-panel[open] > summary {
+      color: var(--accent);
+      border-bottom: 1px solid var(--line);
+    }
+    .inspector-panel pre {
+      padding: 10px;
+      background: transparent;
+    }
     textarea {
       width: 100%;
       min-height: 120px;
@@ -207,8 +245,14 @@
         <div class="row" id="noteList"><span class="muted">loading...</span></div>
       </div>
       <div class="panel">
-        <div class="label">NOTES JSON PAYLOAD PREVIEW</div>
-        <pre id="notePayloadPreview">loading...</pre>
+        <div class="label">NOTES JSON RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Collapsed by default so runtime surfaces stay primary.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="notePayloadPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -219,8 +263,14 @@
         <div class="muted">staged request only; no repo write performed here</div>
       </div>
       <div class="panel">
-        <div class="label">SAVE WRITE REQUEST PREVIEW</div>
-        <pre id="saveBridgePreview">loading...</pre>
+        <div class="label">SAVE WRITE REQUEST RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Inspect the raw staged request only when needed.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="saveBridgePreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -230,8 +280,14 @@
         <div id="mountedSourceContextSummary" class="value">loading...</div>
       </div>
       <div class="panel">
-        <div class="label">MOUNTED SOURCE CONTEXT PREVIEW</div>
-        <pre id="mountedSourceContextPreview">loading...</pre>
+        <div class="label">MOUNTED SOURCE CONTEXT RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Raw context remains inspectable for downstream readers and checks.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="mountedSourceContextPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -242,8 +298,14 @@
         <div class="muted" style="margin-top:8px;">click the exportSource action to download mounted source without repo write</div>
       </div>
       <div class="panel">
-        <div class="label">EXPORT SOURCE PREVIEW</div>
-        <pre id="exportSourcePreview">loading...</pre>
+        <div class="label">EXPORT SOURCE RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Use this only for low-level inspection of export-state details.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="exportSourcePreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -263,8 +325,14 @@
         <div id="applyStatusSummary" class="value">loading...</div>
       </div>
       <div class="panel">
-        <div class="label">APPLY SAVE STATUS PREVIEW</div>
-        <pre id="applyStatusPreview">loading...</pre>
+        <div class="label">APPLY SAVE STATUS RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Raw client-side apply markers remain available for inspection.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="applyStatusPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -274,8 +342,14 @@
         <div id="mountedSaveContextSummary" class="value">loading...</div>
       </div>
       <div class="panel">
-        <div class="label">MOUNTED SAVE CONTEXT PREVIEW</div>
-        <pre id="mountedSaveContextPreview">loading...</pre>
+        <div class="label">MOUNTED SAVE CONTEXT RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">This stays inspectable because request history and repo verification read from it.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="mountedSaveContextPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -287,8 +361,14 @@
         <div id="requestHistoryList" class="value"><span class="muted">loading...</span></div>
       </div>
       <div class="panel">
-        <div class="label">REQUEST HISTORY PREVIEW</div>
-        <pre id="requestHistoryPreview">loading...</pre>
+        <div class="label">REQUEST HISTORY RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Open only when you need the raw index-backed preview payload.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="requestHistoryPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -298,8 +378,14 @@
         <div id="repoVerifiedSummary" class="value">loading...</div>
       </div>
       <div class="panel">
-        <div class="label">REPO VERIFIED STATUS PREVIEW</div>
-        <pre id="repoVerifiedPreview">loading...</pre>
+        <div class="label">REPO VERIFIED RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">The raw repo verification payload stays secondary but inspectable.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="repoVerifiedPreview">loading...</pre>
+          </details>
+        </div>
       </div>
     </section>
   </div>
