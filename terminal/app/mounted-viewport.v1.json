@@ -1,0 +1,104 @@
+{
+  "id": "terminal-mounted-viewport-v1",
+  "version": "v1",
+  "role": "runs-surface-derivation-contract",
+  "surface": "runs",
+  "inputs": [
+    "currentMode",
+    "mountedId",
+    "mountedKind",
+    "sourcePath",
+    "sourceClass",
+    "renderer",
+    "engine",
+    "state",
+    "statusStrip",
+    "actionState"
+  ],
+  "fields": [
+    "surface",
+    "displayMode",
+    "source",
+    "mountedKind",
+    "renderer",
+    "engine",
+    "readOnly",
+    "sessionPersistence",
+    "viewState"
+  ],
+  "states": {
+    "idleNoMount": {
+      "match": {
+        "mountedKind": null
+      },
+      "derive": {
+        "surface": "RUNS",
+        "displayMode": "empty-shell-placeholder",
+        "source": "none",
+        "mountedKind": "none",
+        "renderer": "none",
+        "engine": "none",
+        "readOnly": true,
+        "sessionPersistence": "none",
+        "viewState": "idle"
+      }
+    },
+    "boardReadout": {
+      "match": {
+        "mountedKind": "board",
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "surface": "RUNS",
+        "displayMode": "live-board-readout",
+        "source": "live-source-path",
+        "mountedKind": "board",
+        "renderer": "markdown-reader",
+        "engine": "none",
+        "readOnly": true,
+        "sessionPersistence": "ephemeral-only",
+        "viewState": "read-only-live-board"
+      }
+    },
+    "cartridgeRender": {
+      "match": {
+        "mountedKind": "cartridge",
+        "engine": null
+      },
+      "derive": {
+        "surface": "RUNS",
+        "displayMode": "renderer-readout",
+        "source": "mounted-source-path",
+        "mountedKind": "cartridge",
+        "renderer": "resolved-renderer",
+        "engine": "none",
+        "readOnly": false,
+        "sessionPersistence": "allowed-via-terminal-saves",
+        "viewState": "mounted-renderable"
+      }
+    },
+    "engineRun": {
+      "match": {
+        "mountedKind": "cartridge",
+        "engine": "non-null"
+      },
+      "derive": {
+        "surface": "RUNS",
+        "displayMode": "engine-runtime",
+        "source": "mounted-source-path",
+        "mountedKind": "cartridge",
+        "renderer": "resolved-renderer-or-none",
+        "engine": "resolved-engine",
+        "readOnly": false,
+        "sessionPersistence": "allowed-via-terminal-saves",
+        "viewState": "running"
+      }
+    }
+  },
+  "guardrails": [
+    "Viewport derivation reflects mounted runtime state; it does not change save or export behavior.",
+    "Boards remain live readout only inside Runs.",
+    "Renderer-backed display and engine-backed runtime remain distinct viewport modes.",
+    "Idle Runs may remain visible as a placeholder before full implementation."
+  ]
+}
