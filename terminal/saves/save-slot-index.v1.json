@@ -39,9 +39,9 @@
       "manifestId": "books-example-001",
       "title": "Example Cartridge",
       "renderer": "markdown-reader",
-      "notesCount": 1,
-      "bookmarksCount": 1,
-      "updatedAt": "2026-03-24T03:27:00Z"
+      "notesCount": 2,
+      "bookmarksCount": 2,
+      "updatedAt": "2026-03-24T03:52:00Z"
     }
   ],
   "rules": [

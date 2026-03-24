@@ -1,6 +1,9 @@
 {
-  "page": 2,
-  "scroll": 0.35,
-  "bookmarks": [2],
+  "page": 3,
+  "scroll": 0.62,
+  "bookmarks": [
+    2,
+    3
+  ],
   "runtimeSession": null
 }

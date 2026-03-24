@@ -8,7 +8,17 @@
       },
       "text": "Resume from this point in the example cartridge.",
       "createdAt": "2026-03-24T03:27:00Z",
-      "updatedAt": "2026-03-24T03:27:00Z"
+      "updatedAt": "2026-03-24T03:52:00Z"
+    },
+    {
+      "id": "note-002",
+      "at": {
+        "page": 3,
+        "scroll": 0.62
+      },
+      "text": "Applied bounded repo save write request from the Pages runtime staging flow.",
+      "createdAt": "2026-03-24T03:52:00Z",
+      "updatedAt": "2026-03-24T03:52:00Z"
     }
   ]
 }
