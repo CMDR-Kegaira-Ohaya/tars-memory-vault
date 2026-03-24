@@ -52,7 +52,7 @@ This working board is intentionally outside `terminal/`:
 
 ## Core identity
 
-Terminal is the repo's user-facing shell and cartridge host.
+Terminal is the repo’s user-facing shell and cartridge host.
 
 It is not just a web page or a link hub.
 It is the contained device-like interface through which the user loads, reads, runs, exports, and saves repo-contained or external cartridges.
@@ -771,6 +771,20 @@ Create the persistent shell frame and mode-switching model.
 
 ### Build target B — collections browser
 Surface `collections/` cleanly inside terminal.
+
+### Collections browser v1 interaction contract
+
+Selection and mounting are two distinct steps.
+When a user selects a manifest entry in the Collections browser, the terminal should enter a resolved state before mounting:
+
+- read the manifest descriptor
+- pre-populate and display the shell state preview (title, type, renderer, save tag, save availability)
+- wait for explicit mount confirmation
+
+Mounting happens only after explicit user action.
+This keeps the interaction consistent with the system's broader principle: reading is cheap and reversible, mounting has state consequences. A user selecting a cartridge should be able to see what they're choosing before the shell commits to it.
+
+The resolved-but-not-mounted state is not a new mode. It is a transitional display state within Collections mode before mount completes.
 
 ### Build target C — boards browser
 Surface approved working boards from `work/dev/projects/` and mount them as live readouts.
