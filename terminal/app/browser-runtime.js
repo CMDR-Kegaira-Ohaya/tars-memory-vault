@@ -23,6 +23,14 @@
     return response.json();
   }
 
+  async function loadOptionalJson(path) {
+    const response = await fetch(normalizePath(path));
+    if (!response.ok) {
+      return null;
+    }
+    return response.json();
+  }
+
   function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
   }
@@ -184,6 +192,12 @@
       exportSource: modeResolved.exportSource || "conditional",
       exportOutput: modeResolved.exportOutput || "placeholder",
       state: "mounted",
+      interaction: {
+        page: null,
+        scroll: null,
+        notes: false,
+        runtimeSession: null,
+      },
     });
   }
 
@@ -214,6 +228,50 @@
       exportSource: boardsMode.actions?.exportSource?.status || "enabled",
       exportOutput: boardsMode.actions?.exportOutput?.status || "placeholder-disabled",
       state: boardsMode.runtimeState?.stateLabel || "read-only-live-board",
+      interaction: {
+        page: null,
+        scroll: null,
+        notes: false,
+        runtimeSession: null,
+      },
+    });
+  }
+
+  async function resumeFromSaveSlot(slot) {
+    const requirements = state.contracts.resumeState?.fileExpectations || {};
+    const stateJson = await loadJson(`saves/${slot.saveTag}/state.json`);
+    const sessionJson = await loadJson(`saves/${slot.saveTag}/session.json`);
+    const notesJson = await loadOptionalJson(`saves/${slot.saveTag}/notes.json`);
+
+    if (requirements.state === "required" && !stateJson) {
+      throw new Error(`missing required state.json for ${slot.saveTag}`);
+    }
+    if (requirements.session === "required" && !sessionJson) {
+      throw new Error(`missing required session.json for ${slot.saveTag}`);
+    }
+
+    const noteItems = notesJson?.items || [];
+
+    setSessionPatch({
+      currentMode: "runs",
+      mountedId: stateJson.mountedId || slot.mountedId,
+      mountedKind: "cartridge",
+      manifestId: slot.manifestId || null,
+      sourcePath: stateJson.sourcePath || slot.sourcePath,
+      sourceClass: stateJson.sourceClass || slot.sourceClass,
+      renderer: stateJson.renderer || slot.renderer || "unresolved",
+      engine: null,
+      saveTag: slot.saveTag,
+      save: "conditional",
+      exportSource: "conditional",
+      exportOutput: "placeholder",
+      state: sessionJson.runtimeSession ? "running" : "mounted",
+      interaction: {
+        page: sessionJson.page ?? null,
+        scroll: sessionJson.scroll ?? null,
+        notes: noteItems.length > 0,
+        runtimeSession: sessionJson.runtimeSession ?? null,
+      },
     });
   }
 
@@ -269,6 +327,30 @@
     }
   }
 
+  function renderSaveSlots() {
+    const container = document.getElementById("saveSlots");
+    container.innerHTML = "";
+    const entries = state.saveSlotIndex?.entries || [];
+    if (!entries.length) {
+      const span = document.createElement("span");
+      span.className = "muted";
+      span.textContent = "no save slots";
+      container.appendChild(span);
+      return;
+    }
+
+    for (const slot of entries) {
+      const button = document.createElement("button");
+      const notes = slot.notesCount ?? 0;
+      const bookmarks = slot.bookmarksCount ?? 0;
+      button.textContent = `resume ${slot.saveTag} (${notes}n/${bookmarks}b)`;
+      button.addEventListener("click", () => {
+        resumeFromSaveSlot(slot).catch(showBootError);
+      });
+      container.appendChild(button);
+    }
+  }
+
   function renderHomeSummary() {
     const home = state.session.homeSummary;
     document.getElementById("homeSummary").innerHTML = [
@@ -298,6 +380,7 @@
       `viewState: ${viewport.viewState}`,
       "",
       `resolver: ${state.contracts.browserResolver?.id || "unavailable"}`,
+      `resume flow: ${state.contracts.browserSaveResume?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
   }
@@ -306,6 +389,7 @@
     document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
     renderNav();
     renderActions();
+    renderSaveSlots();
     renderHomeSummary();
     renderViewport();
   }
@@ -317,8 +401,10 @@
       boardEnumeration,
       saveSlotIndex,
       browserResolver,
+      browserSaveResume,
       modeResolver,
       rendererSelection,
+      resumeState,
       actionState,
       statusStrip,
       mountedViewport,
@@ -330,8 +416,10 @@
       loadJson("app/board-enumeration.v1.json"),
       loadJson("saves/save-slot-index.v1.json"),
       loadJson("app/browser-resolver.v1.json"),
+      loadJson("app/browser-save-resume.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
+      loadJson("app/resume-state.v1.json"),
       loadJson("app/action-state.v1.json"),
       loadJson("app/status-strip.v1.json"),
       loadJson("app/mounted-viewport.v1.json"),
@@ -346,8 +434,10 @@
     state.saveSlotIndex = saveSlotIndex;
     state.contracts = {
       browserResolver,
+      browserSaveResume,
       modeResolver,
       rendererSelection,
+      resumeState,
       actionState,
       statusStrip,
       mountedViewport,

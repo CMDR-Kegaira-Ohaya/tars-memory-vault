@@ -29,7 +29,21 @@
       "bookmarksCount"
     ]
   },
-  "entries": [],
+  "entries": [
+    {
+      "saveTag": "books-example-001",
+      "mountedId": "books-example-001",
+      "mountedKind": "cartridge",
+      "sourceClass": "repo-cartridge",
+      "sourcePath": "collections/books/example.md",
+      "manifestId": "books-example-001",
+      "title": "Example Cartridge",
+      "renderer": "markdown-reader",
+      "notesCount": 1,
+      "bookmarksCount": 1,
+      "updatedAt": "2026-03-24T03:27:00Z"
+    }
+  ],
   "rules": [
     "Save slots must remain under terminal/saves/<tag>/.",
     "Save slot entries may reference repo-cartridge, disk-cartridge, or drag-drop-cartridge mounts only.",

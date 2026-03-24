@@ -7,6 +7,7 @@
   "uses": {
     "pagesRuntime": "terminal/app/pages-runtime.v1.json",
     "browserResolver": "terminal/app/browser-resolver.v1.json",
+    "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
     "browserRuntime": "terminal/app/browser-runtime.js",
     "shellSession": "terminal/app/shell-session.v1.json",
     "manifestIndex": "terminal/manifests/manifest-index.v1.json",
@@ -18,11 +19,13 @@
       "manifest-index",
       "board-enumeration",
       "save-slot-index",
-      "browser-resolver-layer"
+      "browser-resolver-layer",
+      "browser-save-resume-layer"
     ],
     "render": [
       "status-strip",
       "action-bar",
+      "save-slot-list",
       "home-summary",
       "runs-viewport"
     ],
@@ -30,6 +33,7 @@
       "client-side-mode-switching",
       "contract-backed-example-cartridge-mounting",
       "contract-backed-live-board-mounting",
+      "contract-backed-save-slot-resume",
       "client-side-unmount"
     ]
   },

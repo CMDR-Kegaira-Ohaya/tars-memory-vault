@@ -1,0 +1,36 @@
+{
+  "id": "terminal-browser-save-resume-v1",
+  "version": "v1",
+  "role": "contract-backed-browser-save-resume-flow",
+  "uses": {
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
+    "resumeState": "terminal/app/resume-state.v1.json",
+    "browserResolver": "terminal/app/browser-resolver.v1.json"
+  },
+  "uiSurfaces": [
+    "save-slot-list",
+    "resume-save-slot-button"
+  ],
+  "flow": [
+    "enumerate-save-slot-index",
+    "select-save-slot",
+    "load-state-json",
+    "load-session-json",
+    "load-notes-json-if-present",
+    "resolve-resume-state",
+    "set-current-mode-runs",
+    "restore-mounted-session-fields",
+    "refresh-derived-shell-layers"
+  ],
+  "fileRequirements": {
+    "state": "required",
+    "session": "required",
+    "notes": "optional"
+  },
+  "guardrails": [
+    "Browser save resume remains bounded to terminal/saves/<tag>/.",
+    "Boards are excluded because Boards never use terminal/saves/.",
+    "Missing required save files should stop resume instead of fabricating session state.",
+    "Resume restores runtime state without editing source files."
+  ]
+}

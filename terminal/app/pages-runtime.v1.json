@@ -37,6 +37,7 @@
     "load-board-enumeration",
     "load-save-slot-index",
     "load-browser-resolver-layer",
+    "load-browser-save-resume-layer",
     "render-home-and-runs-surfaces",
     "enable-client-side-mode-switching"
   ],

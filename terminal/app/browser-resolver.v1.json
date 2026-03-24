@@ -6,6 +6,7 @@
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
     "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
     "boardEnumeration": "terminal/app/board-enumeration.v1.json",
+    "resumeState": "terminal/app/resume-state.v1.json",
     "actionState": "terminal/app/action-state.v1.json",
     "statusStrip": "terminal/app/status-strip.v1.json",
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
@@ -17,6 +18,7 @@
     "board-enumeration",
     "save-slot-index",
     "mode-resolver",
+    "resume-state",
     "renderer-selection",
     "action-state",
     "status-strip",
@@ -38,6 +40,14 @@
       "set-read-only-board-session-fields",
       "refresh-derived-shell-layers"
     ],
+    "saveResume": [
+      "select-save-slot-index-entry",
+      "load-save-files",
+      "resolve-resume-state",
+      "set-current-mode-runs",
+      "restore-mounted-session-fields",
+      "refresh-derived-shell-layers"
+    ],
     "modeSwitch": [
       "set-current-mode",
       "refresh-derived-shell-layers"
@@ -51,6 +61,7 @@
     "Browser resolver uses landed repo contracts as runtime inputs instead of duplicating shell rules ad hoc.",
     "Manifest mounting remains repo-cartridge only.",
     "Board mounting remains approved-root live readout only.",
+    "Save resume remains bounded to terminal/saves/.",
     "Browser resolver does not introduce repo writes outside terminal/saves/."
   ]
 }

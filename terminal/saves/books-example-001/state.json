@@ -1,0 +1,7 @@
+{
+  "mountedId": "books-example-001",
+  "sourcePath": "collections/books/example.md",
+  "sourceClass": "repo-cartridge",
+  "renderer": "markdown-reader",
+  "updatedAt": "2026-03-24T03:27:00Z"
+}
