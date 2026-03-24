@@ -10,6 +10,7 @@
     "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json",
     "browserRuntime": "terminal/app/browser-runtime.js",
     "shellSession": "terminal/app/shell-session.v1.json",
     "manifestIndex": "terminal/manifests/manifest-index.v1.json",
@@ -24,7 +25,8 @@
       "browser-resolver-layer",
       "browser-save-resume-layer",
       "browser-note-editor-layer",
-      "browser-save-write-bridge-layer"
+      "browser-save-write-bridge-layer",
+      "repo-save-write-handler-contract"
     ],
     "render": [
       "status-strip",
@@ -42,6 +44,7 @@
       "contract-backed-save-slot-resume",
       "contract-backed-note-editing-for-save-eligible-cartridges",
       "contract-backed-bounded-save-write-request-staging",
+      "explicit-repo-side-bounded-save-write-handling",
       "client-side-unmount"
     ]
   },

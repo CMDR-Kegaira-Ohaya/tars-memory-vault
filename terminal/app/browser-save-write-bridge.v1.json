@@ -5,7 +5,8 @@
   "uses": {
     "readerSessionSave": "terminal/app/reader-session-save.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
-    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json"
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
+    "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json"
   },
   "appliesTo": [
     "repo-cartridge",
@@ -16,6 +17,10 @@
     "repo-board"
   ],
   "stagingMode": "client-staged-write-request-only",
+  "handoff": {
+    "target": "terminal/app/repo-save-write-handler.v1.json",
+    "requiresExplicitRepoWriteConsent": true
+  },
   "requestShape": {
     "saveTag": "string",
     "writeRoot": "terminal/saves/<tag>/",

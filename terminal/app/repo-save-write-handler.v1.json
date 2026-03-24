@@ -1,0 +1,79 @@
+{
+  "id": "terminal-repo-save-write-handler-v1",
+  "version": "v1",
+  "role": "explicit-bounded-repo-save-write-handler-contract",
+  "uses": {
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json",
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json"
+  },
+  "accepts": {
+    "requestShape": "terminal-browser-save-write-bridge-v1.requestShape",
+    "source": "explicit-pages-runtime-save-request",
+    "consent": "explicit-repo-write-required"
+  },
+  "appliesTo": [
+    "repo-cartridge",
+    "disk-cartridge",
+    "drag-drop-cartridge"
+  ],
+  "excludes": [
+    "repo-board"
+  ],
+  "validation": {
+    "required": [
+      "saveTag",
+      "writeRoot",
+      "sourceClass",
+      "mountedId",
+      "writes"
+    ],
+    "writeRoot": "terminal/saves/<tag>/",
+    "allowedKinds": [
+      "state",
+      "session",
+      "notes"
+    ],
+    "allowedPaths": [
+      "terminal/saves/<tag>/state.json",
+      "terminal/saves/<tag>/session.json",
+      "terminal/saves/<tag>/notes.json"
+    ],
+    "payloadType": "object-only",
+    "rejects": [
+      "arbitrary-repo-paths",
+      "collections-writes",
+      "work-writes",
+      "repo-manual-writes",
+      "board-save-requests"
+    ]
+  },
+  "execution": {
+    "writes": [
+      "terminal/saves/<tag>/state.json",
+      "terminal/saves/<tag>/session.json",
+      "terminal/saves/<tag>/notes.json"
+    ],
+    "indexUpdate": "save-slot-index-metadata-may-be-updated-repo-side",
+    "verification": [
+      "verify-new-head",
+      "verify-written-paths-on-main",
+      "verify-no-out-of-bounds-write"
+    ]
+  },
+  "responseShape": {
+    "status": "rejected-or-applied",
+    "writtenPaths": [],
+    "updatedIndex": false,
+    "verification": {
+      "head": "commit-sha",
+      "pathsVerified": []
+    }
+  },
+  "guardrails": [
+    "Repo-side save handling remains bounded to terminal/saves/<tag>/.",
+    "Boards are excluded because Boards never use terminal/saves/.",
+    "The handler does not grant arbitrary repo authoring or broad file writes.",
+    "Success claims require landed-state verification after the write."
+  ]
+}

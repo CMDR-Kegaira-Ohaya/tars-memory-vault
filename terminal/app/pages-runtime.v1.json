@@ -40,6 +40,7 @@
     "load-browser-save-resume-layer",
     "load-browser-note-editor-layer",
     "load-browser-save-write-bridge-layer",
+    "load-repo-save-write-handler-contract",
     "render-home-and-runs-surfaces",
     "enable-client-side-mode-switching"
   ],

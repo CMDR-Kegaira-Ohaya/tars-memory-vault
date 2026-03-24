@@ -12,7 +12,8 @@
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
     "homeSummary": "terminal/app/home-summary.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
-    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json"
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json"
   },
   "loadOrder": [
     "shell-session-initial-state",
@@ -27,7 +28,8 @@
     "mounted-viewport",
     "home-summary",
     "browser-note-editor",
-    "browser-save-write-bridge"
+    "browser-save-write-bridge",
+    "repo-save-write-handler"
   ],
   "selectionFlows": {
     "manifestMount": [
@@ -62,7 +64,13 @@
       "check-save-eligibility-and-save-tag",
       "package-state-session-notes-payloads",
       "limit-paths-to-terminal-saves-root",
-      "refresh-derived-shell-layers"
+      "prepare-repo-save-write-handoff"
+    ],
+    "repoSaveWrite": [
+      "require-explicit-repo-write-consent",
+      "validate-request-against-repo-handler",
+      "apply-bounded-save-write",
+      "verify-landed-repo-state"
     ],
     "modeSwitch": [
       "set-current-mode",
@@ -80,6 +88,7 @@
     "Save resume remains bounded to terminal/saves/.",
     "Browser note editing remains bounded to terminal/saves/<tag>/notes.json.",
     "Browser save-write staging remains bounded to terminal/saves/<tag>/.",
+    "Repo save handling remains explicit, bounded, and separately validated.",
     "Browser resolver does not introduce repo writes outside terminal/saves/."
   ]
 }
