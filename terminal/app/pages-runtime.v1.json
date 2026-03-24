@@ -43,6 +43,7 @@
     "load-apply-save-request-layer",
     "load-apply-save-status-layer",
     "load-export-source-layer",
+    "load-browser-action-identity-layer",
     "load-mounted-source-context-layer",
     "load-mounted-save-context-layer",
     "load-request-history-surface-layer",

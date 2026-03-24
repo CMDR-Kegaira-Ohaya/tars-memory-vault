@@ -30,10 +30,9 @@
   }
 
   function parseExportSourceState() {
-    const buttons = Array.from(document.querySelectorAll("#actions button"));
-    const target = buttons.find((button) => String(button.textContent || "").startsWith("exportSource :"));
+    const target = document.querySelector('#actions button[data-action-key="exportSource"]');
     if (!target) return "disabled";
-    return String(target.textContent || "").split(": ")[1] || "disabled";
+    return String(target.dataset.actionState || "disabled");
   }
 
   function matches(match, input) {

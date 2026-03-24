@@ -193,9 +193,8 @@
     const actions = document.getElementById("actions");
     if (actions) {
       actions.addEventListener("click", (event) => {
-        const button = event.target.closest("button");
+        const button = event.target.closest('button[data-action-key="exportSource"]');
         if (!button) return;
-        if (!String(button.textContent || "").startsWith("exportSource :")) return;
         event.preventDefault();
         exportCurrentSource().catch(() => {});
       });
