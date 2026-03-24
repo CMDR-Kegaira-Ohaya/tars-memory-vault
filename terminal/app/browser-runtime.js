@@ -1,7 +1,8 @@
 (() => {
   const MODE_LABELS = ["home", "collections", "boards", "cartridges", "runs", "saves", "system"];
   const ACTION_KEYS = ["save", "exportSource", "exportOutput", "notes", "bookmarks"];
-  const shared = window.__TARS_COLLECTIONS__ || (window.__TARS_COLLECTIONS__ = {});
+  const collectionsShared = window.__TARS_COLLECTIONS__ || (window.__TARS_COLLECTIONS__ = {});
+  const boardsShared = window.__TARS_BOARDS__ || (window.__TARS_BOARDS__ = {});
 
   const state = {
     initialState: null,
@@ -21,6 +22,16 @@
       missing: [],
       sourceAllowed: false,
       entryAllowed: false
+    },
+    resolvedBoardSelection: {
+      boardId: null,
+      sourcePath: null,
+      entry: null,
+      valid: false,
+      rootAllowed: false,
+      sourceClassAllowed: false,
+      mountedKindAllowed: false,
+      readOnlyAllowed: false
     },
     sessionDraft: {
       bookmarks: []
@@ -356,6 +367,10 @@
     return (state.manifestIndex?.entries || []).find((entry) => entry.manifestId === manifestId) || null;
   }
 
+  function getBoardEntryById(boardId) {
+    return (state.boardEnumeration?.entries || []).find((entry) => entry.boardId === boardId) || null;
+  }
+
   function readByPath(source, path) {
     return String(path || "").split(".").reduce((acc, key) => {
       if (acc == null) return undefined;
@@ -381,6 +396,20 @@
     };
   }
 
+  function validateBoardSelection(entry) {
+    const root = state.boardEnumeration?.root || "work/dev/projects/";
+    const sourcePath = String(entry?.sourcePath || "");
+    const sourceClass = String(entry?.sourceClass || "");
+    const mountedKind = String(entry?.mountedKind || "");
+    return {
+      valid: Boolean(entry) && sourcePath.startsWith(root) && sourceClass === "repo-board" && mountedKind === "board" && entry?.readOnly === true,
+      rootAllowed: sourcePath.startsWith(root),
+      sourceClassAllowed: sourceClass === "repo-board",
+      mountedKindAllowed: mountedKind === "board",
+      readOnlyAllowed: entry?.readOnly === true,
+    };
+  }
+
   function setResolvedSelection(entry, manifest, validation) {
     state.resolvedSelection = {
       manifestId: manifest?.id || entry?.manifestId || null,
@@ -392,7 +421,7 @@
       sourceAllowed: validation?.sourceAllowed === true,
       entryAllowed: validation?.entryAllowed === true,
     };
-    shared.resolvedSelection = clone(state.resolvedSelection);
+    collectionsShared.resolvedSelection = clone(state.resolvedSelection);
   }
 
   function clearResolvedSelection() {
@@ -406,7 +435,35 @@
       sourceAllowed: false,
       entryAllowed: false,
     };
-    shared.resolvedSelection = clone(state.resolvedSelection);
+    collectionsShared.resolvedSelection = clone(state.resolvedSelection);
+  }
+
+  function setResolvedBoardSelection(entry, validation) {
+    state.resolvedBoardSelection = {
+      boardId: entry?.boardId || null,
+      sourcePath: entry?.sourcePath || null,
+      entry: entry ? clone(entry) : null,
+      valid: validation?.valid === true,
+      rootAllowed: validation?.rootAllowed === true,
+      sourceClassAllowed: validation?.sourceClassAllowed === true,
+      mountedKindAllowed: validation?.mountedKindAllowed === true,
+      readOnlyAllowed: validation?.readOnlyAllowed === true,
+    };
+    boardsShared.resolvedSelection = clone(state.resolvedBoardSelection);
+  }
+
+  function clearResolvedBoardSelection() {
+    state.resolvedBoardSelection = {
+      boardId: null,
+      sourcePath: null,
+      entry: null,
+      valid: false,
+      rootAllowed: false,
+      sourceClassAllowed: false,
+      mountedKindAllowed: false,
+      readOnlyAllowed: false,
+    };
+    boardsShared.resolvedSelection = clone(state.resolvedBoardSelection);
   }
 
   async function resolveManifestSelection(manifestId) {
@@ -431,6 +488,26 @@
     };
   }
 
+  async function resolveBoardSelection(boardId) {
+    const entry = getBoardEntryById(boardId);
+    if (!entry) {
+      clearResolvedBoardSelection();
+      return null;
+    }
+    const validation = validateBoardSelection(entry);
+    setResolvedBoardSelection(entry, validation);
+    if (state.session.currentMode !== "boards") {
+      state.session.currentMode = "boards";
+      refreshDerivedState();
+      render();
+    }
+    return {
+      entry,
+      validation,
+      resolvedSelection: clone(state.resolvedBoardSelection),
+    };
+  }
+
   async function mountResolvedSelection() {
     const manifestId = state.resolvedSelection.manifestId;
     if (!manifestId) return null;
@@ -452,6 +529,29 @@
       manifestId: manifest.id,
       sourcePath: manifest.entry,
       resolvedSelection: clone(state.resolvedSelection),
+    };
+  }
+
+  async function mountResolvedBoardSelection() {
+    const boardId = state.resolvedBoardSelection.boardId;
+    if (!boardId) return null;
+    const entry = getBoardEntryById(boardId);
+    if (!entry) return null;
+    const validation = validateBoardSelection(entry);
+    setResolvedBoardSelection(entry, validation);
+    if (!validation.valid) {
+      return {
+        mounted: false,
+        reason: "board-validation-failed",
+        resolvedSelection: clone(state.resolvedBoardSelection),
+      };
+    }
+    await mountBoardEntry(entry);
+    return {
+      mounted: true,
+      boardId: entry.boardId,
+      sourcePath: entry.sourcePath,
+      resolvedSelection: clone(state.resolvedBoardSelection),
     };
   }
 
@@ -501,70 +601,7 @@
     });
   }
 
-  function refreshDerivedState() {
-    state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
-    state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
-    state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
-    state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
-    refreshNoteEditorState();
-    refreshSaveWriteBridgeState();
-    refreshApplySaveStatus();
-    refreshRepoVerifiedStatus();
-  }
-
-  function installCollectionsRuntimeApi() {
-    shared.runtimeApi = {
-      selectManifestById: (manifestId) => resolveManifestSelection(manifestId),
-      confirmMountSelectedManifest: () => mountResolvedSelection(),
-      getResolvedSelection: () => clone(state.resolvedSelection),
-      clearResolvedSelection: () => {
-        clearResolvedSelection();
-        refreshDerivedState();
-        render();
-      },
-    };
-  }
-
-  function render() {
-    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
-    renderNav();
-    renderActions();
-    renderSaveSlots();
-    renderHomeSummary();
-    renderViewport();
-    renderNotes();
-    renderSaveWriteBridge();
-    renderApplySaveStatus();
-    renderRepoVerifiedStatus();
-  }
-
-  function setSessionPatch(patch) {
-    Object.assign(state.session, patch);
-    installCollectionsRuntimeApi();
-    refreshDerivedState();
-    render();
-  }
-
-  async function loadNotesForSaveTag(saveTag) {
-    if (!saveTag) {
-      state.notesDoc = { items: [] };
-      return;
-    }
-    const notesJson = await loadOptionalJson(`saves/${saveTag}/notes.json`);
-    state.notesDoc = notesJson || { items: [] };
-  }
-
-  async function mountExampleCartridge() {
-    const entry = state.manifestIndex?.entries?.[0];
-    if (!entry) return;
-    const manifest = await loadJson(entry.manifestPath);
-    await mountRepoManifest(entry, manifest);
-  }
-
-  async function mountLiveBoard() {
-    const entry = state.boardEnumeration?.entries?.[0];
-    if (!entry) return;
-
+  async function mountBoardEntry(entry) {
     const rendererResolved = resolveRule(state.contracts.rendererSelection?.rules, {
       mountedKind: "board",
       sourceClass: "repo-board",
@@ -598,6 +635,86 @@
         runtimeSession: null,
       },
     });
+  }
+
+  function refreshDerivedState() {
+    state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
+    state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
+    state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
+    state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
+    refreshNoteEditorState();
+    refreshSaveWriteBridgeState();
+    refreshApplySaveStatus();
+    refreshRepoVerifiedStatus();
+  }
+
+  function installCollectionsRuntimeApi() {
+    collectionsShared.runtimeApi = {
+      selectManifestById: (manifestId) => resolveManifestSelection(manifestId),
+      confirmMountSelectedManifest: () => mountResolvedSelection(),
+      getResolvedSelection: () => clone(state.resolvedSelection),
+      clearResolvedSelection: () => {
+        clearResolvedSelection();
+        refreshDerivedState();
+        render();
+      },
+    };
+  }
+
+  function installBoardsRuntimeApi() {
+    boardsShared.runtimeApi = {
+      selectBoardById: (boardId) => resolveBoardSelection(boardId),
+      confirmMountSelectedBoard: () => mountResolvedBoardSelection(),
+      getResolvedSelection: () => clone(state.resolvedBoardSelection),
+      clearResolvedSelection: () => {
+        clearResolvedBoardSelection();
+        refreshDerivedState();
+        render();
+      },
+    };
+  }
+
+  function render() {
+    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
+    renderNav();
+    renderActions();
+    renderSaveSlots();
+    renderHomeSummary();
+    renderViewport();
+    renderNotes();
+    renderSaveWriteBridge();
+    renderApplySaveStatus();
+    renderRepoVerifiedStatus();
+  }
+
+  function setSessionPatch(patch) {
+    Object.assign(state.session, patch);
+    installCollectionsRuntimeApi();
+    installBoardsRuntimeApi();
+    refreshDerivedState();
+    render();
+  }
+
+  async function loadNotesForSaveTag(saveTag) {
+    if (!saveTag) {
+      state.notesDoc = { items: [] };
+      return;
+    }
+    const notesJson = await loadOptionalJson(`saves/${saveTag}/notes.json`);
+    state.notesDoc = notesJson || { items: [] };
+  }
+
+  async function mountExampleCartridge() {
+    const entry = state.manifestIndex?.entries?.[0];
+    if (!entry) return;
+    const manifest = await loadJson(entry.manifestPath);
+    await mountRepoManifest(entry, manifest);
+  }
+
+  async function mountLiveBoard() {
+    const entry = state.boardEnumeration?.entries?.[0];
+    if (!entry) return;
+    await mountBoardEntry(entry);
   }
 
   async function resumeFromSaveSlot(slot) {
@@ -646,6 +763,7 @@
     state.repoVerifiedResponse = null;
     state.sessionDraft.bookmarks = [];
     clearResolvedSelection();
+    clearResolvedBoardSelection();
     refreshDerivedState();
     render();
   }
@@ -978,8 +1096,9 @@
     state.initialState = clone(shellSession.initialState);
     state.session = clone(shellSession.initialState);
     state.manifestIndex = manifestIndex;
-    shared.manifestIndex = manifestIndex;
+    collectionsShared.manifestIndex = manifestIndex;
     state.boardEnumeration = boardEnumeration;
+    boardsShared.boardEnumeration = boardEnumeration;
     state.saveSlotIndex = saveSlotIndex;
     state.contracts = {
       browserResolver,
@@ -1002,6 +1121,7 @@
     };
 
     installCollectionsRuntimeApi();
+    installBoardsRuntimeApi();
     refreshDerivedState();
     render();
 
