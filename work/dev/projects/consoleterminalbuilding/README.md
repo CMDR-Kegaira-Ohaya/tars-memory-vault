@@ -12,6 +12,9 @@ It combines:
 - current Boards-mode rules
 - current Save / Export model
 - anti-drift handoff guidance for fresh implementation chats
+- Pages runtime strategy
+- GPT-side relationship boundary
+- live interaction boundary for runtime state vs repo behavior
 
 This board lives under:
 
@@ -49,7 +52,7 @@ This working board is intentionally outside `terminal/`:
 
 ## Core identity
 
-Terminal is the repo’s user-facing shell and cartridge host.
+Terminal is the repo's user-facing shell and cartridge host.
 
 It is not just a web page or a link hub.
 It is the contained device-like interface through which the user loads, reads, runs, exports, and saves repo-contained or external cartridges.
@@ -65,6 +68,62 @@ Terminal should behave like:
 
 The terminal should become its own thing.
 The old “device shell” idea is a functional reference, not a stylistic limit.
+
+## Pages runtime strategy
+
+The terminal delivered through Pages should be a live client-side runtime shell.
+It must not be implemented as a static mock page.
+
+Pages is the runtime delivery surface for the terminal front end.
+It is not the planning layer, and it does not replace GPT-side orchestration.
+
+The intended model is:
+- live browser shell
+- user-clickable runtime interaction
+- client-side mode switching
+- mounted content readout and runtime state
+- terminal-owned save state
+- export controls distinct from save
+- repo behavior preserved unless an allowed terminal save write occurs
+
+## GPT-side relationship boundary
+
+The Pages terminal does not take the place of the GPT-side.
+
+Locked relation:
+- GPT-side = planning, repo work, implementation guidance, orchestration
+- Pages terminal = user-facing runtime shell
+- working board = implementation source of truth for terminal build direction
+- Boards mode = live readout only, not a planning surface
+
+Therefore the terminal should be:
+- live
+- interactive
+- runtime-facing
+- bounded
+
+And it should not become:
+- a GPT replacement
+- a second planning brain
+- a hidden repo authoring surface
+- a collapse of runtime and orchestration into one layer
+
+## Live interaction strategy
+
+The user must be able to interact with the terminal without changing repo behavior by default.
+
+Examples of allowed runtime interaction:
+- turn pages in mounted reading content
+- navigate collections and mounted cartridges
+- write notes for terminal save state
+- resume progress from terminal save state
+- later play engine-backed content or games inside the shell
+
+These interactions are runtime-state actions unless an explicit allowed save path is used.
+They do not imply edits to repo source files.
+
+Runtime interaction is allowed to be rich.
+Repo mutation remains narrow.
 
 ## Anti-drift implementation rules
 
@@ -100,6 +159,13 @@ Implementation should preserve a device-shell feel, not devolve into scattered p
 Use `Collections` because the repo already has `collections/`.
 Do not invent a fake top-level `Library` abstraction unless explicitly requested later.
 
+### 8. Do not let a live terminal runtime become a GPT substitute
+The runtime shell may be interactive and stateful.
+It must not become the planning authority, implementation authority, or orchestration layer.
+
+### 9. Do not treat runtime interaction as implicit repo authoring
+Page turns, notes, gameplay state, bookmarks, local progress, and similar clicks are terminal-state operations unless an explicit repo-safe write path is introduced later.
+
 ## Why these boundaries exist
 
 These boundaries are not arbitrary.
@@ -109,6 +175,7 @@ They exist to preserve:
 - low-drift fresh-chat handoff
 - a console-shell feel instead of a website feel
 - safe terminal write behavior
+- live interaction without hidden repo mutation
 - long-horizon project continuity without mixing lanes
 
 If a future implementation feels easier by weakening these boundaries, it is likely a drift move rather than a real improvement.
@@ -129,6 +196,11 @@ The following are considered active design truth unless explicitly changed by th
 - Save and Export remain distinct actions
 - Export Source is the first export priority
 - Export Output exists as a greyed-out placeholder initially
+- Pages terminal is a live client-side runtime, not a static mock
+- Pages terminal does not replace GPT-side planning or repo work
+- runtime interaction does not change repo behavior by default
+- notes are terminal save-state data unless explicitly exported later
+- future games or engines may run inside terminal without becoming repo authoring
 
 ### Open later
 The following are still open design space:
@@ -139,6 +211,7 @@ The following are still open design space:
 - final export packaging details beyond v1 source export
 - animation and motion behavior
 - deeper engine architecture after basic shell exists
+- optional remote or API paths beyond bounded terminal save behavior
 
 ## Non-negotiable rules
 
@@ -169,6 +242,12 @@ Disk and drag-drop cartridges do not automatically become repo content.
 ### 7. Boards mode is live readout only
 Working boards are read at source and displayed in terminal.
 They are not saved through terminal GUI and do not use `terminal/saves/`.
+
+### 8. Live runtime does not equal repo mutation
+Interactive actions may be live and stateful while source files remain untouched.
+
+### 9. Live runtime does not replace GPT-side authority
+Terminal runtime behavior may expand over time, but GPT-side remains the planning and implementation authority unless explicitly changed by the user.
 
 ## First canonical repo cartridge root
 
@@ -278,7 +357,7 @@ In Boards mode:
 
 Suggested explanation:
 
-> Working boards are source files in workspace.  
+> Working boards are source files in workspace.
 > Update them at their live path, not through terminal GUI.
 
 ### Status-strip rule
@@ -301,8 +380,9 @@ Save = terminal-side persistence of allowed state.
 
 Save:
 - writes only into `terminal/saves/<tag>/`
-- is used for state, progress, or terminal-bounded persistence
+- is used for state, progress, notes, bookmarks, or terminal-bounded persistence
 - does not mean “take a file out”
+- does not edit mounted repo source files
 
 ### Export
 Export = outbound user grab / download / extract action.
@@ -351,6 +431,38 @@ This should exist in the UI as a placeholder, but remain greyed out in early bui
 - Save: not the action focus here; this is the management mode
 - Export Source: export save package or slot data later
 - Export Output: not primary
+
+## Live interaction model
+
+Terminal interaction should be live, but bounded.
+
+### Allowed live interactions in v1 and later
+- page turns in documents
+- scroll and navigation state
+- bookmarks and reading position
+- notes attached to terminal save state
+- shell navigation and mode switching
+- mounted runtime resume state
+- later engine-backed interactions such as games or tools
+
+### Interaction rule
+The default interpretation of user interaction is runtime state, not repo mutation.
+
+### Notes rule
+Notes are terminal-owned state.
+By default they persist only through terminal save paths.
+They do not edit source documents.
+
+### Page-turn rule
+Changing page or reading position updates runtime state only.
+It does not alter source content.
+
+### Game / engine rule
+Later game or engine-backed runtime behavior is allowed inside terminal.
+Game progress remains terminal state unless a future explicit export or external sync path is defined.
+
+### Repo behavior rule
+Clicks, page turns, notes, play state, and resume state do not change repo behavior unless they go through the allowed terminal save path.
 
 ## Cartridge source classes
 
@@ -506,8 +618,10 @@ terminal/
     books-example-001/
       state.json
       session.json
+      notes.json
     local-drop-a1b2c3/
       state.json
+      session.json
 ```
 
 ### Save slot rule
@@ -536,6 +650,7 @@ The shell should always know:
 - export-output availability
 - dirty or saved state if applicable
 - read-only live-board state when in Boards mode
+- current runtime position or interaction state when applicable
 
 Conceptually:
 
@@ -550,7 +665,12 @@ Conceptually:
   "save": "enabled",
   "exportSource": "available",
   "exportOutput": "placeholder",
-  "dirty": false
+  "dirty": false,
+  "interaction": {
+    "page": 12,
+    "scroll": 0.42,
+    "notes": true
+  }
 }
 ```
 
@@ -586,6 +706,8 @@ Terminal should follow these behavioral rules:
 - Export Output may appear before implementation, but should be visibly placeholder / disabled
 - eject and resume are first-class operations where applicable
 - board readout visibly communicates read-only status
+- live user interaction should feel real, not like a static mock page
+- runtime interaction must not blur into repo authoring
 
 ## Preliminary terminal directory direction
 
@@ -606,9 +728,9 @@ terminal/
 ### Likely roles
 - `.gitkeep` — preserve the root while the runtime layer is still being built
 - `saves/` — the only terminal write root
-- `app/` — shell/page implementation
-- `loaders/` — repo/disk/drop loading logic
-- `renderers/` — markdown/text/json display layer
+- `app/` — shell / page runtime contracts and implementation
+- `loaders/` — repo / disk / drag-drop loading logic
+- `renderers/` — markdown / text / json display layer
 - `engines/` — terminal-specific runtimes later
 - `manifests/` — canonical cartridge descriptors
 - `assets/` — shell assets
@@ -618,19 +740,22 @@ terminal/
 ### Phase 1
 - persistent shell
 - v1 modes
-- repo/disk/drop loading
-- markdown/text/json cartridge handling
+- repo / disk / drag-drop loading
+- markdown / text / json cartridge handling
 - bounded save model
 - Export Source for basic supported items
 - Export Output visible as placeholder
 - Boards mode live readout
+- Pages terminal live runtime shell
+- notes and reading state treated as terminal save data, not repo edits
 
 ### Phase 2
 - collections-driven reading
 - richer structured modules
-- stronger save/resume behavior
+- stronger save / resume behavior
 - better board enumeration and board status UX
 - broader export support
+- more explicit runtime interaction state handling
 
 ### Phase 3
 - engine-backed modules
@@ -657,7 +782,7 @@ Support:
 - mount from drag-and-drop
 
 ### Build target E — runs viewport
-Create the main render/run viewport.
+Create the main render / run viewport.
 
 ### Build target F — save manager
 Route all allowed writes only into `terminal/saves/<tag>/`.
@@ -679,6 +804,21 @@ Implement:
 - Export Source enabled in Boards mode
 - Export Output placeholder disabled in Boards mode
 
+### Build target J — Pages live runtime contract
+Implement the terminal as a live client-side shell on the Pages surface, not a static mock.
+
+### Build target K — runtime interaction boundary
+Implement interaction contracts for:
+- page turns
+- notes
+- reading progress
+- later engine state
+
+without changing repo behavior except through allowed terminal save paths.
+
+### Build target L — GPT-side boundary clarity
+Keep runtime implementation explicitly separate from GPT-side planning, repo work, and orchestration.
+
 ## Fresh-chat bootstrap for implementation
 
 Use this file as the implementation source of truth.
@@ -687,18 +827,21 @@ Build the smallest implementation that preserves the listed boundaries.
 Do not move the working board back into `terminal/`.
 Do not make Boards save-capable.
 Do not blur Save and Export.
+Do not let a live Pages terminal be mistaken for GPT-side authority.
 If a build choice threatens those rules, stop and ask.
 
 ## Working rule
 
 Terminal architecture must remain clear and bounded:
-- broad read/load
+- broad read / load
 - narrow write
 - explicit cartridge model
 - persistent shell
 - repo-true content surfaces
 - special-purpose board readout from approved work paths
 - distinct Save vs Export behavior
+- live runtime interaction without implicit repo mutation
+- runtime shell separate from GPT-side planning and repo work
 - its own visual and behavioral identity
 
 The terminal should become more coherent as it grows, not merely larger.

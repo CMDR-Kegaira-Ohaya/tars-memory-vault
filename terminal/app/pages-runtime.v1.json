@@ -1,0 +1,33 @@
+{
+  "id": "terminal-pages-runtime-v1",
+  "version": "v1",
+  "role": "pages-runtime-surface-contract",
+  "surface": "github-pages",
+  "uiModel": "live-client-shell",
+  "staticMock": false,
+  "replacesGptSide": false,
+  "capabilities": [
+    "persistent-shell-ui",
+    "mode-switching",
+    "mount-and-read",
+    "runtime-state",
+    "page-turning",
+    "notes",
+    "save-slots",
+    "export-source",
+    "later-engine-runtime"
+  ],
+  "nonCapabilities": [
+    "gpt-side-planning",
+    "repo-authoring-by-default",
+    "board-writeback-through-gui",
+    "repo-writes-outside-terminal-saves"
+  ],
+  "authority": {
+    "planning": "gpt-side",
+    "implementationGuidance": "working-board",
+    "runtime": "pages-terminal",
+    "boardSource": "workspace-source-files"
+  },
+  "interactionPrinciple": "interactive-runtime-without-implicit-repo-mutation"
+}

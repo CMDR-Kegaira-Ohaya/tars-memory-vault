@@ -1,0 +1,34 @@
+{
+  "id": "terminal-runtime-interaction-v1",
+  "version": "v1",
+  "role": "interactive-runtime-state-contract",
+  "interactions": {
+    "reading": {
+      "pageTurns": "runtime-state",
+      "scrollPosition": "runtime-state",
+      "bookmarks": "terminal-save-state"
+    },
+    "notes": {
+      "persistsTo": "terminal/saves/<tag>/notes.json",
+      "editsMountedSource": false,
+      "exportLater": "optional"
+    },
+    "boards": {
+      "readOnly": true,
+      "save": "disabled",
+      "saveThroughGui": false,
+      "usesTerminalSaves": false
+    },
+    "gamesAndEngines": {
+      "runtimeState": true,
+      "persistsTo": "terminal/saves/<tag>/",
+      "repoMutationByDefault": false
+    }
+  },
+  "repoBehavior": {
+    "defaultMutation": "none",
+    "allowedWriteRoot": "terminal/saves/<tag>/",
+    "exportDistinctFromSave": true,
+    "clicksDoNotEditRepoSources": true
+  }
+}

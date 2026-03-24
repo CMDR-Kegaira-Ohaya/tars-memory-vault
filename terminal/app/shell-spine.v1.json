@@ -3,6 +3,17 @@
   "version": "v1",
   "role": "persistent-shell-contract",
   "runtimeRoot": "terminal/",
+  "deliverySurface": {
+    "target": "pages",
+    "uiModel": "live-client-runtime",
+    "staticMock": false,
+    "replacesGptSide": false
+  },
+  "authorityModel": {
+    "runtime": "terminal-pages-shell",
+    "planning": "gpt-side-and-working-board",
+    "repoSourceOfTruth": "repo-paths-and-working-board"
+  },
   "modes": [
     {
       "id": "home",
@@ -39,7 +50,8 @@
   "boundaries": {
     "save": {
       "writeRoot": "terminal/saves/<tag>/",
-      "distinctFromExport": true
+      "distinctFromExport": true,
+      "repoMutationByDefault": false
     },
     "boards": {
       "liveReadoutOnly": true,
@@ -47,6 +59,12 @@
       "usesTerminalSaves": false,
       "exportSource": "enabled",
       "exportOutput": "placeholder-disabled"
+    },
+    "runtimeInteraction": {
+      "pageTurnsAreRuntimeState": true,
+      "notesAreTerminalState": true,
+      "notesDoNotEditSource": true,
+      "laterGamesAreRuntimeState": true
     }
   },
   "stateShape": {
@@ -56,11 +74,18 @@
     "sourcePath": null,
     "sourceClass": null,
     "renderer": null,
+    "engine": null,
     "saveTag": null,
     "save": "disabled",
     "exportSource": "disabled",
     "exportOutput": "placeholder",
     "dirty": null,
+    "interaction": {
+      "page": null,
+      "scroll": null,
+      "notes": false,
+      "runtimeSession": null
+    },
     "state": "idle"
   }
 }
