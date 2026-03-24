@@ -51,6 +51,30 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    .action-button-surface {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 150px;
+      justify-content: space-between;
+    }
+    .action-button-label {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .action-button-status {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: lowercase;
+      border: 1px solid var(--line);
+      padding: 2px 6px;
+    }
+    .action-button-surface[data-action-emphasis="active"] .action-button-status {
+      color: var(--accent);
+    }
+    .action-button-surface[data-action-emphasis="placeholder"] .action-button-status {
+      color: var(--warn);
+    }
     textarea {
       width: 100%;
       min-height: 120px;
@@ -88,6 +112,7 @@
   </style>
   <script src="app/browser-runtime.js" defer></script>
   <script src="app/browser-action-identity.js" defer></script>
+  <script src="app/browser-action-surface.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>

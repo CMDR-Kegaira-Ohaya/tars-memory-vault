@@ -1,0 +1,135 @@
+{
+  "id": "terminal-action-surface-v1",
+  "version": "v1",
+  "role": "stable-action-command-surface-presentation-contract",
+  "uses": {
+    "actionState": "terminal/app/action-state.v1.json"
+  },
+  "inputs": [
+    "actionKey",
+    "actionState",
+    "buttonDisabled"
+  ],
+  "fields": [
+    "label",
+    "statusLabel",
+    "hint",
+    "emphasis"
+  ],
+  "states": {
+    "saveReady": {
+      "match": {
+        "actionKey": "save",
+        "actionState": "enabled-or-conditional"
+      },
+      "derive": {
+        "label": "Save",
+        "statusLabel": "slot-bound",
+        "hint": "Stages bounded save flow for the current cartridge save slot.",
+        "emphasis": "active"
+      }
+    },
+    "saveDisabled": {
+      "match": {
+        "actionKey": "save",
+        "actionState": "disabled"
+      },
+      "derive": {
+        "label": "Save",
+        "statusLabel": "off",
+        "hint": "Save is unavailable for the current mount.",
+        "emphasis": "muted"
+      }
+    },
+    "exportSourceReady": {
+      "match": {
+        "actionKey": "exportSource",
+        "actionState": "enabled|conditional"
+      },
+      "derive": {
+        "label": "Export Source",
+        "statusLabel": "download",
+        "hint": "Downloads the mounted source file without repo write.",
+        "emphasis": "active"
+      }
+    },
+    "exportSourceDisabled": {
+      "match": {
+        "actionKey": "exportSource",
+        "actionState": "disabled"
+      },
+      "derive": {
+        "label": "Export Source",
+        "statusLabel": "off",
+        "hint": "Export Source is unavailable for the current mount.",
+        "emphasis": "muted"
+      }
+    },
+    "exportOutputPlaceholder": {
+      "match": {
+        "actionKey": "exportOutput",
+        "actionState": "placeholder|placeholder-disabled"
+      },
+      "derive": {
+        "label": "Export Output",
+        "statusLabel": "later",
+        "hint": "Export Output remains a placeholder action for now.",
+        "emphasis": "placeholder"
+      }
+    },
+    "notesReady": {
+      "match": {
+        "actionKey": "notes",
+        "actionState": "enabled-or-conditional"
+      },
+      "derive": {
+        "label": "Notes",
+        "statusLabel": "slot-notes",
+        "hint": "Stages notes payload for the current save slot.",
+        "emphasis": "active"
+      }
+    },
+    "notesDisabled": {
+      "match": {
+        "actionKey": "notes",
+        "actionState": "disabled"
+      },
+      "derive": {
+        "label": "Notes",
+        "statusLabel": "off",
+        "hint": "Notes are unavailable for the current mount.",
+        "emphasis": "muted"
+      }
+    },
+    "bookmarksReady": {
+      "match": {
+        "actionKey": "bookmarks",
+        "actionState": "enabled-or-conditional"
+      },
+      "derive": {
+        "label": "Bookmarks",
+        "statusLabel": "session",
+        "hint": "Bookmark surface is reserved for current runtime session state.",
+        "emphasis": "active"
+      }
+    },
+    "bookmarksDisabled": {
+      "match": {
+        "actionKey": "bookmarks",
+        "actionState": "disabled"
+      },
+      "derive": {
+        "label": "Bookmarks",
+        "statusLabel": "off",
+        "hint": "Bookmarks are unavailable for the current mount.",
+        "emphasis": "muted"
+      }
+    }
+  },
+  "guardrails": [
+    "Action surface presentation should read explicit action identities instead of parsing rendered button text.",
+    "Action presentation does not create new capabilities beyond action-state derivation.",
+    "Boards keep Save, Notes, and Bookmarks unavailable while Export Source may remain active.",
+    "Export Source and Export Output remain distinct actions."
+  ]
+}
