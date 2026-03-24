@@ -1,0 +1,77 @@
+{
+  "id": "terminal-collections-browser-v1",
+  "version": "v1",
+  "role": "collections-browser-selection-and-resolve-surface-contract",
+  "uses": {
+    "manifestIndex": "terminal/manifests/manifest-index.v1.json",
+    "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json"
+  },
+  "inputs": [
+    "selectedManifestId",
+    "selectedEntryPath",
+    "currentMountedEntryPath",
+    "manifestValid"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "mountAction"
+  ],
+  "states": {
+    "idle": {
+      "match": {
+        "selectedManifestId": null
+      },
+      "derive": {
+        "title": "Collections browser",
+        "statusChip": "idle",
+        "detail": "Select a manifest entry to resolve its shell preview before mounting.",
+        "mountAction": "disabled"
+      }
+    },
+    "invalid": {
+      "match": {
+        "selectedManifestId": "non-null",
+        "manifestValid": false
+      },
+      "derive": {
+        "title": "Resolved selection",
+        "statusChip": "invalid",
+        "detail": "The selected manifest does not satisfy the canonical Collections selection rules.",
+        "mountAction": "disabled"
+      }
+    },
+    "mounted": {
+      "match": {
+        "selectedManifestId": "non-null",
+        "manifestValid": true,
+        "selectionMatchesMount": true
+      },
+      "derive": {
+        "title": "Resolved selection",
+        "statusChip": "mounted",
+        "detail": "This manifest is already mounted. Selection remains distinct from mounting.",
+        "mountAction": "mounted"
+      }
+    },
+    "resolved": {
+      "match": {
+        "selectedManifestId": "non-null",
+        "manifestValid": true
+      },
+      "derive": {
+        "title": "Resolved selection",
+        "statusChip": "resolved",
+        "detail": "Manifest metadata has been resolved. Mount still requires explicit user confirmation.",
+        "mountAction": "confirm"
+      }
+    }
+  },
+  "guardrails": [
+    "Selection and mounting remain distinct steps.",
+    "Resolved-but-not-mounted is a transitional display state inside Collections mode, not a new mode.",
+    "Reading manifest descriptors is cheap and reversible; mounting is explicit because it changes shell state.",
+    "Collections browser resolution does not change save or export boundaries."
+  ]
+}

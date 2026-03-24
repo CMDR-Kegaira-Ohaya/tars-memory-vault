@@ -112,6 +112,34 @@
       display: grid;
       gap: 8px;
     }
+    .manifest-group {
+      display: grid;
+      gap: 8px;
+    }
+    .manifest-group-title {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .manifest-entry {
+      width: 100%;
+      text-align: left;
+      display: grid;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    .manifest-entry[data-selected="true"] {
+      border-color: var(--accent);
+    }
+    .manifest-entry-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
     .inspector-shell {
       display: grid;
       gap: 8px;
@@ -186,11 +214,13 @@
       .surface-meta-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <script src="app/browser-collections-bridge.js" defer></script>
   <script src="app/browser-runtime.js" defer></script>
   <script src="app/browser-action-identity.js" defer></script>
   <script src="app/browser-action-surface.js" defer></script>
   <script src="app/browser-runs-surface.js" defer></script>
   <script src="app/browser-home-surface.js" defer></script>
+  <script src="app/browser-collections-browser.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
@@ -230,6 +260,21 @@
       <div class="panel">
         <div class="label">RUNS VIEWPORT</div>
         <div id="runsViewport" class="viewport">loading...</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">COLLECTIONS BROWSER</div>
+        <div id="collectionsBrowserList" class="surface-list"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">COLLECTIONS SELECTION PREVIEW</div>
+        <div id="collectionsResolvedSummary" class="value">loading...</div>
+        <div class="row" style="margin-top:8px;">
+          <button id="collectionsMountConfirm" disabled>Mount selected</button>
+        </div>
+        <div class="muted" style="margin-top:8px;">Selection resolves first. Mount happens only after explicit confirmation.</div>
       </div>
     </section>
 
