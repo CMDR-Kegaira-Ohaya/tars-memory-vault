@@ -1,0 +1,123 @@
+{
+  "id": "terminal-shell-session-v1",
+  "version": "v1",
+  "role": "shell-session-runtime-contract",
+  "uses": {
+    "shellSpine": "terminal/app/shell-spine.v1.json",
+    "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "boardsMode": "terminal/app/boards-mode.v1.json",
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json"
+  },
+  "initialState": {
+    "currentMode": "home",
+    "mountedId": null,
+    "mountedKind": null,
+    "sourcePath": null,
+    "sourceClass": null,
+    "renderer": null,
+    "engine": null,
+    "saveTag": null,
+    "save": "disabled",
+    "exportSource": "disabled",
+    "exportOutput": "placeholder",
+    "dirty": null,
+    "interaction": {
+      "page": null,
+      "scroll": null,
+      "notes": false,
+      "runtimeSession": null
+    },
+    "state": "idle"
+  },
+  "transitions": {
+    "boot": {
+      "from": ["idle", "suspended", null],
+      "to": "idle",
+      "effect": "initialize-shell-session"
+    },
+    "switchMode": {
+      "from": ["idle", "mounted", "running"],
+      "to": "idle",
+      "effect": "change-current-mode-without-implicit-mount"
+    },
+    "mountResolvedSource": {
+      "from": ["idle", "mounted"],
+      "to": "mounted",
+      "requires": [
+        "currentMode",
+        "sourcePath",
+        "sourceClass"
+      ],
+      "effect": "set-mounted-session-fields-from-resolved-source"
+    },
+    "updateInteraction": {
+      "from": ["mounted", "running"],
+      "to": "mounted",
+      "effect": "update-page-scroll-notes-and-runtime-session"
+    },
+    "runMountedItem": {
+      "from": ["mounted"],
+      "to": "running",
+      "effect": "activate-renderer-or-engine-without-changing-source"
+    },
+    "unmount": {
+      "from": ["mounted", "running"],
+      "to": "idle",
+      "effect": "clear-mounted-fields-keep-current-mode"
+    }
+  },
+  "modeRules": {
+    "boards": {
+      "allowedSourceClass": "repo-board",
+      "save": "disabled",
+      "notes": "disabled",
+      "bookmarks": "disabled",
+      "sessionPersistence": "ephemeral-only"
+    },
+    "collections": {
+      "preferredSourceClass": "repo-cartridge",
+      "sessionPersistence": "allowed-via-terminal-saves"
+    },
+    "cartridges": {
+      "allowedSourceClass": [
+        "repo-cartridge",
+        "disk-cartridge",
+        "drag-drop-cartridge"
+      ],
+      "sessionPersistence": "allowed-via-terminal-saves"
+    }
+  },
+  "saveEligibility": {
+    "requires": [
+      "save != disabled",
+      "saveTag != null",
+      "sourceClass != repo-board"
+    ],
+    "writeRoot": "terminal/saves/<tag>/",
+    "writes": [
+      "state.json",
+      "session.json",
+      "notes.json"
+    ]
+  },
+  "interactionRules": [
+    "Page turns and scroll updates change runtime state, not mounted source files.",
+    "Notes may exist only for save-eligible mounted cartridges.",
+    "Boards mounts keep interaction state ephemeral and non-persisted.",
+    "Export Source remains independent from save state."
+  ],
+  "statusDerivation": {
+    "boards": {
+      "state": "read-only-live-board",
+      "save": "disabled",
+      "exportSource": "enabled",
+      "exportOutput": "placeholder-disabled"
+    },
+    "saveEligibleMount": {
+      "state": "mounted",
+      "save": "enabled-or-conditional",
+      "exportSource": "conditional",
+      "exportOutput": "placeholder"
+    }
+  }
+}
