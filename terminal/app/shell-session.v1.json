@@ -6,6 +6,7 @@
     "shellSpine": "terminal/app/shell-spine.v1.json",
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
     "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
+    "boardEnumeration": "terminal/app/board-enumeration.v1.json",
     "mountState": "terminal/app/mount-state.v1.json",
     "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
@@ -48,6 +49,11 @@
       "to": "idle",
       "effect": "resolve-canonical-repo-cartridge-from-manifest-before-mount"
     },
+    "selectBoard": {
+      "from": ["idle", "mounted"],
+      "to": "idle",
+      "effect": "resolve-approved-live-board-from-board-enumeration-before-mount"
+    },
     "mountResolvedSource": {
       "from": ["idle", "mounted"],
       "to": "mounted",
@@ -77,6 +83,7 @@
   "modeRules": {
     "boards": {
       "allowedSourceClass": "repo-board",
+      "preferredSelection": "board-enumeration-driven",
       "mountedKind": "board",
       "save": "disabled",
       "notes": "disabled",

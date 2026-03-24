@@ -1,0 +1,55 @@
+{
+  "id": "terminal-board-enumeration-v1",
+  "version": "v1",
+  "role": "approved-live-board-index-contract",
+  "root": "work/dev/projects/",
+  "enumeration": {
+    "pattern": "*/README.md",
+    "mode": "approved-root-only"
+  },
+  "selectionModes": [
+    "enumerate-index",
+    "select-by-board-id",
+    "select-by-project-path"
+  ],
+  "entries": [
+    {
+      "boardId": "consoleterminalbuilding",
+      "title": "Console Terminal Working Board",
+      "sourcePath": "work/dev/projects/consoleterminalbuilding/README.md",
+      "sourceClass": "repo-board",
+      "mountedKind": "board",
+      "readOnly": true,
+      "exportSource": "enabled",
+      "save": "disabled"
+    }
+  ],
+  "rules": [
+    "Board entries must stay under work/dev/projects/.",
+    "Board entries resolve to live source paths, not copied runtime-owned files.",
+    "Board enumeration does not use repo cartridge manifests.",
+    "Board selection does not enable terminal/saves/ for boards.",
+    "Approved board enumeration does not turn work/ into a normal content root."
+  ],
+  "resolvedOutput": {
+    "boardId": "string",
+    "title": "string",
+    "sourcePath": "work/dev/projects/.../README.md",
+    "sourceClass": "repo-board",
+    "mountedKind": "board",
+    "readOnly": true,
+    "save": "disabled",
+    "exportSource": "enabled",
+    "exportOutput": "placeholder-disabled"
+  },
+  "fallback": {
+    "state": "empty-or-unresolved",
+    "action": "defer-or-stop"
+  },
+  "guardrails": [
+    "Boards remain approved-root live readouts.",
+    "Board enumeration is descriptor-like indexing, not manifest-driven cartridge loading.",
+    "Board selection does not imply repo mutation.",
+    "Boards remain outside terminal save behavior."
+  ]
+}

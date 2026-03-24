@@ -1,0 +1,58 @@
+{
+  "id": "terminal-boards-mode-v1",
+  "version": "v1",
+  "role": "boards-mode-guardrail-contract",
+  "indexPath": "terminal/app/board-enumeration.v1.json",
+  "mode": "boards",
+  "sourceClass": "repo-board",
+  "approvedRoot": "work/dev/projects/",
+  "mountPolicy": {
+    "enumeration": "approved-index-and-root-only",
+    "mountFrom": "live-source-path",
+    "copyIntoTerminalState": false,
+    "readOnly": true,
+    "liveReadout": true
+  },
+  "actions": {
+    "save": {
+      "status": "disabled",
+      "writesToTerminalSaves": false,
+      "explanation": "Working boards are source files in workspace. Update them at their live path, not through terminal GUI."
+    },
+    "exportSource": {
+      "status": "enabled"
+    },
+    "exportOutput": {
+      "status": "placeholder-disabled"
+    },
+    "notes": {
+      "status": "disabled",
+      "reason": "Boards do not use terminal save state."
+    },
+    "bookmarks": {
+      "status": "disabled",
+      "reason": "Boards do not persist terminal session state."
+    }
+  },
+  "runtimeState": {
+    "page": "ephemeral-only",
+    "scroll": "ephemeral-only",
+    "persistedSession": false,
+    "persistedNotes": false,
+    "stateLabel": "read-only-live-board"
+  },
+  "statusStrip": {
+    "mode": "BOARDS",
+    "source": "work/dev/projects/...",
+    "state": "READ-ONLY LIVE BOARD",
+    "save": "DISABLED",
+    "exportSource": "AVAILABLE",
+    "exportOutput": "PLACEHOLDER"
+  },
+  "guardrails": [
+    "Boards never save through terminal GUI.",
+    "Boards never use terminal/saves/.",
+    "Boards remain live readout only.",
+    "Boards do not become normal save-capable cartridges."
+  ]
+}
