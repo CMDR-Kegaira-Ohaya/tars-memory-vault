@@ -1,0 +1,75 @@
+{
+  "bridgeId": "terminal-browser-save-write-bridge-v1",
+  "applyRequestId": "terminal-apply-save-request-v1",
+  "handlerId": "terminal-repo-save-write-handler-v1",
+  "mode": "client-staged-write-request-only",
+  "consentRequired": true,
+  "consentGranted": true,
+  "handoffTarget": "terminal/app/apply-save-request.v1.json",
+  "repoHandlerTarget": "terminal/app/repo-save-write-handler.v1.json",
+  "saveTag": "books-example-001",
+  "writeRoot": "terminal/saves/books-example-001/",
+  "sourceClass": "repo-cartridge",
+  "mountedId": "books-example-001",
+  "manifestId": "books-example-001",
+  "coverage": {
+    "bookmarks": "tracked-from-runtime-or-partial"
+  },
+  "status": "staged-partial-or-ready",
+  "stagedAt": "2026-03-24T03:51:42Z",
+  "consentGrantedAt": "2026-03-24T03:51:55Z",
+  "writes": [
+    {
+      "kind": "state",
+      "path": "terminal/saves/books-example-001/state.json",
+      "payload": {
+        "mountedId": "books-example-001",
+        "sourcePath": "collections/books/example.md",
+        "sourceClass": "repo-cartridge",
+        "renderer": "markdown-reader",
+        "updatedAt": "2026-03-24T03:52:00Z"
+      }
+    },
+    {
+      "kind": "session",
+      "path": "terminal/saves/books-example-001/session.json",
+      "payload": {
+        "page": 3,
+        "scroll": 0.62,
+        "bookmarks": [
+          2,
+          3
+        ],
+        "runtimeSession": null
+      }
+    },
+    {
+      "kind": "notes",
+      "path": "terminal/saves/books-example-001/notes.json",
+      "payload": {
+        "items": [
+          {
+            "id": "note-001",
+            "at": {
+              "page": 2,
+              "scroll": 0.35
+            },
+            "text": "Resume from this point in the example cartridge.",
+            "createdAt": "2026-03-24T03:27:00Z",
+            "updatedAt": "2026-03-24T03:52:00Z"
+          },
+          {
+            "id": "note-002",
+            "at": {
+              "page": 3,
+              "scroll": 0.62
+            },
+            "text": "Applied bounded repo save write request from the Pages runtime staging flow.",
+            "createdAt": "2026-03-24T03:52:00Z",
+            "updatedAt": "2026-03-24T03:52:00Z"
+          }
+        ]
+      }
+    }
+  ]
+}
