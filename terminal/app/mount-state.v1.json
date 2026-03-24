@@ -4,6 +4,7 @@
   "role": "mounted-item-shape-contract",
   "uses": {
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
     "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
@@ -15,6 +16,8 @@
   "shape": {
     "mountedId": "string-or-null",
     "mountedKind": "cartridge-or-board-or-null",
+    "manifestId": "string-or-null",
+    "manifestPath": "string-or-null",
     "sourceOrigin": "repo-disk-drag-drop-or-null",
     "sourceClass": "string-or-null",
     "sourcePath": "string-or-null",
@@ -38,6 +41,8 @@
       },
       "derive": {
         "mountedKind": "board",
+        "manifestId": null,
+        "manifestPath": null,
         "readOnly": true,
         "declaredType": "markdown",
         "rendererHint": null,
@@ -58,12 +63,14 @@
       },
       "derive": {
         "mountedKind": "cartridge",
+        "manifestId": "manifest-id-or-null",
+        "manifestPath": "manifest-path-or-null",
         "readOnly": false,
-        "declaredType": null,
-        "rendererHint": null,
+        "declaredType": "from-manifest-or-null",
+        "rendererHint": "from-manifest-or-null",
         "renderer": "resolve-via-renderer-selection",
         "engine": null,
-        "saveTag": "manifest-or-runtime-declared",
+        "saveTag": "manifest-save-tag-or-manifest-id-or-runtime-declared",
         "save": "conditional",
         "exportSource": "conditional",
         "exportOutput": "placeholder",
@@ -78,6 +85,8 @@
       },
       "derive": {
         "mountedKind": "cartridge",
+        "manifestId": null,
+        "manifestPath": null,
         "readOnly": false,
         "declaredType": null,
         "rendererHint": null,
@@ -98,6 +107,8 @@
       },
       "derive": {
         "mountedKind": "cartridge",
+        "manifestId": null,
+        "manifestPath": null,
         "readOnly": false,
         "declaredType": null,
         "rendererHint": null,

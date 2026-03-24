@@ -1,0 +1,62 @@
+{
+  "id": "terminal-repo-manifest-selection-v1",
+  "version": "v1",
+  "role": "canonical-repo-cartridge-manifest-selection-contract",
+  "selectionRoot": "collections/",
+  "selectionSurfaces": [
+    "collections/books/",
+    "collections/entertainment/",
+    "collections/various/"
+  ],
+  "selectionModes": [
+    "enumerate-manifests",
+    "select-by-manifest-id",
+    "select-by-category"
+  ],
+  "manifestShape": {
+    "required": [
+      "id",
+      "title",
+      "type",
+      "source",
+      "entry",
+      "renderer",
+      "save.enabled",
+      "save.tag"
+    ],
+    "optional": [
+      "meta.description",
+      "meta.author",
+      "meta.tags"
+    ]
+  },
+  "selectionRules": [
+    "Only source=repo manifests are eligible for canonical repo cartridge selection.",
+    "Manifest entry must stay under collections/.",
+    "Manifest entry must not point into work/, logs/, repo-manual/, or .github/.",
+    "Manifest selection does not apply to Boards mode.",
+    "Renderer may be declared by manifest but still resolves through renderer-selection rules."
+  ],
+  "resolvedOutput": {
+    "manifestId": "string",
+    "title": "string",
+    "sourceClass": "repo-cartridge",
+    "sourceOrigin": "repo",
+    "entry": "collections/...",
+    "declaredType": "string",
+    "rendererHint": "string-or-null",
+    "saveTag": "save.tag-or-manifest-id",
+    "save": "enabled-or-conditional",
+    "exportSource": "conditional"
+  },
+  "fallback": {
+    "state": "unresolved",
+    "action": "defer-or-stop"
+  },
+  "guardrails": [
+    "Canonical repo cartridge manifests do not turn collections/ into writable runtime state.",
+    "Manifest selection is descriptor-driven repo loading, not repo mutation.",
+    "Boards remain approved-root live readouts outside this manifest path.",
+    "Save behavior remains bounded to terminal/saves/<tag>/ after selection."
+  ]
+}
