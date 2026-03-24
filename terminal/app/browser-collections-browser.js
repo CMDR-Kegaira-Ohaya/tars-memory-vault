@@ -59,38 +59,34 @@
     };
   }
 
-  function readMountedSourcePath() {
-    const viewport = document.getElementById("runsViewport");
-    const rawText = viewport?.dataset?.rawText || viewport?.textContent || "";
-    const line = rawText.split("\n").find((entry) => entry.startsWith("source: "));
-    return line ? line.slice(8) : null;
+  function getRuntimeApi() {
+    return shared.runtimeApi || null;
   }
 
-  function readCurrentMode() {
-    const home = document.getElementById("homeSummary");
+  function getResolvedSelection() {
+    const runtimeApi = getRuntimeApi();
+    if (!runtimeApi?.getResolvedSelection) return null;
     try {
-      const raw = JSON.parse(home?.dataset?.rawSummary || "{}");
-      return raw.mode || "home";
+      const resolved = runtimeApi.getResolvedSelection();
+      return resolved?.manifestId ? resolved : null;
     } catch {
-      return "home";
+      return null;
     }
   }
 
-  function validateSelectedManifest(entry, manifest) {
-    const required = runtime.selectionContract?.manifestShape?.required || [];
-    const missing = required.filter((path) => getByPath(manifest, path) == null);
-    const selectionRoot = runtime.selectionContract?.selectionRoot || "collections/";
-    const allowedSurfaces = runtime.selectionContract?.selectionSurfaces || [];
-    const entryPath = String(manifest?.entry || "");
-    const manifestSource = String(manifest?.source || "");
-    const entryAllowed = entryPath.startsWith(selectionRoot) && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
-    const sourceAllowed = manifestSource === "repo";
-    return {
-      valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
-      missing,
-      sourceAllowed,
-      entryAllowed
-    };
+  function syncLocalSelectionWithRuntime() {
+    const resolved = getResolvedSelection();
+    if (!resolved?.manifestId) return;
+    const entry = (runtime.manifestIndex?.entries || []).find((item) => item.manifestId === resolved.manifestId) || null;
+    if (entry) {
+      runtime.selectedEntry = entry;
+    }
+    if (resolved.manifest) {
+      runtime.selectedManifest = resolved.manifest;
+      if (entry?.manifestPath) {
+        runtime.manifestCache.set(entry.manifestPath, resolved.manifest);
+      }
+    }
   }
 
   async function ensureManifest(entry) {
@@ -107,6 +103,21 @@
     const entry = (runtime.manifestIndex?.entries || []).find((item) => item.manifestId === manifestId) || null;
     runtime.selectedEntry = entry;
     runtime.selectedManifest = entry ? await ensureManifest(entry) : null;
+
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi?.selectManifestById && entry) {
+      try {
+        const resolved = await runtimeApi.selectManifestById(entry.manifestId);
+        if (resolved?.manifest) {
+          runtime.selectedManifest = resolved.manifest;
+          runtime.manifestCache.set(entry.manifestPath, resolved.manifest);
+        }
+      } catch {
+        // fall back to local resolved preview only
+      }
+    }
+
+    syncLocalSelectionWithRuntime();
     render();
   }
 
@@ -172,6 +183,40 @@
     }
   }
 
+  function readMountedSourcePath() {
+    const viewport = document.getElementById("runsViewport");
+    const rawText = viewport?.dataset?.rawText || viewport?.textContent || "";
+    const line = rawText.split("\n").find((entry) => entry.startsWith("source: "));
+    return line ? line.slice(8) : null;
+  }
+
+  function readCurrentMode() {
+    const home = document.getElementById("homeSummary");
+    try {
+      const raw = JSON.parse(home?.dataset?.rawSummary || "{}");
+      return raw.mode || "home";
+    } catch {
+      return "home";
+    }
+  }
+
+  function validateSelectedManifest(entry, manifest) {
+    const required = runtime.selectionContract?.manifestShape?.required || [];
+    const missing = required.filter((path) => getByPath(manifest, path) == null);
+    const selectionRoot = runtime.selectionContract?.selectionRoot || "collections/";
+    const allowedSurfaces = runtime.selectionContract?.selectionSurfaces || [];
+    const entryPath = String(manifest?.entry || "");
+    const manifestSource = String(manifest?.source || "");
+    const entryAllowed = entryPath.startsWith(selectionRoot) && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
+    const sourceAllowed = manifestSource === "repo";
+    return {
+      valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
+      missing,
+      sourceAllowed,
+      entryAllowed
+    };
+  }
+
   function renderResolved() {
     const container = document.getElementById("collectionsResolvedSummary");
     const button = document.getElementById("collectionsMountConfirm");
@@ -235,22 +280,7 @@
     `;
   }
 
-  function reorderSharedIndexToSelection() {
-    const manifestIndex = shared.manifestIndex || runtime.manifestIndex;
-    if (!manifestIndex?.entries || !runtime.selectedEntry) {
-      return false;
-    }
-    const currentIndex = manifestIndex.entries.findIndex((entry) => entry.manifestId === runtime.selectedEntry.manifestId);
-    if (currentIndex < 0) return false;
-    if (currentIndex !== 0) {
-      const [selected] = manifestIndex.entries.splice(currentIndex, 1);
-      manifestIndex.entries.unshift(selected);
-    }
-    runtime.manifestIndex = manifestIndex;
-    return true;
-  }
-
-  function requestMountSelected() {
+  async function requestMountSelected() {
     if (!runtime.selectedEntry || !runtime.selectedManifest) return;
     const validation = validateSelectedManifest(runtime.selectedEntry, runtime.selectedManifest);
     if (!validation.valid) {
@@ -261,29 +291,22 @@
       renderResolved();
       return;
     }
-    const reordered = reorderSharedIndexToSelection();
-    if (!reordered) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "shared-manifest-index-unavailable"
-      };
-      renderResolved();
+
+    const runtimeApi = getRuntimeApi();
+    if (runtimeApi?.confirmMountSelectedManifest) {
+      const result = await runtimeApi.confirmMountSelectedManifest();
+      runtime.lastMountRequest = result?.mounted
+        ? { status: "mounted", detail: result.manifestId || runtime.selectedManifest.id }
+        : { status: "blocked", detail: result?.reason || "mount-not-confirmed" };
+      syncLocalSelectionWithRuntime();
+      render();
       return;
     }
-    const mountButton = document.getElementById("mountCartridge");
-    if (!mountButton) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "mount-button-unavailable"
-      };
-      renderResolved();
-      return;
-    }
+
     runtime.lastMountRequest = {
-      status: "requested",
-      detail: runtime.selectedManifest.id
+      status: "blocked",
+      detail: "runtime-api-unavailable"
     };
-    mountButton.click();
     renderResolved();
   }
 
@@ -315,6 +338,7 @@
       }
     }));
 
+    syncLocalSelectionWithRuntime();
     render();
 
     const button = document.getElementById("collectionsMountConfirm");
@@ -324,7 +348,10 @@
 
     const viewport = document.getElementById("runsViewport");
     if (viewport) {
-      const observer = new MutationObserver(() => renderResolved());
+      const observer = new MutationObserver(() => {
+        syncLocalSelectionWithRuntime();
+        renderResolved();
+      });
       observer.observe(viewport, { childList: true, subtree: true, characterData: true });
     }
   }

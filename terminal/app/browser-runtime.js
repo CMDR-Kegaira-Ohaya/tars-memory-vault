@@ -1,6 +1,7 @@
 (() => {
   const MODE_LABELS = ["home", "collections", "boards", "cartridges", "runs", "saves", "system"];
   const ACTION_KEYS = ["save", "exportSource", "exportOutput", "notes", "bookmarks"];
+  const shared = window.__TARS_COLLECTIONS__ || (window.__TARS_COLLECTIONS__ = {});
 
   const state = {
     initialState: null,
@@ -11,6 +12,16 @@
     contracts: {},
     notesDoc: { items: [] },
     repoVerifiedResponse: null,
+    resolvedSelection: {
+      manifestId: null,
+      manifestPath: null,
+      entry: null,
+      manifest: null,
+      valid: false,
+      missing: [],
+      sourceAllowed: false,
+      entryAllowed: false
+    },
     sessionDraft: {
       bookmarks: []
     },
@@ -341,50 +352,110 @@
     });
   }
 
-  function refreshDerivedState() {
-    state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
-    state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
-    state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
-    state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
-    refreshNoteEditorState();
-    refreshSaveWriteBridgeState();
-    refreshApplySaveStatus();
-    refreshRepoVerifiedStatus();
+  function getManifestEntryById(manifestId) {
+    return (state.manifestIndex?.entries || []).find((entry) => entry.manifestId === manifestId) || null;
   }
 
-  function render() {
-    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
-    renderNav();
-    renderActions();
-    renderSaveSlots();
-    renderHomeSummary();
-    renderViewport();
-    renderNotes();
-    renderSaveWriteBridge();
-    renderApplySaveStatus();
-    renderRepoVerifiedStatus();
+  function readByPath(source, path) {
+    return String(path || "").split(".").reduce((acc, key) => {
+      if (acc == null) return undefined;
+      return acc[key];
+    }, source);
   }
 
-  function setSessionPatch(patch) {
-    Object.assign(state.session, patch);
-    refreshDerivedState();
-    render();
+  function validateManifestSelection(entry, manifest) {
+    const selection = state.contracts.manifestSelection || {};
+    const required = selection.manifestShape?.required || [];
+    const missing = required.filter((path) => readByPath(manifest, path) == null);
+    const selectionRoot = selection.selectionRoot || "collections/";
+    const allowedSurfaces = selection.selectionSurfaces || [];
+    const entryPath = String(manifest?.entry || "");
+    const manifestSource = String(manifest?.source || "");
+    const entryAllowed = entryPath.startsWith(selectionRoot) && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
+    const sourceAllowed = manifestSource === "repo";
+    return {
+      valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
+      missing,
+      sourceAllowed,
+      entryAllowed,
+    };
   }
 
-  async function loadNotesForSaveTag(saveTag) {
-    if (!saveTag) {
-      state.notesDoc = { items: [] };
-      return;
+  function setResolvedSelection(entry, manifest, validation) {
+    state.resolvedSelection = {
+      manifestId: manifest?.id || entry?.manifestId || null,
+      manifestPath: entry?.manifestPath || null,
+      entry: manifest?.entry || entry?.entry || null,
+      manifest: manifest ? clone(manifest) : null,
+      valid: validation?.valid === true,
+      missing: validation?.missing || [],
+      sourceAllowed: validation?.sourceAllowed === true,
+      entryAllowed: validation?.entryAllowed === true,
+    };
+    shared.resolvedSelection = clone(state.resolvedSelection);
+  }
+
+  function clearResolvedSelection() {
+    state.resolvedSelection = {
+      manifestId: null,
+      manifestPath: null,
+      entry: null,
+      manifest: null,
+      valid: false,
+      missing: [],
+      sourceAllowed: false,
+      entryAllowed: false,
+    };
+    shared.resolvedSelection = clone(state.resolvedSelection);
+  }
+
+  async function resolveManifestSelection(manifestId) {
+    const entry = getManifestEntryById(manifestId);
+    if (!entry) {
+      clearResolvedSelection();
+      return null;
     }
-    const notesJson = await loadOptionalJson(`saves/${saveTag}/notes.json`);
-    state.notesDoc = notesJson || { items: [] };
+    const manifest = await loadJson(entry.manifestPath);
+    const validation = validateManifestSelection(entry, manifest);
+    setResolvedSelection(entry, manifest, validation);
+    if (state.session.currentMode !== "collections") {
+      state.session.currentMode = "collections";
+      refreshDerivedState();
+      render();
+    }
+    return {
+      entry,
+      manifest,
+      validation,
+      resolvedSelection: clone(state.resolvedSelection),
+    };
   }
 
-  async function mountExampleCartridge() {
-    const entry = state.manifestIndex?.entries?.[0];
-    if (!entry) return;
+  async function mountResolvedSelection() {
+    const manifestId = state.resolvedSelection.manifestId;
+    if (!manifestId) return null;
+    const entry = getManifestEntryById(manifestId);
+    const manifest = state.resolvedSelection.manifest || (entry ? await loadJson(entry.manifestPath) : null);
+    if (!entry || !manifest) return null;
+    const validation = validateManifestSelection(entry, manifest);
+    setResolvedSelection(entry, manifest, validation);
+    if (!validation.valid) {
+      return {
+        mounted: false,
+        reason: "manifest-validation-failed",
+        resolvedSelection: clone(state.resolvedSelection),
+      };
+    }
+    await mountRepoManifest(entry, manifest);
+    return {
+      mounted: true,
+      manifestId: manifest.id,
+      sourcePath: manifest.entry,
+      resolvedSelection: clone(state.resolvedSelection),
+    };
+  }
 
-    const manifest = await loadJson(entry.manifestPath);
+  async function mountRepoManifest(entry, manifest) {
     const modeResolved = resolveRule(state.contracts.modeResolver?.rules, {
       requestedMode: "collections",
       sourceOrigin: "repo",
@@ -411,6 +482,7 @@
       currentMode: "collections",
       mountedId: manifest.id,
       mountedKind: "cartridge",
+      manifestId: entry?.manifestId || manifest.id,
       sourcePath: manifest.entry,
       sourceClass: "repo-cartridge",
       renderer,
@@ -427,6 +499,66 @@
         runtimeSession: null,
       },
     });
+  }
+
+  function refreshDerivedState() {
+    state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
+    state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
+    state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
+    state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
+    refreshNoteEditorState();
+    refreshSaveWriteBridgeState();
+    refreshApplySaveStatus();
+    refreshRepoVerifiedStatus();
+  }
+
+  function installCollectionsRuntimeApi() {
+    shared.runtimeApi = {
+      selectManifestById: (manifestId) => resolveManifestSelection(manifestId),
+      confirmMountSelectedManifest: () => mountResolvedSelection(),
+      getResolvedSelection: () => clone(state.resolvedSelection),
+      clearResolvedSelection: () => {
+        clearResolvedSelection();
+        refreshDerivedState();
+        render();
+      },
+    };
+  }
+
+  function render() {
+    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
+    renderNav();
+    renderActions();
+    renderSaveSlots();
+    renderHomeSummary();
+    renderViewport();
+    renderNotes();
+    renderSaveWriteBridge();
+    renderApplySaveStatus();
+    renderRepoVerifiedStatus();
+  }
+
+  function setSessionPatch(patch) {
+    Object.assign(state.session, patch);
+    installCollectionsRuntimeApi();
+    refreshDerivedState();
+    render();
+  }
+
+  async function loadNotesForSaveTag(saveTag) {
+    if (!saveTag) {
+      state.notesDoc = { items: [] };
+      return;
+    }
+    const notesJson = await loadOptionalJson(`saves/${saveTag}/notes.json`);
+    state.notesDoc = notesJson || { items: [] };
+  }
+
+  async function mountExampleCartridge() {
+    const entry = state.manifestIndex?.entries?.[0];
+    if (!entry) return;
+    const manifest = await loadJson(entry.manifestPath);
+    await mountRepoManifest(entry, manifest);
   }
 
   async function mountLiveBoard() {
@@ -513,6 +645,7 @@
     state.notesDoc = { items: [] };
     state.repoVerifiedResponse = null;
     state.sessionDraft.bookmarks = [];
+    clearResolvedSelection();
     refreshDerivedState();
     render();
   }
@@ -809,6 +942,7 @@
       applySaveStatus,
       repoVerifiedSaveStatus,
       repoSaveWriteHandler,
+      manifestSelection,
       modeResolver,
       rendererSelection,
       resumeState,
@@ -830,6 +964,7 @@
       loadJson("app/apply-save-status.v1.json"),
       loadJson("app/repo-verified-save-status.v1.json"),
       loadJson("app/repo-save-write-handler.v1.json"),
+      loadJson("manifests/repo-manifest-selection.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
       loadJson("app/resume-state.v1.json"),
@@ -843,6 +978,7 @@
     state.initialState = clone(shellSession.initialState);
     state.session = clone(shellSession.initialState);
     state.manifestIndex = manifestIndex;
+    shared.manifestIndex = manifestIndex;
     state.boardEnumeration = boardEnumeration;
     state.saveSlotIndex = saveSlotIndex;
     state.contracts = {
@@ -854,6 +990,7 @@
       applySaveStatus,
       repoVerifiedSaveStatus,
       repoSaveWriteHandler,
+      manifestSelection,
       modeResolver,
       rendererSelection,
       resumeState,
@@ -864,6 +1001,7 @@
       boardsMode,
     };
 
+    installCollectionsRuntimeApi();
     refreshDerivedState();
     render();
 
