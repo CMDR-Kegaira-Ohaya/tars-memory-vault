@@ -10,6 +10,7 @@
     saveSlotIndex: null,
     contracts: {},
     notesDoc: { items: [] },
+    repoVerifiedResponse: null,
     sessionDraft: {
       bookmarks: []
     },
@@ -40,6 +41,15 @@
       handoffTarget: "none",
       repoHandlerTarget: "none",
       verificationRequired: false
+    },
+    repoVerifiedStatus: {
+      consumed: false,
+      status: "none",
+      detail: "no-repo-verified-handler-response-loaded",
+      saveTag: null,
+      verifiedHead: "none",
+      pathsVerified: [],
+      trusted: false
     }
   };
 
@@ -135,6 +145,12 @@
         return state.contracts.applySaveRequest?.id || "terminal-apply-save-request-v1";
       case "repo-save-write-handler-contract":
         return state.contracts.repoSaveWriteHandler?.id || "terminal-repo-save-write-handler-v1";
+      case "from-current-save-tag":
+        return state.session?.saveTag || null;
+      case "from-verified-response-head":
+        return state.repoVerifiedResponse?.verification?.head || "none";
+      case "from-verified-response-paths":
+        return state.repoVerifiedResponse?.verification?.pathsVerified || [];
       case "none":
         return "none";
       default:
@@ -174,6 +190,14 @@
     if (!slot) return;
     slot.notesCount = state.notesDoc.items.length;
     slot.updatedAt = new Date().toISOString();
+  }
+
+  async function loadVerifiedResponseForSaveTag(saveTag) {
+    if (!saveTag) {
+      state.repoVerifiedResponse = null;
+      return;
+    }
+    state.repoVerifiedResponse = await loadOptionalJson(`saves/${saveTag}/repo-write-response.v1.json`);
   }
 
   function refreshNoteEditorState() {
@@ -307,6 +331,16 @@
     });
   }
 
+  function refreshRepoVerifiedStatus() {
+    state.repoVerifiedStatus = deriveFromContract(state.contracts.repoVerifiedSaveStatus, {
+      responseLoaded: Boolean(state.repoVerifiedResponse),
+      responseStatus: state.repoVerifiedResponse?.status || null,
+      verificationHead: state.repoVerifiedResponse?.verification?.head || null,
+      verifiedPaths: (state.repoVerifiedResponse?.verification?.pathsVerified || []).length ? "present" : "empty",
+      currentSaveTag: state.session?.saveTag || null
+    });
+  }
+
   function refreshDerivedState() {
     state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
     state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
@@ -315,6 +349,7 @@
     refreshNoteEditorState();
     refreshSaveWriteBridgeState();
     refreshApplySaveStatus();
+    refreshRepoVerifiedStatus();
   }
 
   function render() {
@@ -327,6 +362,7 @@
     renderNotes();
     renderSaveWriteBridge();
     renderApplySaveStatus();
+    renderRepoVerifiedStatus();
   }
 
   function setSessionPatch(patch) {
@@ -366,7 +402,9 @@
       ? manifest.renderer
       : rendererResolved.renderer || manifest.renderer || null;
 
-    await loadNotesForSaveTag(manifest.save?.tag || manifest.id);
+    const saveTag = manifest.save?.tag || manifest.id;
+    await loadNotesForSaveTag(saveTag);
+    await loadVerifiedResponseForSaveTag(saveTag);
     state.sessionDraft.bookmarks = [];
 
     setSessionPatch({
@@ -377,7 +415,7 @@
       sourceClass: "repo-cartridge",
       renderer,
       engine: null,
-      saveTag: manifest.save?.tag || manifest.id,
+      saveTag,
       save: modeResolved.save || (manifest.save?.enabled ? "conditional" : "disabled"),
       exportSource: modeResolved.exportSource || "conditional",
       exportOutput: modeResolved.exportOutput || "placeholder",
@@ -405,6 +443,7 @@
 
     const boardsMode = state.contracts.boardsMode || {};
     state.notesDoc = { items: [] };
+    state.repoVerifiedResponse = null;
     state.sessionDraft.bookmarks = [];
 
     setSessionPatch({
@@ -443,6 +482,7 @@
     }
 
     state.notesDoc = notesJson || { items: [] };
+    await loadVerifiedResponseForSaveTag(slot.saveTag);
     state.sessionDraft.bookmarks = sessionJson.bookmarks || [];
 
     setSessionPatch({
@@ -471,6 +511,7 @@
   function clearMount() {
     state.session = clone(state.initialState);
     state.notesDoc = { items: [] };
+    state.repoVerifiedResponse = null;
     state.sessionDraft.bookmarks = [];
     refreshDerivedState();
     render();
@@ -657,6 +698,7 @@
       `save bridge: ${state.contracts.browserSaveWriteBridge?.id || "unavailable"}`,
       `apply request: ${state.contracts.applySaveRequest?.id || "unavailable"}`,
       `apply status: ${state.contracts.applySaveStatus?.id || "unavailable"}`,
+      `repo verified: ${state.contracts.repoVerifiedSaveStatus?.id || "unavailable"}`,
       `repo handler: ${state.contracts.repoSaveWriteHandler?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
@@ -734,6 +776,25 @@
     preview.textContent = JSON.stringify(state.applySaveStatus, null, 2);
   }
 
+  function renderRepoVerifiedStatus() {
+    const summary = document.getElementById("repoVerifiedSummary");
+    const preview = document.getElementById("repoVerifiedPreview");
+    summary.innerHTML = [
+      `<div><span class="muted">consumed</span> ${state.repoVerifiedStatus.consumed}</div>`,
+      `<div><span class="muted">status</span> ${state.repoVerifiedStatus.status}</div>`,
+      `<div><span class="muted">detail</span> ${state.repoVerifiedStatus.detail}</div>`,
+      `<div><span class="muted">save tag</span> ${state.repoVerifiedStatus.saveTag || "none"}</div>`,
+      `<div><span class="muted">verified head</span> ${state.repoVerifiedStatus.verifiedHead}</div>`,
+      `<div><span class="muted">trusted</span> ${state.repoVerifiedStatus.trusted}</div>`,
+      `<div><span class="muted">paths verified</span> ${Array.isArray(state.repoVerifiedStatus.pathsVerified) ? state.repoVerifiedStatus.pathsVerified.length : 0}</div>`,
+      `<div class="muted" style="margin-top:8px;">repo-verified state is distinct from local apply markers</div>`
+    ].join("");
+    preview.textContent = JSON.stringify({
+      repoVerifiedStatus: state.repoVerifiedStatus,
+      repoVerifiedResponse: state.repoVerifiedResponse
+    }, null, 2);
+  }
+
   async function boot() {
     const [
       shellSession,
@@ -746,6 +807,7 @@
       browserSaveWriteBridge,
       applySaveRequest,
       applySaveStatus,
+      repoVerifiedSaveStatus,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
@@ -766,6 +828,7 @@
       loadJson("app/browser-save-write-bridge.v1.json"),
       loadJson("app/apply-save-request.v1.json"),
       loadJson("app/apply-save-status.v1.json"),
+      loadJson("app/repo-verified-save-status.v1.json"),
       loadJson("app/repo-save-write-handler.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
@@ -789,6 +852,7 @@
       browserSaveWriteBridge,
       applySaveRequest,
       applySaveStatus,
+      repoVerifiedSaveStatus,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
