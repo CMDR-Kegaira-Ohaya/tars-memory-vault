@@ -3,6 +3,7 @@
   "version": "v1",
   "role": "pages-runtime-surface-contract",
   "surface": "github-pages",
+  "entryHtml": "terminal/index.html",
   "uiModel": "live-client-shell",
   "staticMock": false,
   "replacesGptSide": false,
@@ -29,5 +30,12 @@
     "runtime": "pages-terminal",
     "boardSource": "workspace-source-files"
   },
+  "bootSequence": [
+    "load-shell-session-initial-state",
+    "load-manifest-index",
+    "load-board-enumeration",
+    "render-home-and-runs-surfaces",
+    "enable-client-side-mode-switching"
+  ],
   "interactionPrinciple": "interactive-runtime-without-implicit-repo-mutation"
 }

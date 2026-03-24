@@ -1,0 +1,36 @@
+{
+  "id": "terminal-pages-shell-entry-v1",
+  "version": "v1",
+  "role": "browser-facing-shell-entry-contract",
+  "entryHtml": "terminal/index.html",
+  "uses": {
+    "pagesRuntime": "terminal/app/pages-runtime.v1.json",
+    "shellSession": "terminal/app/shell-session.v1.json",
+    "manifestIndex": "terminal/manifests/manifest-index.v1.json",
+    "boardEnumeration": "terminal/app/board-enumeration.v1.json"
+  },
+  "startup": {
+    "load": [
+      "shell-session-initial-state",
+      "manifest-index",
+      "board-enumeration"
+    ],
+    "render": [
+      "status-strip",
+      "action-bar",
+      "home-summary",
+      "runs-viewport"
+    ],
+    "interaction": [
+      "client-side-mode-switching",
+      "client-side-example-mounting",
+      "client-side-unmount"
+    ]
+  },
+  "guardrails": [
+    "The browser shell is live client-side runtime, not a static mock image.",
+    "The entry shell does not replace GPT-side planning or repo work.",
+    "The entry shell does not perform repo writes outside terminal/saves/.",
+    "Example mounting is runtime-only and may remain stubbed while contracts continue to grow."
+  ]
+}

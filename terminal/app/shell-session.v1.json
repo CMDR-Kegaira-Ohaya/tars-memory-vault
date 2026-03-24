@@ -14,7 +14,6 @@
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
     "actionState": "terminal/app/action-state.v1.json",
     "statusStrip": "terminal/app/status-strip.v1.json",
-    "homeSummary": "terminal/app/home-summary.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
   },
@@ -66,35 +65,18 @@
       "sessionPersistence": "none",
       "viewState": "idle"
     },
-    "homeSummary": {
-      "mode": "HOME",
-      "currentMount": "none",
-      "recentSave": "none",
-      "currentAvailability": {
-        "save": "disabled",
-        "exportSource": "disabled",
-        "exportOutput": "placeholder-disabled"
-      },
-      "quickActions": [
-        "open-collections",
-        "open-boards",
-        "open-saves"
-      ],
-      "runsSurface": "idle-placeholder",
-      "notesState": "disabled"
-    },
     "state": "idle"
   },
   "transitions": {
     "boot": {
       "from": ["idle", "suspended", null],
       "to": "idle",
-      "effect": "initialize-shell-session-and-derive-action-state-and-status-strip-and-mounted-viewport-and-home-summary"
+      "effect": "initialize-shell-session-and-derive-action-state-and-status-strip-and-mounted-viewport"
     },
     "switchMode": {
       "from": ["idle", "mounted", "running"],
       "to": "idle",
-      "effect": "change-current-mode-without-implicit-mount-and-refresh-action-state-and-status-strip-and-mounted-viewport-and-home-summary"
+      "effect": "change-current-mode-without-implicit-mount-and-refresh-action-state-and-status-strip-and-mounted-viewport"
     },
     "selectManifest": {
       "from": ["idle", "mounted"],
@@ -119,22 +101,22 @@
         "sourcePath",
         "sourceClass"
       ],
-      "effect": "derive-mounted-item-shape-then-resolve-renderer-then-derive-action-state-then-derive-status-strip-then-derive-mounted-viewport-then-derive-home-summary-then-set-session-fields"
+      "effect": "derive-mounted-item-shape-then-resolve-renderer-then-derive-action-state-then-derive-status-strip-then-derive-mounted-viewport-then-set-session-fields"
     },
     "updateInteraction": {
       "from": ["mounted", "running"],
       "to": "mounted",
-      "effect": "update-page-scroll-notes-and-runtime-session-and-refresh-action-state-and-status-strip-and-mounted-viewport-and-home-summary"
+      "effect": "update-page-scroll-notes-and-runtime-session-and-refresh-action-state-and-status-strip-and-mounted-viewport"
     },
     "runMountedItem": {
       "from": ["mounted"],
       "to": "running",
-      "effect": "activate-renderer-or-engine-without-changing-source-and-preserve-action-state-and-refresh-status-strip-and-mounted-viewport-and-home-summary"
+      "effect": "activate-renderer-or-engine-without-changing-source-and-preserve-action-state-and-refresh-status-strip-and-mounted-viewport"
     },
     "unmount": {
       "from": ["mounted", "running"],
       "to": "idle",
-      "effect": "clear-mounted-fields-keep-current-mode-and-reset-action-state-and-status-strip-and-mounted-viewport-and-home-summary"
+      "effect": "clear-mounted-fields-keep-current-mode-and-reset-action-state-and-status-strip-and-mounted-viewport"
     }
   },
   "modeRules": {
