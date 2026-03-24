@@ -51,6 +51,10 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    button[aria-disabled="true"] {
+      opacity: 0.5;
+      cursor: help;
+    }
     .action-button-surface {
       display: inline-flex;
       align-items: center;
@@ -178,6 +182,22 @@
       padding: 10px;
       background: transparent;
     }
+    .guardrail-popup {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0;
+      max-width: 520px;
+      width: calc(100% - 24px);
+    }
+    .guardrail-popup::backdrop {
+      background: rgba(0, 0, 0, 0.55);
+    }
+    .guardrail-popup-shell {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
     textarea {
       width: 100%;
       min-height: 120px;
@@ -223,6 +243,7 @@
   <script src="app/browser-home-surface.js" defer></script>
   <script src="app/browser-collections-browser.js" defer></script>
   <script src="app/browser-boards-browser.js" defer></script>
+  <script src="app/browser-boards-guardrails.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
@@ -292,6 +313,18 @@
           <button id="boardsMountConfirm" disabled>Mount selected board</button>
         </div>
         <div class="muted" style="margin-top:8px;">Board selection resolves first. Mount remains explicit and read-only.</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">BOARDS MODE GUARDRAILS</div>
+        <div id="boardsGuardrailsSummary" class="value">loading...</div>
+      </div>
+      <div class="panel">
+        <div class="label">DISABLED SAVE EXPLANATION</div>
+        <div class="muted">In Boards mode, Save stays visually muted but can explain why it is unavailable.</div>
+        <div class="muted" style="margin-top:8px;">Click the muted Save action while a board is mounted to open the explanation popup.</div>
       </div>
     </section>
 
@@ -451,5 +484,18 @@
       </div>
     </section>
   </div>
+
+  <dialog id="boardsSaveExplanationPopup" class="guardrail-popup">
+    <div class="guardrail-popup-shell">
+      <div class="surface-header">
+        <div class="surface-title">Boards Save is disabled</div>
+        <span class="surface-chip">read-only live board</span>
+      </div>
+      <div id="boardsSaveExplanationText" class="surface-detail">Working boards are source files in workspace. Update them at their live path, not through terminal GUI.</div>
+      <div class="row">
+        <button id="boardsSaveExplanationDismiss">Close</button>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>
