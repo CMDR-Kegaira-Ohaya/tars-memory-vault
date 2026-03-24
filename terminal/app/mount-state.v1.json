@@ -1,0 +1,111 @@
+{
+  "id": "terminal-mount-state-v1",
+  "version": "v1",
+  "role": "mounted-item-shape-contract",
+  "uses": {
+    "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "boardsMode": "terminal/app/boards-mode.v1.json",
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json"
+  },
+  "mountedKinds": [
+    "cartridge",
+    "board"
+  ],
+  "shape": {
+    "mountedId": "string-or-null",
+    "mountedKind": "cartridge-or-board-or-null",
+    "sourceOrigin": "repo-disk-drag-drop-or-null",
+    "sourceClass": "string-or-null",
+    "sourcePath": "string-or-null",
+    "renderer": "string-or-null",
+    "engine": "string-or-null",
+    "readOnly": "boolean",
+    "saveTag": "string-or-null",
+    "save": "disabled-enabled-or-conditional",
+    "exportSource": "disabled-enabled-or-conditional",
+    "exportOutput": "placeholder-or-placeholder-disabled",
+    "sessionPersistence": "ephemeral-only-or-allowed-via-terminal-saves",
+    "notes": "disabled-enabled-or-conditional",
+    "bookmarks": "disabled-enabled-or-conditional"
+  },
+  "derivations": {
+    "repo-board": {
+      "match": {
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "mountedKind": "board",
+        "readOnly": true,
+        "renderer": "markdown-reader",
+        "engine": null,
+        "saveTag": null,
+        "save": "disabled",
+        "exportSource": "enabled",
+        "exportOutput": "placeholder-disabled",
+        "sessionPersistence": "ephemeral-only",
+        "notes": "disabled",
+        "bookmarks": "disabled"
+      }
+    },
+    "repo-cartridge": {
+      "match": {
+        "sourceClass": "repo-cartridge"
+      },
+      "derive": {
+        "mountedKind": "cartridge",
+        "readOnly": false,
+        "renderer": "defer",
+        "engine": null,
+        "saveTag": "manifest-or-runtime-declared",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder",
+        "sessionPersistence": "allowed-via-terminal-saves",
+        "notes": "conditional",
+        "bookmarks": "conditional"
+      }
+    },
+    "disk-cartridge": {
+      "match": {
+        "sourceClass": "disk-cartridge"
+      },
+      "derive": {
+        "mountedKind": "cartridge",
+        "readOnly": false,
+        "renderer": "defer",
+        "engine": null,
+        "saveTag": "runtime-declared",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder",
+        "sessionPersistence": "allowed-via-terminal-saves",
+        "notes": "conditional",
+        "bookmarks": "conditional"
+      }
+    },
+    "drag-drop-cartridge": {
+      "match": {
+        "sourceClass": "drag-drop-cartridge"
+      },
+      "derive": {
+        "mountedKind": "cartridge",
+        "readOnly": false,
+        "renderer": "defer",
+        "engine": null,
+        "saveTag": "runtime-declared",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder",
+        "sessionPersistence": "allowed-via-terminal-saves",
+        "notes": "conditional",
+        "bookmarks": "conditional"
+      }
+    }
+  },
+  "guardrails": [
+    "Boards resolve as mountedKind=board, not ordinary cartridges.",
+    "Boards keep saveTag null and save disabled.",
+    "Cartridge session persistence may occur only through terminal/saves/<tag>/.",
+    "Mount derivation does not imply repo mutation."
+  ]
+}

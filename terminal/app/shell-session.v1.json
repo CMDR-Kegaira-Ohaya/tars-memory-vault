@@ -5,6 +5,7 @@
   "uses": {
     "shellSpine": "terminal/app/shell-spine.v1.json",
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "mountState": "terminal/app/mount-state.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
   },
@@ -48,7 +49,7 @@
         "sourcePath",
         "sourceClass"
       ],
-      "effect": "set-mounted-session-fields-from-resolved-source"
+      "effect": "derive-mounted-item-shape-and-set-session-fields"
     },
     "updateInteraction": {
       "from": ["mounted", "running"],
@@ -69,6 +70,7 @@
   "modeRules": {
     "boards": {
       "allowedSourceClass": "repo-board",
+      "mountedKind": "board",
       "save": "disabled",
       "notes": "disabled",
       "bookmarks": "disabled",
@@ -76,6 +78,7 @@
     },
     "collections": {
       "preferredSourceClass": "repo-cartridge",
+      "mountedKind": "cartridge",
       "sessionPersistence": "allowed-via-terminal-saves"
     },
     "cartridges": {
@@ -84,6 +87,7 @@
         "disk-cartridge",
         "drag-drop-cartridge"
       ],
+      "mountedKind": "cartridge",
       "sessionPersistence": "allowed-via-terminal-saves"
     }
   },
@@ -91,6 +95,7 @@
     "requires": [
       "save != disabled",
       "saveTag != null",
+      "mountedKind != board",
       "sourceClass != repo-board"
     ],
     "writeRoot": "terminal/saves/<tag>/",
