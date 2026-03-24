@@ -1,0 +1,76 @@
+{
+  "id": "terminal-export-source-v1",
+  "version": "v1",
+  "role": "pages-runtime-export-source-surface-and-action-contract",
+  "inputs": [
+    "mountedKind",
+    "sourcePath",
+    "exportSourceState"
+  ],
+  "fields": [
+    "enabled",
+    "status",
+    "sourcePath",
+    "suggestedFilename",
+    "detail"
+  ],
+  "states": {
+    "noMountedSource": {
+      "match": {
+        "mountedKind": null
+      },
+      "derive": {
+        "enabled": false,
+        "status": "disabled",
+        "sourcePath": "none",
+        "suggestedFilename": "none",
+        "detail": "no-mounted-source"
+      }
+    },
+    "repoCartridge": {
+      "match": {
+        "mountedKind": "cartridge",
+        "pathPrefix": "collections/"
+      },
+      "derive": {
+        "enabled": true,
+        "status": "exportable",
+        "sourcePath": "mounted-source-path",
+        "suggestedFilename": "from-source-filename",
+        "detail": "mounted-repo-cartridge-source-export-available"
+      }
+    },
+    "liveBoard": {
+      "match": {
+        "mountedKind": "board",
+        "pathPrefix": "work/dev/projects/"
+      },
+      "derive": {
+        "enabled": true,
+        "status": "exportable",
+        "sourcePath": "mounted-source-path",
+        "suggestedFilename": "from-source-filename",
+        "detail": "mounted-live-board-source-export-available"
+      }
+    },
+    "mountedButUnsupported": {
+      "match": {
+        "mountedKind": "cartridge|board",
+        "sourcePath": "non-null"
+      },
+      "derive": {
+        "enabled": false,
+        "status": "unsupported-v1",
+        "sourcePath": "mounted-source-path",
+        "suggestedFilename": "from-source-filename",
+        "detail": "mounted-source-present-but-not-export-supported-in-v1"
+      }
+    }
+  },
+  "guardrails": [
+    "Export Source is outbound user download behavior, not terminal save persistence.",
+    "Export Source must not create repo writes or mutate source files.",
+    "Boards may export source while remaining read-only and outside terminal/saves/.",
+    "Export Output remains a separate placeholder action until later implementation."
+  ]
+}

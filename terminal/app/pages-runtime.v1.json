@@ -42,11 +42,13 @@
     "load-browser-save-write-bridge-layer",
     "load-apply-save-request-layer",
     "load-apply-save-status-layer",
+    "load-export-source-layer",
     "load-mounted-save-context-layer",
     "load-request-history-surface-layer",
     "load-repo-verified-save-status-layer",
     "load-repo-save-write-handler-contract",
     "render-home-and-runs-surfaces",
+    "render-export-source-surface",
     "render-mounted-save-context-surface",
     "enable-client-side-mode-switching"
   ],
