@@ -1,0 +1,107 @@
+{
+  "id": "terminal-mode-resolver-v1",
+  "version": "v1",
+  "role": "mode-source-resolution-contract",
+  "status": "stub",
+  "inputs": [
+    "requestedMode",
+    "sourceOrigin",
+    "sourcePath"
+  ],
+  "sourceClasses": {
+    "repo-cartridge": {
+      "origin": "repo",
+      "mountKind": "cartridge"
+    },
+    "repo-board": {
+      "origin": "repo",
+      "mountKind": "board",
+      "readOnly": true
+    },
+    "disk-cartridge": {
+      "origin": "disk",
+      "mountKind": "cartridge",
+      "external": true
+    },
+    "drag-drop-cartridge": {
+      "origin": "drag-drop",
+      "mountKind": "cartridge",
+      "external": true
+    }
+  },
+  "rules": [
+    {
+      "id": "collections-repo-cartridge",
+      "match": {
+        "requestedMode": "collections",
+        "sourceOrigin": "repo",
+        "pathPrefix": "collections/"
+      },
+      "resolve": {
+        "mode": "collections",
+        "sourceClass": "repo-cartridge",
+        "rendererSelection": "defer",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder"
+      }
+    },
+    {
+      "id": "boards-repo-board",
+      "match": {
+        "requestedMode": "boards",
+        "sourceOrigin": "repo",
+        "pathPrefix": "work/dev/projects/",
+        "pathSuffix": "README.md"
+      },
+      "resolve": {
+        "mode": "boards",
+        "sourceClass": "repo-board",
+        "rendererSelection": "defer",
+        "save": "disabled",
+        "exportSource": "enabled",
+        "exportOutput": "placeholder-disabled",
+        "state": "read-only-live-board"
+      }
+    },
+    {
+      "id": "cartridges-disk-external",
+      "match": {
+        "requestedMode": "cartridges",
+        "sourceOrigin": "disk"
+      },
+      "resolve": {
+        "mode": "cartridges",
+        "sourceClass": "disk-cartridge",
+        "rendererSelection": "defer",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder"
+      }
+    },
+    {
+      "id": "cartridges-drag-drop-external",
+      "match": {
+        "requestedMode": "cartridges",
+        "sourceOrigin": "drag-drop"
+      },
+      "resolve": {
+        "mode": "cartridges",
+        "sourceClass": "drag-drop-cartridge",
+        "rendererSelection": "defer",
+        "save": "conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder"
+      }
+    }
+  ],
+  "guardrails": [
+    "Do not classify work/ as a normal Collections content root.",
+    "Do not classify repo-manual/ or logs/ as Collections content.",
+    "Boards remain read-only live readouts.",
+    "Boards never save through terminal GUI.",
+    "Boards never use terminal/saves/.",
+    "Save writes remain limited to terminal/saves/<tag>/.",
+    "Export Source and Export Output remain distinct actions."
+  ]
+}
