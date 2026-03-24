@@ -51,6 +51,22 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #10161c;
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 10px;
+      resize: vertical;
+      font: inherit;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--muted);
+    }
     .layout {
       display: grid;
       grid-template-columns: minmax(280px, 420px) 1fr;
@@ -102,6 +118,23 @@
       <div class="panel">
         <div class="label">RUNS VIEWPORT</div>
         <div id="runsViewport" class="viewport">loading...</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">NOTE EDITOR</div>
+        <div id="noteTarget" class="muted" style="margin-bottom:8px;">loading...</div>
+        <textarea id="noteDraft" placeholder="Notes for save-eligible cartridges only"></textarea>
+        <div class="row" style="margin-top:8px;">
+          <button id="saveNoteDraft">Stage note payload</button>
+        </div>
+        <div class="label" style="margin-top:12px;">NOTE LIST</div>
+        <div class="row" id="noteList"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">NOTES JSON PAYLOAD PREVIEW</div>
+        <pre id="notePayloadPreview">loading...</pre>
       </div>
     </section>
   </div>

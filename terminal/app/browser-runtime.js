@@ -9,6 +9,15 @@
     boardEnumeration: null,
     saveSlotIndex: null,
     contracts: {},
+    notesDoc: { items: [] },
+    noteEditor: {
+      enabled: false,
+      targetPath: null,
+      draftText: "",
+      selectedNoteId: null,
+      status: "disabled",
+      payloadPreview: "{}"
+    }
   };
 
   function normalizePath(path) {
@@ -43,19 +52,11 @@
   }
 
   function matchExpected(expected, actual) {
-    if (expected === null) {
-      return actual == null;
-    }
-    if (Array.isArray(expected)) {
-      return expected.includes(actual);
-    }
+    if (expected === null) return actual == null;
+    if (Array.isArray(expected)) return expected.includes(actual);
     if (typeof expected === "string") {
-      if (expected === "non-null") {
-        return actual != null;
-      }
-      if (expected.includes("|")) {
-        return expected.split("|").includes(String(actual));
-      }
+      if (expected === "non-null") return actual != null;
+      if (expected.includes("|")) return expected.split("|").includes(String(actual));
       return String(actual) === expected;
     }
     return actual === expected;
@@ -64,21 +65,15 @@
   function matches(match, source) {
     return Object.entries(match || {}).every(([key, expected]) => {
       const actual = getFieldValue(source, key);
-      if (key === "pathPrefix") {
-        return String(actual).startsWith(String(expected));
-      }
-      if (key === "pathSuffix") {
-        return String(actual).endsWith(String(expected));
-      }
+      if (key === "pathPrefix") return String(actual).startsWith(String(expected));
+      if (key === "pathSuffix") return String(actual).endsWith(String(expected));
       return matchExpected(expected, actual);
     });
   }
 
   function resolveRule(rules, source) {
     for (const rule of rules || []) {
-      if (matches(rule.match || {}, source)) {
-        return rule.resolve || null;
-      }
+      if (matches(rule.match || {}, source)) return rule.resolve || null;
     }
     return null;
   }
@@ -104,9 +99,7 @@
       case "resolved-engine":
         return session.engine || "none";
       case "from-action-state":
-        if (key === "notesState") {
-          return session.actionState?.notes || "disabled";
-        }
+        if (key === "notesState") return session.actionState?.notes || "disabled";
         return session.actionState?.[key] || "disabled";
       case "from-mounted-viewport":
         return session.mountedViewport?.displayMode || "idle-placeholder";
@@ -120,17 +113,13 @@
   }
 
   function resolveTemplate(value, session, path = []) {
-    if (Array.isArray(value)) {
-      return value.map((item, index) => resolveTemplate(item, session, path.concat(index)));
-    }
+    if (Array.isArray(value)) return value.map((item, index) => resolveTemplate(item, session, path.concat(index)));
     if (value && typeof value === "object") {
       return Object.fromEntries(
         Object.entries(value).map(([key, nested]) => [key, resolveTemplate(nested, session, path.concat(key))])
       );
     }
-    if (typeof value === "string") {
-      return resolveToken(value, session, path);
-    }
+    if (typeof value === "string") return resolveToken(value, session, path);
     return value;
   }
 
@@ -144,17 +133,75 @@
     return {};
   }
 
+  function findSaveSlotByTag(tag) {
+    return (state.saveSlotIndex?.entries || []).find((entry) => entry.saveTag === tag) || null;
+  }
+
+  function syncSaveSlotMetadata() {
+    const tag = state.session?.saveTag;
+    if (!tag) return;
+    const slot = findSaveSlotByTag(tag);
+    if (!slot) return;
+    slot.notesCount = state.notesDoc.items.length;
+    slot.updatedAt = new Date().toISOString();
+  }
+
+  function refreshNoteEditorState() {
+    const eligible = Boolean(
+      state.session?.mountedKind === "cartridge" &&
+      state.session?.saveTag &&
+      state.session?.sourceClass !== "repo-board"
+    );
+
+    state.noteEditor.enabled = eligible;
+    state.noteEditor.targetPath = eligible ? `terminal/saves/${state.session.saveTag}/notes.json` : null;
+    state.noteEditor.status = eligible ? "staged-client-side" : "disabled";
+    state.noteEditor.payloadPreview = JSON.stringify(state.notesDoc, null, 2);
+
+    if (!eligible) {
+      state.noteEditor.draftText = "";
+      state.noteEditor.selectedNoteId = null;
+      return;
+    }
+
+    const selected = state.notesDoc.items.find((item) => item.id === state.noteEditor.selectedNoteId) || state.notesDoc.items[0] || null;
+    if (selected) {
+      state.noteEditor.selectedNoteId = selected.id;
+      state.noteEditor.draftText = selected.text;
+    }
+  }
+
   function refreshDerivedState() {
     state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
     state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
     state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
     state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
+    refreshNoteEditorState();
+  }
+
+  function render() {
+    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
+    renderNav();
+    renderActions();
+    renderSaveSlots();
+    renderHomeSummary();
+    renderViewport();
+    renderNotes();
   }
 
   function setSessionPatch(patch) {
     Object.assign(state.session, patch);
     refreshDerivedState();
     render();
+  }
+
+  async function loadNotesForSaveTag(saveTag) {
+    if (!saveTag) {
+      state.notesDoc = { items: [] };
+      return;
+    }
+    const notesJson = await loadOptionalJson(`saves/${saveTag}/notes.json`);
+    state.notesDoc = notesJson || { items: [] };
   }
 
   async function mountExampleCartridge() {
@@ -179,6 +226,8 @@
       ? manifest.renderer
       : rendererResolved.renderer || manifest.renderer || null;
 
+    await loadNotesForSaveTag(manifest.save?.tag || manifest.id);
+
     setSessionPatch({
       currentMode: "collections",
       mountedId: manifest.id,
@@ -195,7 +244,7 @@
       interaction: {
         page: null,
         scroll: null,
-        notes: false,
+        notes: state.notesDoc.items.length > 0,
         runtimeSession: null,
       },
     });
@@ -214,6 +263,7 @@
     }) || {};
 
     const boardsMode = state.contracts.boardsMode || {};
+    state.notesDoc = { items: [] };
 
     setSessionPatch({
       currentMode: "boards",
@@ -250,7 +300,7 @@
       throw new Error(`missing required session.json for ${slot.saveTag}`);
     }
 
-    const noteItems = notesJson?.items || [];
+    state.notesDoc = notesJson || { items: [] };
 
     setSessionPatch({
       currentMode: "runs",
@@ -269,7 +319,7 @@
       interaction: {
         page: sessionJson.page ?? null,
         scroll: sessionJson.scroll ?? null,
-        notes: noteItems.length > 0,
+        notes: state.notesDoc.items.length > 0,
         runtimeSession: sessionJson.runtimeSession ?? null,
       },
     });
@@ -277,6 +327,7 @@
 
   function clearMount() {
     state.session = clone(state.initialState);
+    state.notesDoc = { items: [] };
     refreshDerivedState();
     render();
   }
@@ -285,6 +336,50 @@
     state.session.currentMode = mode;
     refreshDerivedState();
     render();
+  }
+
+  function onDraftInput(event) {
+    state.noteEditor.draftText = event.target.value;
+  }
+
+  function saveDraftNote() {
+    if (!state.noteEditor.enabled || !state.session.saveTag) return;
+    const text = state.noteEditor.draftText.trim();
+    if (!text) return;
+
+    const existing = state.notesDoc.items.find((item) => item.id === state.noteEditor.selectedNoteId) || null;
+    const now = new Date().toISOString();
+    const payload = existing || {
+      id: `note-${String(state.notesDoc.items.length + 1).padStart(3, "0")}`,
+      at: {
+        page: state.session.interaction?.page ?? null,
+        scroll: state.session.interaction?.scroll ?? null,
+      },
+      text: "",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    payload.text = text;
+    payload.updatedAt = now;
+
+    if (!existing) {
+      state.notesDoc.items.push(payload);
+    }
+
+    state.noteEditor.selectedNoteId = payload.id;
+    state.session.interaction.notes = state.notesDoc.items.length > 0;
+    syncSaveSlotMetadata();
+    refreshDerivedState();
+    render();
+  }
+
+  function selectNote(noteId) {
+    const note = state.notesDoc.items.find((item) => item.id === noteId);
+    if (!note) return;
+    state.noteEditor.selectedNoteId = note.id;
+    state.noteEditor.draftText = note.text;
+    renderNotes();
   }
 
   function formatStatus(strip) {
@@ -307,9 +402,7 @@
     for (const mode of MODE_LABELS) {
       const button = document.createElement("button");
       button.textContent = mode.toUpperCase();
-      if (state.session.currentMode === mode) {
-        button.style.borderColor = "#7dd3fc";
-      }
+      if (state.session.currentMode === mode) button.style.borderColor = "#7dd3fc";
       button.addEventListener("click", () => switchMode(mode));
       nav.appendChild(button);
     }
@@ -338,7 +431,6 @@
       container.appendChild(span);
       return;
     }
-
     for (const slot of entries) {
       const button = document.createElement("button");
       const notes = slot.notesCount ?? 0;
@@ -381,17 +473,44 @@
       "",
       `resolver: ${state.contracts.browserResolver?.id || "unavailable"}`,
       `resume flow: ${state.contracts.browserSaveResume?.id || "unavailable"}`,
+      `note editor: ${state.contracts.browserNoteEditor?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
   }
 
-  function render() {
-    document.getElementById("statusStrip").textContent = formatStatus(state.session.statusStrip);
-    renderNav();
-    renderActions();
-    renderSaveSlots();
-    renderHomeSummary();
-    renderViewport();
+  function renderNotes() {
+    const textarea = document.getElementById("noteDraft");
+    const saveButton = document.getElementById("saveNoteDraft");
+    const target = document.getElementById("noteTarget");
+    const list = document.getElementById("noteList");
+    const preview = document.getElementById("notePayloadPreview");
+
+    textarea.value = state.noteEditor.draftText;
+    textarea.disabled = !state.noteEditor.enabled;
+    saveButton.disabled = !state.noteEditor.enabled;
+    target.textContent = state.noteEditor.enabled
+      ? `${state.noteEditor.status} -> ${state.noteEditor.targetPath}`
+      : "disabled for current mount";
+    preview.textContent = state.noteEditor.payloadPreview;
+
+    list.innerHTML = "";
+    if (!state.notesDoc.items.length) {
+      const span = document.createElement("span");
+      span.className = "muted";
+      span.textContent = state.noteEditor.enabled ? "no notes yet" : "notes unavailable";
+      list.appendChild(span);
+      return;
+    }
+
+    for (const note of state.notesDoc.items) {
+      const button = document.createElement("button");
+      button.textContent = `${note.id} @p${note.at?.page ?? "-"}`;
+      if (note.id === state.noteEditor.selectedNoteId) {
+        button.style.borderColor = "#7dd3fc";
+      }
+      button.addEventListener("click", () => selectNote(note.id));
+      list.appendChild(button);
+    }
   }
 
   async function boot() {
@@ -402,6 +521,7 @@
       saveSlotIndex,
       browserResolver,
       browserSaveResume,
+      browserNoteEditor,
       modeResolver,
       rendererSelection,
       resumeState,
@@ -417,6 +537,7 @@
       loadJson("saves/save-slot-index.v1.json"),
       loadJson("app/browser-resolver.v1.json"),
       loadJson("app/browser-save-resume.v1.json"),
+      loadJson("app/browser-note-editor.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
       loadJson("app/resume-state.v1.json"),
@@ -435,6 +556,7 @@
     state.contracts = {
       browserResolver,
       browserSaveResume,
+      browserNoteEditor,
       modeResolver,
       rendererSelection,
       resumeState,
@@ -455,6 +577,8 @@
       mountLiveBoard().catch(showBootError);
     });
     document.getElementById("clearMount").addEventListener("click", clearMount);
+    document.getElementById("noteDraft").addEventListener("input", onDraftInput);
+    document.getElementById("saveNoteDraft").addEventListener("click", saveDraftNote);
   }
 
   function showBootError(error) {

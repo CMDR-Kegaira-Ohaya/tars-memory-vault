@@ -8,6 +8,7 @@
     "pagesRuntime": "terminal/app/pages-runtime.v1.json",
     "browserResolver": "terminal/app/browser-resolver.v1.json",
     "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
+    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
     "browserRuntime": "terminal/app/browser-runtime.js",
     "shellSession": "terminal/app/shell-session.v1.json",
     "manifestIndex": "terminal/manifests/manifest-index.v1.json",
@@ -20,20 +21,23 @@
       "board-enumeration",
       "save-slot-index",
       "browser-resolver-layer",
-      "browser-save-resume-layer"
+      "browser-save-resume-layer",
+      "browser-note-editor-layer"
     ],
     "render": [
       "status-strip",
       "action-bar",
       "save-slot-list",
       "home-summary",
-      "runs-viewport"
+      "runs-viewport",
+      "note-editor"
     ],
     "interaction": [
       "client-side-mode-switching",
       "contract-backed-example-cartridge-mounting",
       "contract-backed-live-board-mounting",
       "contract-backed-save-slot-resume",
+      "contract-backed-note-editing-for-save-eligible-cartridges",
       "client-side-unmount"
     ]
   },

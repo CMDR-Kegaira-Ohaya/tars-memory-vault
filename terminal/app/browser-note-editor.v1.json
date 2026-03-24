@@ -1,0 +1,38 @@
+{
+  "id": "terminal-browser-note-editor-v1",
+  "version": "v1",
+  "role": "contract-backed-browser-note-editor-flow",
+  "uses": {
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json",
+    "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json"
+  },
+  "appliesTo": [
+    "repo-cartridge",
+    "disk-cartridge",
+    "drag-drop-cartridge"
+  ],
+  "excludes": [
+    "repo-board"
+  ],
+  "uiSurfaces": [
+    "note-editor",
+    "note-list",
+    "note-payload-preview"
+  ],
+  "flow": [
+    "check-save-eligibility-and-save-tag",
+    "load-existing-notes-json-if-present",
+    "edit-note-draft-client-side",
+    "create-or-update-note-item",
+    "stage-notes-payload-for-terminal-save-root",
+    "refresh-action-and-home-state"
+  ],
+  "writeTarget": "terminal/saves/<tag>/notes.json",
+  "guardrails": [
+    "Notes are terminal-owned state and do not edit mounted source files.",
+    "Boards are excluded because Boards do not use terminal/saves/.",
+    "Browser note editing may stage payload client-side before any future bounded write path exists.",
+    "Note editor availability depends on save-eligible cartridge state only."
+  ]
+}

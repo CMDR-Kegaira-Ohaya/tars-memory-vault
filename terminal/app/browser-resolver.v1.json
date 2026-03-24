@@ -10,7 +10,8 @@
     "actionState": "terminal/app/action-state.v1.json",
     "statusStrip": "terminal/app/status-strip.v1.json",
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
-    "homeSummary": "terminal/app/home-summary.v1.json"
+    "homeSummary": "terminal/app/home-summary.v1.json",
+    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json"
   },
   "loadOrder": [
     "shell-session-initial-state",
@@ -23,7 +24,8 @@
     "action-state",
     "status-strip",
     "mounted-viewport",
-    "home-summary"
+    "home-summary",
+    "browser-note-editor"
   ],
   "selectionFlows": {
     "manifestMount": [
@@ -48,6 +50,12 @@
       "restore-mounted-session-fields",
       "refresh-derived-shell-layers"
     ],
+    "noteEdit": [
+      "check-note-editor-eligibility",
+      "load-or-stage-notes-payload",
+      "create-or-update-note-item",
+      "refresh-derived-shell-layers"
+    ],
     "modeSwitch": [
       "set-current-mode",
       "refresh-derived-shell-layers"
@@ -62,6 +70,7 @@
     "Manifest mounting remains repo-cartridge only.",
     "Board mounting remains approved-root live readout only.",
     "Save resume remains bounded to terminal/saves/.",
+    "Browser note editing remains bounded to terminal/saves/<tag>/notes.json.",
     "Browser resolver does not introduce repo writes outside terminal/saves/."
   ]
 }
