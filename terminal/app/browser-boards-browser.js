@@ -62,8 +62,8 @@
     return line ? line.slice(6).toLowerCase() : "home";
   }
 
-  function validateSelectedBoard(entry) {
-    const root = runtime.boardEnumeration?.root || "work/dev/projects/";
+  function validateBoardEntry(entry) {
+    const root = runtime.boardEnumeration?.root || shared.boardEnumeration?.root || "work/dev/projects/";
     const sourcePath = String(entry?.sourcePath || "");
     const sourceClass = String(entry?.sourceClass || "");
     const mountedKind = String(entry?.mountedKind || "");
@@ -76,8 +76,54 @@
     };
   }
 
+  function getRuntimeApi() {
+    return shared.runtimeApi || null;
+  }
+
+  async function waitForRuntimeApi({ attempts = 20, delayMs = 50 } = {}) {
+    for (let index = 0; index < attempts; index += 1) {
+      const runtimeApi = getRuntimeApi();
+      if (runtimeApi) {
+        return runtimeApi;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+    }
+    return null;
+  }
+
+  function getResolvedSelection() {
+    const runtimeApi = getRuntimeApi();
+    if (!runtimeApi?.getResolvedSelection) return null;
+    try {
+      const resolved = runtimeApi.getResolvedSelection();
+      return resolved?.boardId ? resolved : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function syncLocalSelectionWithRuntime() {
+    const resolved = getResolvedSelection();
+    if (!resolved?.boardId) return;
+    const entry = (runtime.boardEnumeration?.entries || []).find((item) => item.boardId === resolved.boardId) || null;
+    if (entry) {
+      runtime.selectedEntry = entry;
+    }
+  }
+
   async function selectEntry(boardId) {
     runtime.selectedEntry = (runtime.boardEnumeration?.entries || []).find((item) => item.boardId === boardId) || null;
+
+    const runtimeApi = await waitForRuntimeApi();
+    if (runtimeApi?.selectBoardById && runtime.selectedEntry) {
+      try {
+        await runtimeApi.selectBoardById(runtime.selectedEntry.boardId);
+      } catch {
+        // keep local preview state if runtime resolution is not ready
+      }
+    }
+
+    syncLocalSelectionWithRuntime();
     render();
   }
 
@@ -136,7 +182,7 @@
     if (!container || !button) return;
 
     const validation = runtime.selectedEntry
-      ? validateSelectedBoard(runtime.selectedEntry)
+      ? validateBoardEntry(runtime.selectedEntry)
       : { valid: false, rootAllowed: false, sourceClassAllowed: false, mountedKindAllowed: false, readOnlyAllowed: false };
     const mountedSourcePath = readMountedSourcePath();
     const input = {
@@ -191,24 +237,9 @@
     `;
   }
 
-  function reorderSharedEnumerationToSelection() {
-    const boardEnumeration = shared.boardEnumeration || runtime.boardEnumeration;
-    if (!boardEnumeration?.entries || !runtime.selectedEntry) {
-      return false;
-    }
-    const currentIndex = boardEnumeration.entries.findIndex((entry) => entry.boardId === runtime.selectedEntry.boardId);
-    if (currentIndex < 0) return false;
-    if (currentIndex !== 0) {
-      const [selected] = boardEnumeration.entries.splice(currentIndex, 1);
-      boardEnumeration.entries.unshift(selected);
-    }
-    runtime.boardEnumeration = boardEnumeration;
-    return true;
-  }
-
-  function requestMountSelected() {
+  async function requestMountSelected() {
     if (!runtime.selectedEntry) return;
-    const validation = validateSelectedBoard(runtime.selectedEntry);
+    const validation = validateBoardEntry(runtime.selectedEntry);
     if (!validation.valid) {
       runtime.lastMountRequest = {
         status: "blocked",
@@ -217,29 +248,22 @@
       renderResolved();
       return;
     }
-    const reordered = reorderSharedEnumerationToSelection();
-    if (!reordered) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "shared-board-enumeration-unavailable"
-      };
-      renderResolved();
+
+    const runtimeApi = await waitForRuntimeApi();
+    if (runtimeApi?.confirmMountSelectedBoard) {
+      const result = await runtimeApi.confirmMountSelectedBoard();
+      runtime.lastMountRequest = result?.mounted
+        ? { status: "mounted", detail: result.boardId || runtime.selectedEntry.boardId }
+        : { status: "blocked", detail: result?.reason || "mount-not-confirmed" };
+      syncLocalSelectionWithRuntime();
+      render();
       return;
     }
-    const mountButton = document.getElementById("mountBoard");
-    if (!mountButton) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "mount-button-unavailable"
-      };
-      renderResolved();
-      return;
-    }
+
     runtime.lastMountRequest = {
-      status: "requested",
-      detail: runtime.selectedEntry.boardId
+      status: "blocked",
+      detail: "runtime-api-unavailable"
     };
-    mountButton.click();
     renderResolved();
   }
 
@@ -260,7 +284,15 @@
     runtime.boardEnumeration = shared.boardEnumeration || await loadJson("app/board-enumeration.v1.json");
     shared.boardEnumeration = runtime.boardEnumeration;
 
+    syncLocalSelectionWithRuntime();
     render();
+
+    waitForRuntimeApi().then(() => {
+      syncLocalSelectionWithRuntime();
+      renderResolved();
+    }).catch(() => {
+      // no-op; local preview can still render while runtime boots
+    });
 
     const button = document.getElementById("boardsMountConfirm");
     if (button) {
@@ -269,7 +301,10 @@
 
     const viewport = document.getElementById("runsViewport");
     if (viewport) {
-      const observer = new MutationObserver(() => renderResolved());
+      const observer = new MutationObserver(() => {
+        syncLocalSelectionWithRuntime();
+        renderResolved();
+      });
       observer.observe(viewport, { childList: true, subtree: true, characterData: true });
     }
   }
