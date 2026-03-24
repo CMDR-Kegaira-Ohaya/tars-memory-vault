@@ -4,6 +4,7 @@
   "role": "mounted-item-shape-contract",
   "uses": {
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
   },
@@ -17,6 +18,8 @@
     "sourceOrigin": "repo-disk-drag-drop-or-null",
     "sourceClass": "string-or-null",
     "sourcePath": "string-or-null",
+    "declaredType": "string-or-null",
+    "rendererHint": "string-or-null",
     "renderer": "string-or-null",
     "engine": "string-or-null",
     "readOnly": "boolean",
@@ -36,7 +39,9 @@
       "derive": {
         "mountedKind": "board",
         "readOnly": true,
-        "renderer": "markdown-reader",
+        "declaredType": "markdown",
+        "rendererHint": null,
+        "renderer": "resolve-via-renderer-selection",
         "engine": null,
         "saveTag": null,
         "save": "disabled",
@@ -54,7 +59,9 @@
       "derive": {
         "mountedKind": "cartridge",
         "readOnly": false,
-        "renderer": "defer",
+        "declaredType": null,
+        "rendererHint": null,
+        "renderer": "resolve-via-renderer-selection",
         "engine": null,
         "saveTag": "manifest-or-runtime-declared",
         "save": "conditional",
@@ -72,7 +79,9 @@
       "derive": {
         "mountedKind": "cartridge",
         "readOnly": false,
-        "renderer": "defer",
+        "declaredType": null,
+        "rendererHint": null,
+        "renderer": "resolve-via-renderer-selection",
         "engine": null,
         "saveTag": "runtime-declared",
         "save": "conditional",
@@ -90,7 +99,9 @@
       "derive": {
         "mountedKind": "cartridge",
         "readOnly": false,
-        "renderer": "defer",
+        "declaredType": null,
+        "rendererHint": null,
+        "renderer": "resolve-via-renderer-selection",
         "engine": null,
         "saveTag": "runtime-declared",
         "save": "conditional",

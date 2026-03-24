@@ -1,0 +1,111 @@
+{
+  "id": "terminal-renderer-selection-v1",
+  "version": "v1",
+  "role": "renderer-resolution-contract",
+  "inputs": [
+    "mountedKind",
+    "sourceClass",
+    "sourcePath",
+    "declaredType",
+    "rendererHint"
+  ],
+  "renderers": [
+    "markdown-reader",
+    "text-reader",
+    "json-player"
+  ],
+  "rules": [
+    {
+      "id": "board-markdown-readout",
+      "match": {
+        "mountedKind": "board",
+        "sourceClass": "repo-board",
+        "pathSuffix": ".md"
+      },
+      "resolve": {
+        "renderer": "markdown-reader",
+        "note": "Board readout uses markdown-reader without changing mountedKind."
+      }
+    },
+    {
+      "id": "cartridge-markdown-by-type",
+      "match": {
+        "mountedKind": "cartridge",
+        "declaredType": "markdown"
+      },
+      "resolve": {
+        "renderer": "markdown-reader"
+      }
+    },
+    {
+      "id": "cartridge-markdown-by-extension",
+      "match": {
+        "mountedKind": "cartridge",
+        "pathSuffix": ".md"
+      },
+      "resolve": {
+        "renderer": "markdown-reader"
+      }
+    },
+    {
+      "id": "cartridge-text-by-type",
+      "match": {
+        "mountedKind": "cartridge",
+        "declaredType": "text"
+      },
+      "resolve": {
+        "renderer": "text-reader"
+      }
+    },
+    {
+      "id": "cartridge-text-by-extension",
+      "match": {
+        "mountedKind": "cartridge",
+        "pathSuffix": ".txt"
+      },
+      "resolve": {
+        "renderer": "text-reader"
+      }
+    },
+    {
+      "id": "cartridge-json-by-type",
+      "match": {
+        "mountedKind": "cartridge",
+        "declaredType": "json"
+      },
+      "resolve": {
+        "renderer": "json-player"
+      }
+    },
+    {
+      "id": "cartridge-json-by-extension",
+      "match": {
+        "mountedKind": "cartridge",
+        "pathSuffix": ".json"
+      },
+      "resolve": {
+        "renderer": "json-player"
+      }
+    },
+    {
+      "id": "explicit-renderer-hint",
+      "match": {
+        "mountedKind": "cartridge",
+        "rendererHint": "markdown-reader|text-reader|json-player"
+      },
+      "resolve": {
+        "renderer": "hint-if-allowed"
+      }
+    }
+  ],
+  "fallback": {
+    "renderer": "unresolved",
+    "action": "defer-or-stop"
+  },
+  "guardrails": [
+    "Renderer selection does not change mountedKind, sourceClass, or save behavior.",
+    "Boards may resolve to markdown-reader while remaining boards.",
+    "Renderer selection is separate from engine activation.",
+    "Unsupported types should remain unresolved instead of silently coercing behavior."
+  ]
+}

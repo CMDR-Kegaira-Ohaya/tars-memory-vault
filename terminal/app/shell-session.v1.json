@@ -6,6 +6,7 @@
     "shellSpine": "terminal/app/shell-spine.v1.json",
     "modeResolver": "terminal/loaders/mode-resolver.v1.json",
     "mountState": "terminal/app/mount-state.v1.json",
+    "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
   },
@@ -49,7 +50,7 @@
         "sourcePath",
         "sourceClass"
       ],
-      "effect": "derive-mounted-item-shape-and-set-session-fields"
+      "effect": "derive-mounted-item-shape-then-resolve-renderer-then-set-session-fields"
     },
     "updateInteraction": {
       "from": ["mounted", "running"],
