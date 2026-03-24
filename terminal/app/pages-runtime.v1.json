@@ -39,6 +39,7 @@
     "load-browser-resolver-layer",
     "load-browser-save-resume-layer",
     "load-browser-note-editor-layer",
+    "load-browser-save-write-bridge-layer",
     "render-home-and-runs-surfaces",
     "enable-client-side-mode-switching"
   ],

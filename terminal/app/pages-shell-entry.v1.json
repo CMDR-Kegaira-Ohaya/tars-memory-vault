@@ -9,6 +9,7 @@
     "browserResolver": "terminal/app/browser-resolver.v1.json",
     "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "browserRuntime": "terminal/app/browser-runtime.js",
     "shellSession": "terminal/app/shell-session.v1.json",
     "manifestIndex": "terminal/manifests/manifest-index.v1.json",
@@ -22,7 +23,8 @@
       "save-slot-index",
       "browser-resolver-layer",
       "browser-save-resume-layer",
-      "browser-note-editor-layer"
+      "browser-note-editor-layer",
+      "browser-save-write-bridge-layer"
     ],
     "render": [
       "status-strip",
@@ -30,7 +32,8 @@
       "save-slot-list",
       "home-summary",
       "runs-viewport",
-      "note-editor"
+      "note-editor",
+      "save-write-bridge-preview"
     ],
     "interaction": [
       "client-side-mode-switching",
@@ -38,6 +41,7 @@
       "contract-backed-live-board-mounting",
       "contract-backed-save-slot-resume",
       "contract-backed-note-editing-for-save-eligible-cartridges",
+      "contract-backed-bounded-save-write-request-staging",
       "client-side-unmount"
     ]
   },

@@ -10,6 +10,9 @@
     saveSlotIndex: null,
     contracts: {},
     notesDoc: { items: [] },
+    sessionDraft: {
+      bookmarks: []
+    },
     noteEditor: {
       enabled: false,
       targetPath: null,
@@ -17,6 +20,12 @@
       selectedNoteId: null,
       status: "disabled",
       payloadPreview: "{}"
+    },
+    saveWriteBridge: {
+      enabled: false,
+      status: "disabled",
+      targetRoot: null,
+      requestPreview: "{}"
     }
   };
 
@@ -171,12 +180,85 @@
     }
   }
 
+  function buildSaveWriteRequest() {
+    const eligible = Boolean(
+      state.session?.mountedKind === "cartridge" &&
+      state.session?.saveTag &&
+      state.session?.sourceClass !== "repo-board"
+    );
+
+    if (!eligible) {
+      return {
+        enabled: false,
+        status: "disabled",
+        targetRoot: null,
+        requestPreview: JSON.stringify({}, null, 2)
+      };
+    }
+
+    const saveTag = state.session.saveTag;
+    const root = `terminal/saves/${saveTag}/`;
+    const timestamp = new Date().toISOString();
+    const request = {
+      bridgeId: state.contracts.browserSaveWriteBridge?.id || "terminal-browser-save-write-bridge-v1",
+      mode: state.contracts.browserSaveWriteBridge?.stagingMode || "client-staged-write-request-only",
+      saveTag,
+      writeRoot: root,
+      sourceClass: state.session.sourceClass,
+      mountedId: state.session.mountedId,
+      manifestId: state.session.manifestId || null,
+      coverage: {
+        bookmarks: "tracked-from-runtime-or-partial"
+      },
+      writes: [
+        {
+          kind: "state",
+          path: `${root}state.json`,
+          payload: {
+            mountedId: state.session.mountedId,
+            sourcePath: state.session.sourcePath,
+            sourceClass: state.session.sourceClass,
+            renderer: state.session.renderer,
+            updatedAt: timestamp
+          }
+        },
+        {
+          kind: "session",
+          path: `${root}session.json`,
+          payload: {
+            page: state.session.interaction?.page ?? null,
+            scroll: state.session.interaction?.scroll ?? null,
+            bookmarks: state.sessionDraft.bookmarks || [],
+            runtimeSession: state.session.interaction?.runtimeSession ?? null
+          }
+        },
+        {
+          kind: "notes",
+          path: `${root}notes.json`,
+          payload: state.notesDoc
+        }
+      ]
+    };
+
+    return {
+      enabled: true,
+      status: "staged-partial-or-ready",
+      targetRoot: root,
+      requestPreview: JSON.stringify(request, null, 2)
+    };
+  }
+
+  function refreshSaveWriteBridgeState() {
+    state.saveWriteBridge = buildSaveWriteRequest();
+  }
+
   function refreshDerivedState() {
     state.session.actionState = deriveFromContract(state.contracts.actionState, state.session);
     state.session.statusStrip = deriveFromContract(state.contracts.statusStrip, state.session);
     state.session.mountedViewport = deriveFromContract(state.contracts.mountedViewport, state.session);
     state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
     refreshNoteEditorState();
+    refreshSaveWriteBridgeState();
   }
 
   function render() {
@@ -187,6 +269,7 @@
     renderHomeSummary();
     renderViewport();
     renderNotes();
+    renderSaveWriteBridge();
   }
 
   function setSessionPatch(patch) {
@@ -227,6 +310,7 @@
       : rendererResolved.renderer || manifest.renderer || null;
 
     await loadNotesForSaveTag(manifest.save?.tag || manifest.id);
+    state.sessionDraft.bookmarks = [];
 
     setSessionPatch({
       currentMode: "collections",
@@ -264,6 +348,7 @@
 
     const boardsMode = state.contracts.boardsMode || {};
     state.notesDoc = { items: [] };
+    state.sessionDraft.bookmarks = [];
 
     setSessionPatch({
       currentMode: "boards",
@@ -301,6 +386,7 @@
     }
 
     state.notesDoc = notesJson || { items: [] };
+    state.sessionDraft.bookmarks = sessionJson.bookmarks || [];
 
     setSessionPatch({
       currentMode: "runs",
@@ -328,6 +414,7 @@
   function clearMount() {
     state.session = clone(state.initialState);
     state.notesDoc = { items: [] };
+    state.sessionDraft.bookmarks = [];
     refreshDerivedState();
     render();
   }
@@ -474,6 +561,7 @@
       `resolver: ${state.contracts.browserResolver?.id || "unavailable"}`,
       `resume flow: ${state.contracts.browserSaveResume?.id || "unavailable"}`,
       `note editor: ${state.contracts.browserNoteEditor?.id || "unavailable"}`,
+      `save bridge: ${state.contracts.browserSaveWriteBridge?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
   }
@@ -513,6 +601,13 @@
     }
   }
 
+  function renderSaveWriteBridge() {
+    document.getElementById("saveBridgeTarget").textContent = state.saveWriteBridge.enabled
+      ? `${state.saveWriteBridge.status} -> ${state.saveWriteBridge.targetRoot}`
+      : "disabled for current mount";
+    document.getElementById("saveBridgePreview").textContent = state.saveWriteBridge.requestPreview;
+  }
+
   async function boot() {
     const [
       shellSession,
@@ -522,6 +617,7 @@
       browserResolver,
       browserSaveResume,
       browserNoteEditor,
+      browserSaveWriteBridge,
       modeResolver,
       rendererSelection,
       resumeState,
@@ -538,6 +634,7 @@
       loadJson("app/browser-resolver.v1.json"),
       loadJson("app/browser-save-resume.v1.json"),
       loadJson("app/browser-note-editor.v1.json"),
+      loadJson("app/browser-save-write-bridge.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
       loadJson("app/resume-state.v1.json"),
@@ -557,6 +654,7 @@
       browserResolver,
       browserSaveResume,
       browserNoteEditor,
+      browserSaveWriteBridge,
       modeResolver,
       rendererSelection,
       resumeState,

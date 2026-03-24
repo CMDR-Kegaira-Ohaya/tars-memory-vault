@@ -11,7 +11,8 @@
     "statusStrip": "terminal/app/status-strip.v1.json",
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
     "homeSummary": "terminal/app/home-summary.v1.json",
-    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json"
+    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json"
   },
   "loadOrder": [
     "shell-session-initial-state",
@@ -25,7 +26,8 @@
     "status-strip",
     "mounted-viewport",
     "home-summary",
-    "browser-note-editor"
+    "browser-note-editor",
+    "browser-save-write-bridge"
   ],
   "selectionFlows": {
     "manifestMount": [
@@ -56,6 +58,12 @@
       "create-or-update-note-item",
       "refresh-derived-shell-layers"
     ],
+    "stageSaveWriteRequest": [
+      "check-save-eligibility-and-save-tag",
+      "package-state-session-notes-payloads",
+      "limit-paths-to-terminal-saves-root",
+      "refresh-derived-shell-layers"
+    ],
     "modeSwitch": [
       "set-current-mode",
       "refresh-derived-shell-layers"
@@ -71,6 +79,7 @@
     "Board mounting remains approved-root live readout only.",
     "Save resume remains bounded to terminal/saves/.",
     "Browser note editing remains bounded to terminal/saves/<tag>/notes.json.",
+    "Browser save-write staging remains bounded to terminal/saves/<tag>/.",
     "Browser resolver does not introduce repo writes outside terminal/saves/."
   ]
 }

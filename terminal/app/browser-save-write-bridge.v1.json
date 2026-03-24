@@ -1,0 +1,53 @@
+{
+  "id": "terminal-browser-save-write-bridge-v1",
+  "version": "v1",
+  "role": "bounded-pages-runtime-save-write-request-bridge",
+  "uses": {
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json",
+    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json"
+  },
+  "appliesTo": [
+    "repo-cartridge",
+    "disk-cartridge",
+    "drag-drop-cartridge"
+  ],
+  "excludes": [
+    "repo-board"
+  ],
+  "stagingMode": "client-staged-write-request-only",
+  "requestShape": {
+    "saveTag": "string",
+    "writeRoot": "terminal/saves/<tag>/",
+    "sourceClass": "repo-cartridge-or-disk-cartridge-or-drag-drop-cartridge",
+    "mountedId": "string",
+    "manifestId": "string-or-null",
+    "writes": [
+      {
+        "kind": "state",
+        "path": "terminal/saves/<tag>/state.json",
+        "payload": "object"
+      },
+      {
+        "kind": "session",
+        "path": "terminal/saves/<tag>/session.json",
+        "payload": "object"
+      },
+      {
+        "kind": "notes",
+        "path": "terminal/saves/<tag>/notes.json",
+        "payload": "object"
+      }
+    ],
+    "coverage": {
+      "bookmarks": "tracked-or-declared-partial"
+    },
+    "status": "staged-partial-or-ready"
+  },
+  "guardrails": [
+    "The bridge packages bounded save requests only for terminal/saves/<tag>/.",
+    "Boards are excluded because Boards never use terminal/saves/.",
+    "The bridge does not grant general repo authoring or arbitrary path writes.",
+    "A staged browser request is not itself a repo write until an explicit bounded write path exists."
+  ]
+}
