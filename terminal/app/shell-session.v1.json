@@ -10,6 +10,7 @@
     "mountState": "terminal/app/mount-state.v1.json",
     "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "actionState": "terminal/app/action-state.v1.json",
+    "statusStrip": "terminal/app/status-strip.v1.json",
     "boardsMode": "terminal/app/boards-mode.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json"
   },
@@ -39,18 +40,29 @@
       "notes": "disabled",
       "bookmarks": "disabled"
     },
+    "statusStrip": {
+      "mode": "HOME",
+      "source": "none",
+      "mountedKind": "none",
+      "state": "idle",
+      "renderer": "none",
+      "engine": "none",
+      "save": "disabled",
+      "exportSource": "disabled",
+      "exportOutput": "placeholder-disabled"
+    },
     "state": "idle"
   },
   "transitions": {
     "boot": {
       "from": ["idle", "suspended", null],
       "to": "idle",
-      "effect": "initialize-shell-session-and-derive-action-state"
+      "effect": "initialize-shell-session-and-derive-action-state-and-status-strip"
     },
     "switchMode": {
       "from": ["idle", "mounted", "running"],
       "to": "idle",
-      "effect": "change-current-mode-without-implicit-mount-and-refresh-action-state"
+      "effect": "change-current-mode-without-implicit-mount-and-refresh-action-state-and-status-strip"
     },
     "selectManifest": {
       "from": ["idle", "mounted"],
@@ -70,22 +82,22 @@
         "sourcePath",
         "sourceClass"
       ],
-      "effect": "derive-mounted-item-shape-then-resolve-renderer-then-derive-action-state-then-set-session-fields"
+      "effect": "derive-mounted-item-shape-then-resolve-renderer-then-derive-action-state-then-derive-status-strip-then-set-session-fields"
     },
     "updateInteraction": {
       "from": ["mounted", "running"],
       "to": "mounted",
-      "effect": "update-page-scroll-notes-and-runtime-session-and-refresh-action-state"
+      "effect": "update-page-scroll-notes-and-runtime-session-and-refresh-action-state-and-status-strip"
     },
     "runMountedItem": {
       "from": ["mounted"],
       "to": "running",
-      "effect": "activate-renderer-or-engine-without-changing-source-and-preserve-action-state"
+      "effect": "activate-renderer-or-engine-without-changing-source-and-preserve-action-state-and-refresh-status-strip"
     },
     "unmount": {
       "from": ["mounted", "running"],
       "to": "idle",
-      "effect": "clear-mounted-fields-keep-current-mode-and-reset-action-state"
+      "effect": "clear-mounted-fields-keep-current-mode-and-reset-action-state-and-status-strip"
     }
   },
   "modeRules": {

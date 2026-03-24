@@ -1,0 +1,87 @@
+{
+  "id": "terminal-status-strip-v1",
+  "version": "v1",
+  "role": "shell-status-line-derivation-contract",
+  "inputs": [
+    "currentMode",
+    "mountedId",
+    "mountedKind",
+    "sourcePath",
+    "sourceClass",
+    "renderer",
+    "engine",
+    "save",
+    "exportSource",
+    "exportOutput",
+    "state",
+    "actionState"
+  ],
+  "fields": [
+    "mode",
+    "source",
+    "mountedKind",
+    "state",
+    "renderer",
+    "engine",
+    "save",
+    "exportSource",
+    "exportOutput"
+  ],
+  "states": {
+    "idleNoMount": {
+      "match": {
+        "mountedKind": null
+      },
+      "derive": {
+        "mode": "from-current-mode",
+        "source": "none",
+        "mountedKind": "none",
+        "state": "idle",
+        "renderer": "none",
+        "engine": "none",
+        "save": "disabled",
+        "exportSource": "disabled",
+        "exportOutput": "placeholder-disabled"
+      }
+    },
+    "boardMount": {
+      "match": {
+        "mountedKind": "board",
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "mode": "BOARDS",
+        "source": "live-source-path",
+        "mountedKind": "board",
+        "state": "READ-ONLY LIVE BOARD",
+        "renderer": "derived-renderer",
+        "engine": "none",
+        "save": "DISABLED",
+        "exportSource": "AVAILABLE",
+        "exportOutput": "PLACEHOLDER"
+      }
+    },
+    "cartridgeMount": {
+      "match": {
+        "mountedKind": "cartridge"
+      },
+      "derive": {
+        "mode": "from-current-mode",
+        "source": "mounted-source-path",
+        "mountedKind": "cartridge",
+        "state": "from-session-state",
+        "renderer": "derived-renderer",
+        "engine": "derived-engine-or-none",
+        "save": "from-action-state",
+        "exportSource": "from-action-state",
+        "exportOutput": "from-action-state"
+      }
+    }
+  },
+  "guardrails": [
+    "Status strip derivation reflects runtime state; it does not create new capabilities.",
+    "Boards must visibly communicate read-only live-board status.",
+    "Export Source and Export Output remain separate visible fields.",
+    "Status strip may show placeholder states before full implementation."
+  ]
+}
