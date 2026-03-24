@@ -1,0 +1,61 @@
+{
+  "id": "terminal-resume-state-v1",
+  "version": "v1",
+  "role": "shell-session-resume-derivation-contract",
+  "uses": {
+    "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
+    "mountState": "terminal/app/mount-state.v1.json",
+    "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
+    "actionState": "terminal/app/action-state.v1.json",
+    "statusStrip": "terminal/app/status-strip.v1.json",
+    "mountedViewport": "terminal/app/mounted-viewport.v1.json",
+    "readerSessionSave": "terminal/app/reader-session-save.v1.json"
+  },
+  "inputs": [
+    "selectedSaveSlot",
+    "terminal/saves/<tag>/state.json",
+    "terminal/saves/<tag>/session.json",
+    "terminal/saves/<tag>/notes.json"
+  ],
+  "fileExpectations": {
+    "state": "required",
+    "session": "required",
+    "notes": "optional-degrade-cleanly"
+  },
+  "resolvedOutput": {
+    "mountedId": "string",
+    "mountedKind": "cartridge",
+    "manifestId": "string-or-null",
+    "sourceClass": "repo-cartridge-or-disk-cartridge-or-drag-drop-cartridge",
+    "sourcePath": "string",
+    "renderer": "string-or-null",
+    "saveTag": "string",
+    "interaction": {
+      "page": "number-or-null",
+      "scroll": "number-or-null",
+      "notes": "boolean",
+      "runtimeSession": "object-or-null"
+    },
+    "actionState": "derive-from-restored-mounted-session",
+    "statusStrip": "derive-from-restored-mounted-session",
+    "mountedViewport": "derive-from-restored-mounted-session",
+    "state": "mounted-or-running"
+  },
+  "rules": [
+    "Resume applies only to cartridge save slots indexed under terminal/saves/.",
+    "Boards never resume through save state because Boards mode never uses terminal/saves/.",
+    "Resume restores bounded runtime state and interaction state, not source edits.",
+    "Missing notes.json degrades to no notes instead of inventing note content.",
+    "Missing required save files should stop or return unresolved state rather than fabricating a session."
+  ],
+  "fallback": {
+    "state": "unresolved-or-partial",
+    "action": "defer-or-stop"
+  },
+  "guardrails": [
+    "Resume derivation does not mutate repo source files.",
+    "Resume remains bounded to terminal/saves/<tag>/.",
+    "Resume must preserve cartridge-only behavior for saved sessions.",
+    "Restored shell state must still flow through action, status, and viewport derivation."
+  ]
+}

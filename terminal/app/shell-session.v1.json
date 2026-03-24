@@ -8,6 +8,7 @@
     "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
     "boardEnumeration": "terminal/app/board-enumeration.v1.json",
     "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
+    "resumeState": "terminal/app/resume-state.v1.json",
     "mountState": "terminal/app/mount-state.v1.json",
     "rendererSelection": "terminal/renderers/renderer-selection.v1.json",
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
@@ -90,7 +91,7 @@
     "selectSaveSlot": {
       "from": ["idle", "mounted"],
       "to": "idle",
-      "effect": "resolve-bounded-runtime-state-from-save-slot-index-before-resume"
+      "effect": "resolve-bounded-runtime-state-from-save-slot-index-through-resume-state-before-remount"
     },
     "mountResolvedSource": {
       "from": ["idle", "mounted"],
