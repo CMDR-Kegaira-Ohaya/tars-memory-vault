@@ -87,6 +87,7 @@
     }
   </style>
   <script src="app/browser-runtime.js" defer></script>
+  <script src="app/browser-request-history.js" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -168,6 +169,19 @@
       <div class="panel">
         <div class="label">APPLY SAVE STATUS PREVIEW</div>
         <pre id="applyStatusPreview">loading...</pre>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">REQUEST HISTORY INDEX</div>
+        <div id="requestHistorySummary" class="value">loading...</div>
+        <div class="label" style="margin-top:12px;">REQUEST CHAIN</div>
+        <div id="requestHistoryList" class="value"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">REQUEST HISTORY PREVIEW</div>
+        <pre id="requestHistoryPreview">loading...</pre>
       </div>
     </section>
 

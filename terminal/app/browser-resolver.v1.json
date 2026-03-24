@@ -15,6 +15,7 @@
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "applySaveRequest": "terminal/app/apply-save-request.v1.json",
     "applySaveStatus": "terminal/app/apply-save-status.v1.json",
+    "requestHistorySurface": "terminal/app/request-history-surface.v1.json",
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
     "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json"
   },
@@ -34,6 +35,7 @@
     "browser-save-write-bridge",
     "apply-save-request",
     "apply-save-status",
+    "request-history-surface",
     "repo-verified-save-status",
     "repo-save-write-handler"
   ],
@@ -79,6 +81,11 @@
       "handoff-bounded-request-to-repo-save-handler",
       "refresh-apply-save-status-surface"
     ],
+    "ingestRequestHistory": [
+      "derive-current-mounted-save-tag",
+      "load-request-history-index-for-mounted-save-slot",
+      "render-request-history-surface"
+    ],
     "ingestRepoVerifiedStatus": [
       "load-optional-repo-handler-response-shape",
       "derive-repo-verified-save-status-surface"
@@ -106,6 +113,7 @@
     "Browser save-write staging remains bounded to terminal/saves/<tag>/.",
     "Apply-save-request handoff remains explicit and consent-gated.",
     "Apply-save status surface must not claim repo mutation by browser code alone.",
+    "Request history surface must enumerate from index data rather than path guessing.",
     "Repo-verified status must remain distinct from local apply markers.",
     "Repo save handling remains explicit, bounded, and separately validated.",
     "Browser resolver does not introduce repo writes outside terminal/saves/."
