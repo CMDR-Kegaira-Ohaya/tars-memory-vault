@@ -92,10 +92,22 @@
 
   function render(surface) {
     runtime.surface = surface;
-    const target = document.getElementById("mountedSaveContextPreview");
-    if (!target) return;
-    target.textContent = JSON.stringify(surface, null, 2);
-    target.dataset.saveTag = surface.saveTag || "";
+
+    const summary = document.getElementById("mountedSaveContextSummary");
+    if (summary) {
+      summary.innerHTML = [
+        `<div><span class="muted">status</span> ${surface.status}</div>`,
+        `<div><span class="muted">save tag</span> ${surface.saveTag || "none"}</div>`,
+        `<div><span class="muted">history path</span> ${surface.historyPath}</div>`,
+        `<div><span class="muted">verified response</span> ${surface.verifiedResponsePath}</div>`,
+        `<div><span class="muted">source</span> ${surface.source}</div>`
+      ].join("");
+    }
+
+    const preview = document.getElementById("mountedSaveContextPreview");
+    if (!preview) return;
+    preview.textContent = JSON.stringify(surface, null, 2);
+    preview.dataset.saveTag = surface.saveTag || "";
   }
 
   async function refresh() {
@@ -122,9 +134,13 @@
   }
 
   boot().catch((error) => {
-    const target = document.getElementById("mountedSaveContextPreview");
-    if (target) {
-      target.textContent = JSON.stringify({
+    const summary = document.getElementById("mountedSaveContextSummary");
+    const preview = document.getElementById("mountedSaveContextPreview");
+    if (summary) {
+      summary.innerHTML = `<span class="warn">mounted save context bootstrap failed</span>`;
+    }
+    if (preview) {
+      preview.textContent = JSON.stringify({
         status: "bootstrap-error",
         message: error.message,
         source: "dedicated-runtime-field"

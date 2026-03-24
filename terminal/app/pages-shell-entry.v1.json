@@ -49,7 +49,7 @@
       "note-editor",
       "save-write-bridge-preview",
       "apply-save-status-surface",
-      "mounted-save-context-field",
+      "mounted-save-context-surface",
       "request-history-surface",
       "repo-verified-save-status-surface"
     ],
