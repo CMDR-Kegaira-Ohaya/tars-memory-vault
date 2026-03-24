@@ -26,6 +26,20 @@
       status: "disabled",
       targetRoot: null,
       requestPreview: "{}"
+    },
+    applyRequestMarker: {
+      consentGranted: false,
+      markerStatus: "staged-only",
+      targetSaveTag: null
+    },
+    applySaveStatus: {
+      consentRequired: true,
+      consentGranted: false,
+      status: "disabled",
+      statusDetail: "no-staged-request",
+      handoffTarget: "none",
+      repoHandlerTarget: "none",
+      verificationRequired: false
     }
   };
 
@@ -65,6 +79,7 @@
     if (Array.isArray(expected)) return expected.includes(actual);
     if (typeof expected === "string") {
       if (expected === "non-null") return actual != null;
+      if (expected === "from-marker-consent") return state.applyRequestMarker.consentGranted;
       if (expected.includes("|")) return expected.split("|").includes(String(actual));
       return String(actual) === expected;
     }
@@ -116,6 +131,12 @@
         return state.saveSlotIndex?.entries?.length ? state.saveSlotIndex.entries[0].saveTag : "none";
       case "matching-save-tag-or-latest-related-save":
         return session.saveTag || state.saveSlotIndex?.entries?.[0]?.saveTag || "none";
+      case "apply-save-request-contract":
+        return state.contracts.applySaveRequest?.id || "terminal-apply-save-request-v1";
+      case "repo-save-write-handler-contract":
+        return state.contracts.repoSaveWriteHandler?.id || "terminal-repo-save-write-handler-v1";
+      case "none":
+        return "none";
       default:
         return token;
     }
@@ -258,6 +279,32 @@
 
   function refreshSaveWriteBridgeState() {
     state.saveWriteBridge = buildSaveWriteRequest();
+    const nextTarget = state.saveWriteBridge.enabled ? state.session?.saveTag || null : null;
+    if (!state.saveWriteBridge.enabled) {
+      state.applyRequestMarker = {
+        consentGranted: false,
+        markerStatus: "staged-only",
+        targetSaveTag: null
+      };
+      return;
+    }
+    if (state.applyRequestMarker.targetSaveTag !== nextTarget) {
+      state.applyRequestMarker = {
+        consentGranted: false,
+        markerStatus: "staged-only",
+        targetSaveTag: nextTarget
+      };
+    }
+  }
+
+  function refreshApplySaveStatus() {
+    state.applySaveStatus = deriveFromContract(state.contracts.applySaveStatus, {
+      requestEnabled: state.saveWriteBridge.enabled,
+      consentGranted: state.applyRequestMarker.consentGranted,
+      markerStatus: state.saveWriteBridge.enabled ? state.applyRequestMarker.markerStatus : "disabled",
+      saveTag: state.session?.saveTag || null,
+      writeRoot: state.saveWriteBridge.targetRoot
+    });
   }
 
   function refreshDerivedState() {
@@ -267,6 +314,7 @@
     state.session.homeSummary = deriveFromContract(state.contracts.homeSummary, state.session);
     refreshNoteEditorState();
     refreshSaveWriteBridgeState();
+    refreshApplySaveStatus();
   }
 
   function render() {
@@ -278,6 +326,7 @@
     renderViewport();
     renderNotes();
     renderSaveWriteBridge();
+    renderApplySaveStatus();
   }
 
   function setSessionPatch(patch) {
@@ -477,6 +526,42 @@
     renderNotes();
   }
 
+  function onConsentToggle(event) {
+    state.applyRequestMarker.consentGranted = event.target.checked;
+    if (!event.target.checked && ["awaiting-consent", "handed-off"].includes(state.applyRequestMarker.markerStatus)) {
+      state.applyRequestMarker.markerStatus = "staged-only";
+    }
+    refreshDerivedState();
+    render();
+  }
+
+  function requestApply() {
+    if (!state.saveWriteBridge.enabled) return;
+    state.applyRequestMarker.markerStatus = state.applyRequestMarker.consentGranted ? "handed-off" : "awaiting-consent";
+    refreshDerivedState();
+    render();
+  }
+
+  function markApplied() {
+    if (!state.saveWriteBridge.enabled || !state.applyRequestMarker.consentGranted) return;
+    state.applyRequestMarker.markerStatus = "applied";
+    refreshDerivedState();
+    render();
+  }
+
+  function markRejected() {
+    if (!state.saveWriteBridge.enabled) return;
+    state.applyRequestMarker.markerStatus = "rejected";
+    refreshDerivedState();
+    render();
+  }
+
+  function resetApplyStatus() {
+    state.applyRequestMarker.markerStatus = "staged-only";
+    refreshDerivedState();
+    render();
+  }
+
   function formatStatus(strip) {
     return [
       `MODE: ${strip.mode || "HOME"}`,
@@ -571,6 +656,7 @@
       `note editor: ${state.contracts.browserNoteEditor?.id || "unavailable"}`,
       `save bridge: ${state.contracts.browserSaveWriteBridge?.id || "unavailable"}`,
       `apply request: ${state.contracts.applySaveRequest?.id || "unavailable"}`,
+      `apply status: ${state.contracts.applySaveStatus?.id || "unavailable"}`,
       `repo handler: ${state.contracts.repoSaveWriteHandler?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
@@ -618,6 +704,36 @@
     document.getElementById("saveBridgePreview").textContent = state.saveWriteBridge.requestPreview;
   }
 
+  function renderApplySaveStatus() {
+    const consentCheckbox = document.getElementById("applyConsentMarker");
+    const requestApplyButton = document.getElementById("requestApplySave");
+    const markAppliedButton = document.getElementById("markApplyAsApplied");
+    const markRejectedButton = document.getElementById("markApplyAsRejected");
+    const resetButton = document.getElementById("resetApplyStatus");
+    const summary = document.getElementById("applyStatusSummary");
+    const preview = document.getElementById("applyStatusPreview");
+
+    consentCheckbox.disabled = !state.saveWriteBridge.enabled;
+    consentCheckbox.checked = state.applyRequestMarker.consentGranted;
+    requestApplyButton.disabled = !state.saveWriteBridge.enabled;
+    markAppliedButton.disabled = !(state.saveWriteBridge.enabled && state.applyRequestMarker.consentGranted);
+    markRejectedButton.disabled = !state.saveWriteBridge.enabled;
+    resetButton.disabled = !state.saveWriteBridge.enabled;
+
+    summary.innerHTML = [
+      `<div><span class="muted">status</span> ${state.applySaveStatus.status}</div>`,
+      `<div><span class="muted">detail</span> ${state.applySaveStatus.statusDetail}</div>`,
+      `<div><span class="muted">consent required</span> ${state.applySaveStatus.consentRequired}</div>`,
+      `<div><span class="muted">consent granted</span> ${state.applySaveStatus.consentGranted}</div>`,
+      `<div><span class="muted">handoff target</span> ${state.applySaveStatus.handoffTarget}</div>`,
+      `<div><span class="muted">repo handler</span> ${state.applySaveStatus.repoHandlerTarget}</div>`,
+      `<div><span class="muted">verification required</span> ${state.applySaveStatus.verificationRequired}</div>`,
+      `<div class="muted" style="margin-top:8px;">client-side status markers only; no browser repo write is claimed here</div>`
+    ].join("");
+
+    preview.textContent = JSON.stringify(state.applySaveStatus, null, 2);
+  }
+
   async function boot() {
     const [
       shellSession,
@@ -629,6 +745,7 @@
       browserNoteEditor,
       browserSaveWriteBridge,
       applySaveRequest,
+      applySaveStatus,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
@@ -648,6 +765,7 @@
       loadJson("app/browser-note-editor.v1.json"),
       loadJson("app/browser-save-write-bridge.v1.json"),
       loadJson("app/apply-save-request.v1.json"),
+      loadJson("app/apply-save-status.v1.json"),
       loadJson("app/repo-save-write-handler.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
@@ -670,6 +788,7 @@
       browserNoteEditor,
       browserSaveWriteBridge,
       applySaveRequest,
+      applySaveStatus,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
@@ -693,6 +812,11 @@
     document.getElementById("clearMount").addEventListener("click", clearMount);
     document.getElementById("noteDraft").addEventListener("input", onDraftInput);
     document.getElementById("saveNoteDraft").addEventListener("click", saveDraftNote);
+    document.getElementById("applyConsentMarker").addEventListener("change", onConsentToggle);
+    document.getElementById("requestApplySave").addEventListener("click", requestApply);
+    document.getElementById("markApplyAsApplied").addEventListener("click", markApplied);
+    document.getElementById("markApplyAsRejected").addEventListener("click", markRejected);
+    document.getElementById("resetApplyStatus").addEventListener("click", resetApplyStatus);
   }
 
   function showBootError(error) {
