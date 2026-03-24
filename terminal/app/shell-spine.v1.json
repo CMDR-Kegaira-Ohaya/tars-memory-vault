@@ -1,0 +1,66 @@
+{
+  "id": "terminal-shell-spine-v1",
+  "version": "v1",
+  "role": "persistent-shell-contract",
+  "runtimeRoot": "terminal/",
+  "modes": [
+    {
+      "id": "home",
+      "label": "Home"
+    },
+    {
+      "id": "collections",
+      "label": "Collections",
+      "contentRoot": "collections/"
+    },
+    {
+      "id": "boards",
+      "label": "Boards",
+      "approvedRoot": "work/dev/projects/",
+      "readOnly": true
+    },
+    {
+      "id": "cartridges",
+      "label": "Cartridges"
+    },
+    {
+      "id": "runs",
+      "label": "Runs"
+    },
+    {
+      "id": "saves",
+      "label": "Saves"
+    },
+    {
+      "id": "system",
+      "label": "System"
+    }
+  ],
+  "boundaries": {
+    "save": {
+      "writeRoot": "terminal/saves/<tag>/",
+      "distinctFromExport": true
+    },
+    "boards": {
+      "liveReadoutOnly": true,
+      "saveThroughGui": false,
+      "usesTerminalSaves": false,
+      "exportSource": "enabled",
+      "exportOutput": "placeholder-disabled"
+    }
+  },
+  "stateShape": {
+    "currentMode": "Home",
+    "mountedId": null,
+    "mountedKind": null,
+    "sourcePath": null,
+    "sourceClass": null,
+    "renderer": null,
+    "saveTag": null,
+    "save": "disabled",
+    "exportSource": "disabled",
+    "exportOutput": "placeholder",
+    "dirty": null,
+    "state": "idle"
+  }
+}
