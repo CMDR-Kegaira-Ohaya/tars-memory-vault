@@ -41,6 +41,18 @@ When implementing terminal work from a fresh chat:
 4. If something is not specified here, choose the smallest non-drifting implementation that preserves the current architecture.
 5. If an implementation choice would weaken a listed boundary, stop and ask.
 
+## Terminal build workflow note
+
+Short-lived branches may be used as implementation scaffolding for terminal work, but they are not part of terminal architecture.
+
+Workflow rule:
+- `main` remains the single canonical runtime and contract truth
+- use one short-lived branch per bounded terminal build slice when branching is needed
+- verify repo state on the branch before merge
+- merge back quickly after verification
+- do not let long-lived terminal branches drift into parallel design lanes
+- do not make branches part of terminal content structure, mounting logic, or user-facing repo architecture
+
 ## Relationship to `terminal/`
 
 `terminal/` remains the repo layer reserved for the terminal runtime itself.
@@ -788,6 +800,20 @@ The resolved-but-not-mounted state is not a new mode. It is a transitional displ
 
 ### Build target C — boards browser
 Surface approved working boards from `work/dev/projects/` and mount them as live readouts.
+
+### Boards browser v1 interaction contract
+
+Selection and mounting are two distinct steps.
+When a user selects an approved board entry in the Boards browser, the terminal should enter a resolved state before mounting:
+
+- read the board enumeration entry
+- pre-populate and display the shell state preview (title, source path, source class, read-only state, save disabled, export source availability)
+- wait for explicit mount confirmation
+
+Mounting happens only after explicit user action.
+This keeps Boards behavior aligned with the broader shell principle: reading is cheap and reversible, mounting has state consequences even when the mounted surface is read-only.
+
+The resolved-but-not-mounted state is not a new mode. It is a transitional display state within Boards mode before mount completes.
 
 ### Build target D — cartridge bay
 Support:
