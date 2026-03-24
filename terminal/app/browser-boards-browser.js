@@ -22,6 +22,10 @@
     return response.json();
   }
 
+  function clone(value) {
+    return value == null ? value : JSON.parse(JSON.stringify(value));
+  }
+
   function matches(match, input) {
     return Object.entries(match || {}).every(([key, expected]) => {
       const actual = input[key];
@@ -62,8 +66,8 @@
     return line ? line.slice(6).toLowerCase() : "home";
   }
 
-  function validateSelectedBoard(entry) {
-    const root = runtime.boardEnumeration?.root || "work/dev/projects/";
+  function validateBoardEntry(entry) {
+    const root = runtime.boardEnumeration?.root || shared.boardEnumeration?.root || "work/dev/projects/";
     const sourcePath = String(entry?.sourcePath || "");
     const sourceClass = String(entry?.sourceClass || "");
     const mountedKind = String(entry?.mountedKind || "");
@@ -76,8 +80,172 @@
     };
   }
 
+  function getRuntimeApi() {
+    return shared.runtimeApi || null;
+  }
+
+  function getResolvedSelection() {
+    const runtimeApi = getRuntimeApi();
+    if (!runtimeApi?.getResolvedSelection) return null;
+    try {
+      const resolved = runtimeApi.getResolvedSelection();
+      return resolved?.boardId ? resolved : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function syncLocalSelectionWithRuntime() {
+    const resolved = getResolvedSelection();
+    if (!resolved?.boardId) return;
+    const entry = (runtime.boardEnumeration?.entries || []).find((item) => item.boardId === resolved.boardId) || null;
+    if (entry) {
+      runtime.selectedEntry = entry;
+    }
+  }
+
+  function switchToBoardsMode() {
+    if (readCurrentMode() === "boards") return;
+    const navButtons = Array.from(document.querySelectorAll("#nav button"));
+    const target = navButtons.find((button) => button.textContent.trim().toUpperCase() === "BOARDS");
+    target?.click();
+  }
+
+  function ensureFallbackRuntimeApi() {
+    if (shared.runtimeApi) return shared.runtimeApi;
+
+    shared.resolvedSelection = shared.resolvedSelection || {
+      boardId: null,
+      sourcePath: null,
+      entry: null,
+      valid: false,
+      rootAllowed: false,
+      sourceClassAllowed: false,
+      mountedKindAllowed: false,
+      readOnlyAllowed: false
+    };
+
+    shared.runtimeApi = {
+      selectBoardById(boardId) {
+        const entry = (shared.boardEnumeration?.entries || runtime.boardEnumeration?.entries || []).find((item) => item.boardId === boardId) || null;
+        if (!entry) {
+          shared.resolvedSelection = {
+            boardId: null,
+            sourcePath: null,
+            entry: null,
+            valid: false,
+            rootAllowed: false,
+            sourceClassAllowed: false,
+            mountedKindAllowed: false,
+            readOnlyAllowed: false
+          };
+          return null;
+        }
+        const validation = validateBoardEntry(entry);
+        shared.resolvedSelection = {
+          boardId: entry.boardId,
+          sourcePath: entry.sourcePath,
+          entry: clone(entry),
+          valid: validation.valid,
+          rootAllowed: validation.rootAllowed,
+          sourceClassAllowed: validation.sourceClassAllowed,
+          mountedKindAllowed: validation.mountedKindAllowed,
+          readOnlyAllowed: validation.readOnlyAllowed
+        };
+        switchToBoardsMode();
+        return clone(shared.resolvedSelection);
+      },
+      confirmMountSelectedBoard() {
+        const resolved = shared.resolvedSelection || {};
+        if (!resolved.boardId) return null;
+        const entry = (shared.boardEnumeration?.entries || runtime.boardEnumeration?.entries || []).find((item) => item.boardId === resolved.boardId) || null;
+        const validation = validateBoardEntry(entry);
+        if (!entry || !validation.valid) {
+          shared.resolvedSelection = {
+            boardId: entry?.boardId || null,
+            sourcePath: entry?.sourcePath || null,
+            entry: entry ? clone(entry) : null,
+            valid: false,
+            rootAllowed: validation.rootAllowed,
+            sourceClassAllowed: validation.sourceClassAllowed,
+            mountedKindAllowed: validation.mountedKindAllowed,
+            readOnlyAllowed: validation.readOnlyAllowed
+          };
+          return {
+            mounted: false,
+            reason: "board-validation-failed",
+            resolvedSelection: clone(shared.resolvedSelection)
+          };
+        }
+        const boardEnumeration = shared.boardEnumeration || runtime.boardEnumeration;
+        if (!boardEnumeration?.entries) {
+          return {
+            mounted: false,
+            reason: "board-enumeration-unavailable",
+            resolvedSelection: clone(shared.resolvedSelection)
+          };
+        }
+        const currentIndex = boardEnumeration.entries.findIndex((item) => item.boardId === entry.boardId);
+        if (currentIndex < 0) {
+          return {
+            mounted: false,
+            reason: "board-entry-not-found",
+            resolvedSelection: clone(shared.resolvedSelection)
+          };
+        }
+        if (currentIndex !== 0) {
+          const [selected] = boardEnumeration.entries.splice(currentIndex, 1);
+          boardEnumeration.entries.unshift(selected);
+        }
+        const mountButton = document.getElementById("mountBoard");
+        if (!mountButton) {
+          return {
+            mounted: false,
+            reason: "mount-button-unavailable",
+            resolvedSelection: clone(shared.resolvedSelection)
+          };
+        }
+        mountButton.click();
+        return {
+          mounted: true,
+          boardId: entry.boardId,
+          sourcePath: entry.sourcePath,
+          resolvedSelection: clone(shared.resolvedSelection)
+        };
+      },
+      getResolvedSelection() {
+        return clone(shared.resolvedSelection);
+      },
+      clearResolvedSelection() {
+        shared.resolvedSelection = {
+          boardId: null,
+          sourcePath: null,
+          entry: null,
+          valid: false,
+          rootAllowed: false,
+          sourceClassAllowed: false,
+          mountedKindAllowed: false,
+          readOnlyAllowed: false
+        };
+      }
+    };
+
+    return shared.runtimeApi;
+  }
+
   async function selectEntry(boardId) {
     runtime.selectedEntry = (runtime.boardEnumeration?.entries || []).find((item) => item.boardId === boardId) || null;
+
+    const runtimeApi = getRuntimeApi() || ensureFallbackRuntimeApi();
+    if (runtimeApi?.selectBoardById && runtime.selectedEntry) {
+      try {
+        runtimeApi.selectBoardById(runtime.selectedEntry.boardId);
+      } catch {
+        // keep local preview state if the runtime bridge cannot resolve
+      }
+    }
+
+    syncLocalSelectionWithRuntime();
     render();
   }
 
@@ -136,7 +304,7 @@
     if (!container || !button) return;
 
     const validation = runtime.selectedEntry
-      ? validateSelectedBoard(runtime.selectedEntry)
+      ? validateBoardEntry(runtime.selectedEntry)
       : { valid: false, rootAllowed: false, sourceClassAllowed: false, mountedKindAllowed: false, readOnlyAllowed: false };
     const mountedSourcePath = readMountedSourcePath();
     const input = {
@@ -191,24 +359,9 @@
     `;
   }
 
-  function reorderSharedEnumerationToSelection() {
-    const boardEnumeration = shared.boardEnumeration || runtime.boardEnumeration;
-    if (!boardEnumeration?.entries || !runtime.selectedEntry) {
-      return false;
-    }
-    const currentIndex = boardEnumeration.entries.findIndex((entry) => entry.boardId === runtime.selectedEntry.boardId);
-    if (currentIndex < 0) return false;
-    if (currentIndex !== 0) {
-      const [selected] = boardEnumeration.entries.splice(currentIndex, 1);
-      boardEnumeration.entries.unshift(selected);
-    }
-    runtime.boardEnumeration = boardEnumeration;
-    return true;
-  }
-
-  function requestMountSelected() {
+  async function requestMountSelected() {
     if (!runtime.selectedEntry) return;
-    const validation = validateSelectedBoard(runtime.selectedEntry);
+    const validation = validateBoardEntry(runtime.selectedEntry);
     if (!validation.valid) {
       runtime.lastMountRequest = {
         status: "blocked",
@@ -217,29 +370,22 @@
       renderResolved();
       return;
     }
-    const reordered = reorderSharedEnumerationToSelection();
-    if (!reordered) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "shared-board-enumeration-unavailable"
-      };
-      renderResolved();
+
+    const runtimeApi = getRuntimeApi() || ensureFallbackRuntimeApi();
+    if (runtimeApi?.confirmMountSelectedBoard) {
+      const result = await runtimeApi.confirmMountSelectedBoard();
+      runtime.lastMountRequest = result?.mounted
+        ? { status: "mounted", detail: result.boardId || runtime.selectedEntry.boardId }
+        : { status: "blocked", detail: result?.reason || "mount-not-confirmed" };
+      syncLocalSelectionWithRuntime();
+      render();
       return;
     }
-    const mountButton = document.getElementById("mountBoard");
-    if (!mountButton) {
-      runtime.lastMountRequest = {
-        status: "blocked",
-        detail: "mount-button-unavailable"
-      };
-      renderResolved();
-      return;
-    }
+
     runtime.lastMountRequest = {
-      status: "requested",
-      detail: runtime.selectedEntry.boardId
+      status: "blocked",
+      detail: "runtime-api-unavailable"
     };
-    mountButton.click();
     renderResolved();
   }
 
@@ -260,6 +406,8 @@
     runtime.boardEnumeration = shared.boardEnumeration || await loadJson("app/board-enumeration.v1.json");
     shared.boardEnumeration = runtime.boardEnumeration;
 
+    ensureFallbackRuntimeApi();
+    syncLocalSelectionWithRuntime();
     render();
 
     const button = document.getElementById("boardsMountConfirm");
@@ -269,7 +417,10 @@
 
     const viewport = document.getElementById("runsViewport");
     if (viewport) {
-      const observer = new MutationObserver(() => renderResolved());
+      const observer = new MutationObserver(() => {
+        syncLocalSelectionWithRuntime();
+        renderResolved();
+      });
       observer.observe(viewport, { childList: true, subtree: true, characterData: true });
     }
   }
