@@ -1,0 +1,35 @@
+{
+  "id": "terminal-manifest-index-v1",
+  "version": "v1",
+  "role": "canonical-repo-manifest-index-contract",
+  "root": "terminal/manifests/",
+  "enumeration": {
+    "pattern": "*.manifest.v1.json",
+    "mode": "repo-only"
+  },
+  "selectionSurfaces": [
+    "collections/books/",
+    "collections/entertainment/",
+    "collections/various/"
+  ],
+  "entries": [
+    {
+      "manifestId": "books-example-001",
+      "manifestPath": "terminal/manifests/books-example-001.manifest.v1.json",
+      "category": "books",
+      "entry": "collections/books/example.md",
+      "type": "markdown",
+      "source": "repo"
+    }
+  ],
+  "rules": [
+    "Index entries must resolve only to repo manifests under terminal/manifests/.",
+    "Indexed manifest entries must stay under collections/.",
+    "Index enumeration does not include Boards descriptors.",
+    "Index presence does not change save boundaries."
+  ],
+  "fallback": {
+    "state": "empty-or-unresolved",
+    "action": "defer-or-stop"
+  }
+}

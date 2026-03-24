@@ -1,0 +1,21 @@
+{
+  "id": "books-example-001",
+  "title": "Example Cartridge",
+  "type": "markdown",
+  "source": "repo",
+  "entry": "collections/books/example.md",
+  "renderer": "markdown-reader",
+  "save": {
+    "enabled": true,
+    "tag": "books-example-001"
+  },
+  "meta": {
+    "description": "Minimal repo-backed markdown cartridge for manifest enumeration.",
+    "author": "repo",
+    "tags": [
+      "book",
+      "reader",
+      "example"
+    ]
+  }
+}

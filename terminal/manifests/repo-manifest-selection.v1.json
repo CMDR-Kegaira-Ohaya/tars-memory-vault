@@ -2,6 +2,7 @@
   "id": "terminal-repo-manifest-selection-v1",
   "version": "v1",
   "role": "canonical-repo-cartridge-manifest-selection-contract",
+  "indexPath": "terminal/manifests/manifest-index.v1.json",
   "selectionRoot": "collections/",
   "selectionSurfaces": [
     "collections/books/",
@@ -9,6 +10,7 @@
     "collections/various/"
   ],
   "selectionModes": [
+    "enumerate-index",
     "enumerate-manifests",
     "select-by-manifest-id",
     "select-by-category"
