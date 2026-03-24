@@ -1,0 +1,67 @@
+{
+  "id": "terminal-home-surface-v1",
+  "version": "v1",
+  "role": "stable-home-summary-presentation-contract",
+  "uses": {
+    "homeSummary": "terminal/app/home-summary.v1.json"
+  },
+  "inputs": [
+    "currentMount",
+    "save",
+    "exportSource",
+    "exportOutput",
+    "runsSurface",
+    "notesState",
+    "recentSave"
+  ],
+  "fields": [
+    "title",
+    "mountChip",
+    "availabilityChip",
+    "detail",
+    "recentSaveLabel"
+  ],
+  "states": {
+    "noMount": {
+      "match": {
+        "currentMount": "none"
+      },
+      "derive": {
+        "title": "Terminal ready",
+        "mountChip": "idle",
+        "availabilityChip": "mount first",
+        "detail": "Open Collections, Boards, or Saves to mount into the terminal shell.",
+        "recentSaveLabel": "from-recent-save"
+      }
+    },
+    "boardMount": {
+      "match": {
+        "currentMount": "live-board"
+      },
+      "derive": {
+        "title": "Live board mounted",
+        "mountChip": "board readout",
+        "availabilityChip": "export source",
+        "detail": "Boards stay live-readout only. Save, Notes, and Bookmarks remain unavailable here.",
+        "recentSaveLabel": "not-applicable"
+      }
+    },
+    "cartridgeMount": {
+      "match": {
+        "currentMount": "mounted-cartridge"
+      },
+      "derive": {
+        "title": "Cartridge mounted",
+        "mountChip": "runtime ready",
+        "availabilityChip": "save/export",
+        "detail": "Cartridge runtime is mounted with slot-aware actions when available.",
+        "recentSaveLabel": "from-recent-save"
+      }
+    }
+  },
+  "guardrails": [
+    "Home surface presentation should summarize contract-backed state without turning Home into a raw diagnostic dump.",
+    "Home surface presentation does not create new capabilities beyond home-summary derivation.",
+    "Boards remain read-only even when summarized as a mounted state on Home."
+  ]
+}

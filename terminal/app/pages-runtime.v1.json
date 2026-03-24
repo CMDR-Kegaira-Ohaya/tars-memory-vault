@@ -45,6 +45,8 @@
     "load-export-source-layer",
     "load-browser-action-identity-layer",
     "load-action-surface-layer",
+    "load-runs-surface-layer",
+    "load-home-surface-layer",
     "load-mounted-source-context-layer",
     "load-mounted-save-context-layer",
     "load-request-history-surface-layer",

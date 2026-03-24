@@ -1,0 +1,88 @@
+{
+  "id": "terminal-runs-surface-v1",
+  "version": "v1",
+  "role": "stable-runs-viewport-presentation-contract",
+  "uses": {
+    "mountedViewport": "terminal/app/mounted-viewport.v1.json"
+  },
+  "inputs": [
+    "displayMode",
+    "mountedKind",
+    "renderer",
+    "engine",
+    "readOnly",
+    "sessionPersistence",
+    "viewState",
+    "source"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "runtimeLabel",
+    "persistenceLabel",
+    "mutabilityLabel",
+    "detail"
+  ],
+  "states": {
+    "idleNoMount": {
+      "match": {
+        "mountedKind": "none"
+      },
+      "derive": {
+        "title": "Runs idle",
+        "statusChip": "empty",
+        "runtimeLabel": "no mount",
+        "persistenceLabel": "none",
+        "mutabilityLabel": "read only",
+        "detail": "Mount a cartridge or board to enter the runs surface."
+      }
+    },
+    "boardReadout": {
+      "match": {
+        "mountedKind": "board",
+        "displayMode": "live-board-readout"
+      },
+      "derive": {
+        "title": "Live board readout",
+        "statusChip": "board",
+        "runtimeLabel": "markdown readout",
+        "persistenceLabel": "ephemeral",
+        "mutabilityLabel": "read only",
+        "detail": "Board content is mounted as live readout without terminal save behavior."
+      }
+    },
+    "cartridgeRenderer": {
+      "match": {
+        "mountedKind": "cartridge",
+        "displayMode": "renderer-readout"
+      },
+      "derive": {
+        "title": "Mounted cartridge",
+        "statusChip": "mounted",
+        "runtimeLabel": "renderer backed",
+        "persistenceLabel": "save slots",
+        "mutabilityLabel": "interactive",
+        "detail": "Cartridge source is mounted through the current renderer with slot-aware runtime behavior."
+      }
+    },
+    "engineRun": {
+      "match": {
+        "mountedKind": "cartridge",
+        "displayMode": "engine-runtime"
+      },
+      "derive": {
+        "title": "Engine runtime",
+        "statusChip": "running",
+        "runtimeLabel": "engine backed",
+        "persistenceLabel": "save slots",
+        "mutabilityLabel": "interactive",
+        "detail": "Engine-backed runtime is active for the mounted cartridge."
+      }
+    }
+  },
+  "guardrails": [
+    "Runs surface presentation should keep mounted runtime state legible without exposing raw line-by-line diagnostics as the primary view.",
+    "Runs surface presentation does not change save or export behavior.",
+    "Boards remain live readout only inside Runs."
+  ]
+}

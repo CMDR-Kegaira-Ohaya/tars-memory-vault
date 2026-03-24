@@ -17,7 +17,8 @@
   }
 
   function parseViewportText() {
-    const text = document.getElementById("runsViewport")?.textContent || "";
+    const viewport = document.getElementById("runsViewport");
+    const text = viewport?.dataset?.rawText || viewport?.textContent || "";
     const lines = text.split("\n");
     const result = {};
     for (const line of lines) {

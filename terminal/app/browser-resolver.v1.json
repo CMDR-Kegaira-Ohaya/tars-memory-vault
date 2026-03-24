@@ -11,7 +11,9 @@
     "actionSurface": "terminal/app/action-surface.v1.json",
     "statusStrip": "terminal/app/status-strip.v1.json",
     "mountedViewport": "terminal/app/mounted-viewport.v1.json",
+    "runsSurface": "terminal/app/runs-surface.v1.json",
     "homeSummary": "terminal/app/home-summary.v1.json",
+    "homeSurface": "terminal/app/home-surface.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "applySaveRequest": "terminal/app/apply-save-request.v1.json",
@@ -35,7 +37,9 @@
     "action-surface",
     "status-strip",
     "mounted-viewport",
+    "runs-surface",
     "home-summary",
+    "home-surface",
     "browser-note-editor",
     "browser-save-write-bridge",
     "apply-save-request",
@@ -93,6 +97,14 @@
       "read-explicit-action-identities",
       "derive-stable-action-surface-presentation"
     ],
+    "deriveRunsSurface": [
+      "read-mounted-viewport-derived-state",
+      "derive-stable-runs-surface-presentation"
+    ],
+    "deriveHomeSurface": [
+      "read-home-summary-derived-state",
+      "derive-stable-home-surface-presentation"
+    ],
     "deriveMountedSourceContext": [
       "read-current-mounted-source-context-from-dedicated-runtime-field",
       "refresh-mounted-source-context-output"
@@ -140,6 +152,7 @@
     "Apply-save-request handoff remains explicit and consent-gated.",
     "Apply-save status surface must not claim repo mutation by browser code alone.",
     "Action surface presentation should read explicit action identities rather than parsing button text.",
+    "Runs and Home presentation should stay contract-backed while avoiding raw diagnostic primary views.",
     "Mounted source context path refs are the shared runtime source for Export Source reads.",
     "Export Source remains outbound user download behavior and distinct from Save.",
     "Mounted save context path refs are the shared runtime source for request history and repo verified status reads.",

@@ -62,18 +62,44 @@
       font-weight: 600;
       white-space: nowrap;
     }
-    .action-button-status {
+    .action-button-status,
+    .surface-chip {
       color: var(--muted);
       font-size: 12px;
       text-transform: lowercase;
       border: 1px solid var(--line);
       padding: 2px 6px;
     }
-    .action-button-surface[data-action-emphasis="active"] .action-button-status {
+    .action-button-surface[data-action-emphasis="active"] .action-button-status,
+    .surface-chip {
       color: var(--accent);
     }
     .action-button-surface[data-action-emphasis="placeholder"] .action-button-status {
       color: var(--warn);
+    }
+    .surface-stack {
+      display: grid;
+      gap: 10px;
+    }
+    .surface-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .surface-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .surface-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      line-height: 1.5;
+    }
+    .surface-detail,
+    .surface-foot {
+      line-height: 1.6;
     }
     textarea {
       width: 100%;
@@ -108,11 +134,14 @@
     .warn { color: var(--warn); }
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
+      .surface-meta-grid { grid-template-columns: 1fr; }
     }
   </style>
   <script src="app/browser-runtime.js" defer></script>
   <script src="app/browser-action-identity.js" defer></script>
   <script src="app/browser-action-surface.js" defer></script>
+  <script src="app/browser-runs-surface.js" defer></script>
+  <script src="app/browser-home-surface.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
