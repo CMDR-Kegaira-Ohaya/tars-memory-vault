@@ -215,12 +215,14 @@
     }
   </style>
   <script src="app/browser-collections-bridge.js" defer></script>
+  <script src="app/browser-boards-bridge.js" defer></script>
   <script src="app/browser-runtime.js" defer></script>
   <script src="app/browser-action-identity.js" defer></script>
   <script src="app/browser-action-surface.js" defer></script>
   <script src="app/browser-runs-surface.js" defer></script>
   <script src="app/browser-home-surface.js" defer></script>
   <script src="app/browser-collections-browser.js" defer></script>
+  <script src="app/browser-boards-browser.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
@@ -275,6 +277,21 @@
           <button id="collectionsMountConfirm" disabled>Mount selected</button>
         </div>
         <div class="muted" style="margin-top:8px;">Selection resolves first. Mount happens only after explicit confirmation.</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="label">BOARDS BROWSER</div>
+        <div id="boardsBrowserList" class="surface-list"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">BOARDS SELECTION PREVIEW</div>
+        <div id="boardsResolvedSummary" class="value">loading...</div>
+        <div class="row" style="margin-top:8px;">
+          <button id="boardsMountConfirm" disabled>Mount selected board</button>
+        </div>
+        <div class="muted" style="margin-top:8px;">Board selection resolves first. Mount remains explicit and read-only.</div>
       </div>
     </section>
 

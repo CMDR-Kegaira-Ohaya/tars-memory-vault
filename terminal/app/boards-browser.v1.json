@@ -1,0 +1,76 @@
+{
+  "id": "terminal-boards-browser-v1",
+  "version": "v1",
+  "role": "boards-browser-selection-and-resolve-surface-contract",
+  "uses": {
+    "boardEnumeration": "terminal/app/board-enumeration.v1.json"
+  },
+  "inputs": [
+    "selectedBoardId",
+    "selectedSourcePath",
+    "currentMountedBoardPath",
+    "boardValid"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "mountAction"
+  ],
+  "states": {
+    "idle": {
+      "match": {
+        "selectedBoardId": null
+      },
+      "derive": {
+        "title": "Boards browser",
+        "statusChip": "idle",
+        "detail": "Select an approved board to resolve its live-board preview before mounting.",
+        "mountAction": "disabled"
+      }
+    },
+    "invalid": {
+      "match": {
+        "selectedBoardId": "non-null",
+        "boardValid": false
+      },
+      "derive": {
+        "title": "Resolved board",
+        "statusChip": "invalid",
+        "detail": "The selected board does not satisfy the approved-root live-board rules.",
+        "mountAction": "disabled"
+      }
+    },
+    "mounted": {
+      "match": {
+        "selectedBoardId": "non-null",
+        "boardValid": true,
+        "selectionMatchesMount": true
+      },
+      "derive": {
+        "title": "Resolved board",
+        "statusChip": "mounted",
+        "detail": "This board is already mounted. Selection remains distinct from mounting.",
+        "mountAction": "mounted"
+      }
+    },
+    "resolved": {
+      "match": {
+        "selectedBoardId": "non-null",
+        "boardValid": true
+      },
+      "derive": {
+        "title": "Resolved board",
+        "statusChip": "resolved",
+        "detail": "Board metadata has been resolved. Mount still requires explicit user confirmation.",
+        "mountAction": "confirm"
+      }
+    }
+  },
+  "guardrails": [
+    "Boards remain approved-root live readouts.",
+    "Resolved-but-not-mounted is a transitional display state inside Boards mode, not a new mode.",
+    "Mounting remains explicit because it changes shell state, even when the board is read-only.",
+    "Board selection does not enable terminal save behavior or terminal/saves/."
+  ]
+}
