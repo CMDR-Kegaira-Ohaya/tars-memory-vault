@@ -12,6 +12,8 @@
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "applySaveRequest": "terminal/app/apply-save-request.v1.json",
     "applySaveStatus": "terminal/app/apply-save-status.v1.json",
+    "mountedSaveContext": "terminal/app/mounted-save-context.v1.json",
+    "browserSaveContext": "terminal/app/browser-save-context.js",
     "requestHistorySurface": "terminal/app/request-history-surface.v1.json",
     "browserRequestHistory": "terminal/app/browser-request-history.js",
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
@@ -33,6 +35,7 @@
       "browser-save-write-bridge-layer",
       "apply-save-request-layer",
       "apply-save-status-layer",
+      "mounted-save-context-layer",
       "request-history-surface-layer",
       "repo-verified-save-status-layer",
       "repo-save-write-handler-contract"
@@ -46,6 +49,7 @@
       "note-editor",
       "save-write-bridge-preview",
       "apply-save-status-surface",
+      "mounted-save-context-field",
       "request-history-surface",
       "repo-verified-save-status-surface"
     ],
@@ -58,6 +62,7 @@
       "contract-backed-bounded-save-write-request-staging",
       "explicit-consent-marker-toggle",
       "explicit-apply-save-request-handoff-status-marking",
+      "mounted-save-context-field-refresh",
       "request-history-enumeration-from-mounted-save-slot",
       "repo-verified-status-ingest",
       "explicit-repo-side-bounded-save-write-handling",

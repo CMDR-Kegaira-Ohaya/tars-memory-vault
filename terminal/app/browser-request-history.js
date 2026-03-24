@@ -86,20 +86,8 @@
     }
   }
 
-  function detectMountedSaveTag() {
-    const saveBridgePreview = document.getElementById("saveBridgePreview")?.textContent || "";
-    const saveBridgeRequest = parseJsonText(saveBridgePreview);
-    if (saveBridgeRequest?.saveTag) {
-      return saveBridgeRequest.saveTag;
-    }
-
-    const repoVerifiedPreview = document.getElementById("repoVerifiedPreview")?.textContent || "";
-    const repoVerified = parseJsonText(repoVerifiedPreview);
-    if (repoVerified?.repoVerifiedStatus?.saveTag) {
-      return repoVerified.repoVerifiedStatus.saveTag;
-    }
-
-    return null;
+  function readMountedSaveContext() {
+    return parseJsonText(document.getElementById("mountedSaveContextPreview")?.textContent || "");
   }
 
   function render(surface) {
@@ -135,14 +123,16 @@
     }
 
     preview.textContent = JSON.stringify({
+      mountedSaveContext: readMountedSaveContext(),
       surface,
       historyIndex: runtime.historyIndex
     }, null, 2);
   }
 
   async function refresh() {
-    const nextSaveTag = detectMountedSaveTag();
-    const nextHistoryPath = nextSaveTag ? `terminal/saves/${nextSaveTag}/request-history-index.v1.json` : null;
+    const mountedSaveContext = readMountedSaveContext();
+    const nextSaveTag = mountedSaveContext?.saveTag || null;
+    const nextHistoryPath = mountedSaveContext?.historyPath || (nextSaveTag ? `terminal/saves/${nextSaveTag}/request-history-index.v1.json` : null);
 
     if (nextSaveTag !== runtime.currentSaveTag) {
       runtime.currentSaveTag = nextSaveTag;
@@ -165,15 +155,13 @@
     runtime.contract = await loadJson("app/request-history-surface.v1.json");
     await refresh();
 
-    const observerTargets = [
-      document.getElementById("saveBridgePreview"),
-      document.getElementById("repoVerifiedPreview")
-    ].filter(Boolean);
-
-    const observer = new MutationObserver(() => {
-      refresh().catch(() => {});
-    });
-    observerTargets.forEach((target) => observer.observe(target, { childList: true, subtree: true, characterData: true }));
+    const contextTarget = document.getElementById("mountedSaveContextPreview");
+    if (contextTarget) {
+      const observer = new MutationObserver(() => {
+        refresh().catch(() => {});
+      });
+      observer.observe(contextTarget, { childList: true, subtree: true, characterData: true });
+    }
 
     window.setInterval(() => {
       refresh().catch(() => {});

@@ -87,6 +87,7 @@
     }
   </style>
   <script src="app/browser-runtime.js" defer></script>
+  <script src="app/browser-save-context.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
 </head>
 <body>
@@ -171,6 +172,8 @@
         <pre id="applyStatusPreview">loading...</pre>
       </div>
     </section>
+
+    <pre id="mountedSaveContextPreview" hidden>loading...</pre>
 
     <section class="layout">
       <div class="panel">

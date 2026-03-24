@@ -1,0 +1,54 @@
+{
+  "id": "terminal-mounted-save-context-v1",
+  "version": "v1",
+  "role": "dedicated-runtime-save-context-field-contract",
+  "uses": {
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "applySaveStatus": "terminal/app/apply-save-status.v1.json",
+    "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json"
+  },
+  "inputs": [
+    "currentSaveTag",
+    "historyPath",
+    "verifiedResponsePath"
+  ],
+  "fields": [
+    "status",
+    "saveTag",
+    "historyPath",
+    "verifiedResponsePath",
+    "source"
+  ],
+  "states": {
+    "noSaveContext": {
+      "match": {
+        "currentSaveTag": null
+      },
+      "derive": {
+        "status": "disabled",
+        "saveTag": null,
+        "historyPath": "none",
+        "verifiedResponsePath": "none",
+        "source": "dedicated-runtime-field"
+      }
+    },
+    "mountedSaveContext": {
+      "match": {
+        "currentSaveTag": "non-null"
+      },
+      "derive": {
+        "status": "available",
+        "saveTag": "from-current-save-tag",
+        "historyPath": "from-history-path",
+        "verifiedResponsePath": "from-verified-response-path",
+        "source": "dedicated-runtime-field"
+      }
+    }
+  },
+  "guardrails": [
+    "Mounted save context is a dedicated runtime field for downstream consumers like request history enumeration.",
+    "Consumers should read this field instead of parsing unrelated preview surfaces directly.",
+    "The field stays read-oriented and does not create new write authority.",
+    "Boards remain outside save context because Boards never use terminal/saves/."
+  ]
+}
