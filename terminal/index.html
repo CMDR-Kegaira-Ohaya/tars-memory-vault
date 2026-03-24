@@ -101,6 +101,17 @@
     .surface-foot {
       line-height: 1.6;
     }
+    .surface-list {
+      display: grid;
+      gap: 10px;
+    }
+    .surface-list-item {
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: #10161c;
+      display: grid;
+      gap: 8px;
+    }
     textarea {
       width: 100%;
       min-height: 120px;
@@ -147,6 +158,9 @@
   <script src="app/browser-save-context.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
   <script src="app/browser-repo-verified-status.js" defer></script>
+  <script src="app/browser-apply-surface.js" defer></script>
+  <script src="app/browser-request-history-panel.js" defer></script>
+  <script src="app/browser-repo-verified-panel.js" defer></script>
 </head>
 <body>
   <div class="shell">

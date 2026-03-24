@@ -18,11 +18,14 @@
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "applySaveRequest": "terminal/app/apply-save-request.v1.json",
     "applySaveStatus": "terminal/app/apply-save-status.v1.json",
+    "applySurface": "terminal/app/apply-surface.v1.json",
     "exportSource": "terminal/app/export-source.v1.json",
     "mountedSourceContext": "terminal/app/mounted-source-context.v1.json",
     "mountedSaveContext": "terminal/app/mounted-save-context.v1.json",
     "requestHistorySurface": "terminal/app/request-history-surface.v1.json",
+    "requestHistoryPanel": "terminal/app/request-history-panel.v1.json",
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
+    "repoVerifiedPanel": "terminal/app/repo-verified-panel.v1.json",
     "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json"
   },
   "loadOrder": [
@@ -44,11 +47,14 @@
     "browser-save-write-bridge",
     "apply-save-request",
     "apply-save-status",
+    "apply-surface",
     "export-source",
     "mounted-source-context",
     "mounted-save-context",
     "request-history-surface",
+    "request-history-panel",
     "repo-verified-save-status",
+    "repo-verified-panel",
     "repo-save-write-handler"
   ],
   "selectionFlows": {
@@ -105,6 +111,10 @@
       "read-home-summary-derived-state",
       "derive-stable-home-surface-presentation"
     ],
+    "deriveApplySurface": [
+      "read-apply-save-status-derived-state",
+      "derive-stable-apply-panel-presentation"
+    ],
     "deriveMountedSourceContext": [
       "read-current-mounted-source-context-from-dedicated-runtime-field",
       "refresh-mounted-source-context-output"
@@ -123,10 +133,18 @@
       "load-request-history-index-for-mounted-save-slot",
       "render-request-history-surface"
     ],
+    "deriveRequestHistoryPanel": [
+      "read-request-history-derived-state",
+      "derive-stable-request-history-panel-presentation"
+    ],
     "ingestRepoVerifiedStatus": [
       "read-mounted-save-context-field-path-refs",
       "load-optional-repo-handler-response-shape",
       "derive-repo-verified-save-status-surface"
+    ],
+    "deriveRepoVerifiedPanel": [
+      "read-repo-verified-derived-state",
+      "derive-stable-repo-verified-panel-presentation"
     ],
     "repoSaveWrite": [
       "validate-request-against-repo-handler",
@@ -153,6 +171,7 @@
     "Apply-save status surface must not claim repo mutation by browser code alone.",
     "Action surface presentation should read explicit action identities rather than parsing button text.",
     "Runs and Home presentation should stay contract-backed while avoiding raw diagnostic primary views.",
+    "Secondary save-flow panels should summarize state without replacing raw inspectable previews.",
     "Mounted source context path refs are the shared runtime source for Export Source reads.",
     "Export Source remains outbound user download behavior and distinct from Save.",
     "Mounted save context path refs are the shared runtime source for request history and repo verified status reads.",

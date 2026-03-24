@@ -1,0 +1,75 @@
+{
+  "id": "terminal-apply-surface-v1",
+  "version": "v1",
+  "role": "stable-apply-save-panel-presentation-contract",
+  "uses": {
+    "applySaveStatus": "terminal/app/apply-save-status.v1.json"
+  },
+  "inputs": [
+    "status",
+    "consentGranted",
+    "verificationRequired"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "trustLabel",
+    "nextStep"
+  ],
+  "states": {
+    "disabled": {
+      "match": {
+        "status": "disabled"
+      },
+      "derive": {
+        "title": "Save apply idle",
+        "statusChip": "idle",
+        "detail": "No staged save request is active for the current mount.",
+        "trustLabel": "no handoff",
+        "nextStep": "Mount a save-eligible cartridge before staging a save request."
+      }
+    },
+    "awaitingConsent": {
+      "match": {
+        "status": "staged-only|awaiting-consent"
+      },
+      "derive": {
+        "title": "Save request staged",
+        "statusChip": "awaiting consent",
+        "detail": "The browser-side request is staged, but repo-side apply is not trusted until explicit consent and later verification.",
+        "trustLabel": "client staged only",
+        "nextStep": "Grant consent, then hand off the staged request."
+      }
+    },
+    "handedOff": {
+      "match": {
+        "status": "handed-off|applied"
+      },
+      "derive": {
+        "title": "Save request handed off",
+        "statusChip": "pending verification",
+        "detail": "A client-side handoff marker exists, but trust still depends on repo-verified response state.",
+        "trustLabel": "verification required",
+        "nextStep": "Use repo-verified status to confirm whether the bounded write truly landed."
+      }
+    },
+    "rejected": {
+      "match": {
+        "status": "rejected"
+      },
+      "derive": {
+        "title": "Save request stopped",
+        "statusChip": "rejected",
+        "detail": "The staged save request is not approved for repo-side write handling.",
+        "trustLabel": "no write trusted",
+        "nextStep": "Reset the marker or restage the request before trying again."
+      }
+    }
+  },
+  "guardrails": [
+    "Apply panel presentation should summarize client-side apply state without claiming repo mutation.",
+    "Trusted success still depends on repo-side verification after a bounded write.",
+    "Boards remain excluded because Boards never use terminal/saves/."
+  ]
+}

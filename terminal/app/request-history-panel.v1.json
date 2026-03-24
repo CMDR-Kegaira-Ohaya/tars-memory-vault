@@ -1,0 +1,59 @@
+{
+  "id": "terminal-request-history-panel-v1",
+  "version": "v1",
+  "role": "stable-request-history-panel-presentation-contract",
+  "uses": {
+    "requestHistorySurface": "terminal/app/request-history-surface.v1.json"
+  },
+  "inputs": [
+    "status",
+    "entryCount",
+    "saveTag"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "chainLabel"
+  ],
+  "states": {
+    "disabled": {
+      "match": {
+        "status": "disabled"
+      },
+      "derive": {
+        "title": "Request history idle",
+        "statusChip": "no slot",
+        "detail": "No mounted save slot is active, so there is no request chain to enumerate.",
+        "chainLabel": "history unavailable"
+      }
+    },
+    "awaitingIndex": {
+      "match": {
+        "status": "awaiting-index"
+      },
+      "derive": {
+        "title": "Request history pending",
+        "statusChip": "awaiting index",
+        "detail": "A mounted save slot is present, but the repo-side request-history index is not yet available.",
+        "chainLabel": "waiting for repo index"
+      }
+    },
+    "indexed": {
+      "match": {
+        "status": "indexed"
+      },
+      "derive": {
+        "title": "Request history ready",
+        "statusChip": "indexed",
+        "detail": "The mounted save slot request chain is enumerated directly from the repo history index.",
+        "chainLabel": "ordered request chain"
+      }
+    }
+  },
+  "guardrails": [
+    "Request history presentation should summarize the index-driven chain rather than exposing only raw preview output.",
+    "The chain remains descriptive and read-oriented.",
+    "Boards remain excluded because Boards never use terminal/saves/."
+  ]
+}

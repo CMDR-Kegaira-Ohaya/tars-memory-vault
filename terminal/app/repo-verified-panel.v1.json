@@ -1,0 +1,60 @@
+{
+  "id": "terminal-repo-verified-panel-v1",
+  "version": "v1",
+  "role": "stable-repo-verified-panel-presentation-contract",
+  "uses": {
+    "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json"
+  },
+  "inputs": [
+    "status",
+    "trusted",
+    "pathsCount"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "trustLabel"
+  ],
+  "states": {
+    "none": {
+      "match": {
+        "status": "none|unknown"
+      },
+      "derive": {
+        "title": "Repo verification idle",
+        "statusChip": "none",
+        "detail": "No repo-verified response is currently loaded for the mounted save slot.",
+        "trustLabel": "not trusted"
+      }
+    },
+    "trusted": {
+      "match": {
+        "trusted": true
+      },
+      "derive": {
+        "title": "Repo verification confirmed",
+        "statusChip": "trusted",
+        "detail": "Repo-side verification data is present and marked trusted for the mounted save slot.",
+        "trustLabel": "repo verified"
+      }
+    },
+    "loadedUntrusted": {
+      "match": {
+        "status": "loaded|applied|indexed|handled-off|untrusted|pending|partial|none",
+        "trusted": false
+      },
+      "derive": {
+        "title": "Repo verification loaded",
+        "statusChip": "review",
+        "detail": "Repo-side response data is present, but trust is not yet established from the available verification state.",
+        "trustLabel": "inspect head and paths"
+      }
+    }
+  },
+  "guardrails": [
+    "Repo-verified panel presentation should stay distinct from client-side apply markers.",
+    "Trust labels summarize repo-verified state only; they do not widen write authority.",
+    "Boards remain excluded because Boards never use terminal/saves/."
+  ]
+}
