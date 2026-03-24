@@ -1,0 +1,60 @@
+{
+  "id": "terminal-save-slot-index-v1",
+  "version": "v1",
+  "role": "bounded-terminal-save-slot-index-contract",
+  "root": "terminal/saves/",
+  "enumeration": {
+    "pattern": "<tag>/",
+    "mode": "bounded-runtime-save-root-only"
+  },
+  "selectionModes": [
+    "enumerate-index",
+    "select-by-save-tag",
+    "resume-by-mounted-id"
+  ],
+  "slotShape": {
+    "required": [
+      "saveTag",
+      "mountedId",
+      "mountedKind",
+      "sourceClass",
+      "sourcePath",
+      "updatedAt"
+    ],
+    "optional": [
+      "manifestId",
+      "title",
+      "renderer",
+      "notesCount",
+      "bookmarksCount"
+    ]
+  },
+  "entries": [],
+  "rules": [
+    "Save slots must remain under terminal/saves/<tag>/.",
+    "Save slot entries may reference repo-cartridge, disk-cartridge, or drag-drop-cartridge mounts only.",
+    "Boards are excluded because Boards mode never uses terminal/saves/.",
+    "Save slot indexing does not imply repo mutation outside terminal/saves/.",
+    "Save slot selection supports reopening bounded runtime state, not editing source content."
+  ],
+  "resolvedOutput": {
+    "saveTag": "string",
+    "mountedId": "string",
+    "mountedKind": "cartridge",
+    "sourceClass": "repo-cartridge-or-disk-cartridge-or-drag-drop-cartridge",
+    "sourcePath": "string",
+    "manifestId": "string-or-null",
+    "renderer": "string-or-null",
+    "updatedAt": "iso-8601"
+  },
+  "fallback": {
+    "state": "empty-or-unresolved",
+    "action": "defer-or-stop"
+  },
+  "guardrails": [
+    "Save-slot indexing remains bounded to terminal/saves/.",
+    "Save-slot discovery does not turn saves into source-of-truth content.",
+    "Boards remain outside save-slot indexing.",
+    "Resume flows reopen runtime state without changing repo source files."
+  ]
+}
