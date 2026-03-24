@@ -197,15 +197,19 @@
     }
 
     const bridge = state.contracts.browserSaveWriteBridge || {};
+    const applyRequest = state.contracts.applySaveRequest || {};
     const handler = state.contracts.repoSaveWriteHandler || {};
     const saveTag = state.session.saveTag;
     const root = `terminal/saves/${saveTag}/`;
     const timestamp = new Date().toISOString();
     const request = {
       bridgeId: bridge.id || "terminal-browser-save-write-bridge-v1",
+      applyRequestId: applyRequest.id || "terminal-apply-save-request-v1",
       handlerId: handler.id || "terminal-repo-save-write-handler-v1",
       mode: bridge.stagingMode || "client-staged-write-request-only",
       consentRequired: bridge.handoff?.requiresExplicitRepoWriteConsent !== false,
+      handoffTarget: bridge.handoff?.target || "terminal/app/apply-save-request.v1.json",
+      repoHandlerTarget: applyRequest.handoff?.target || handler.id || "terminal/app/repo-save-write-handler.v1.json",
       saveTag,
       writeRoot: root,
       sourceClass: state.session.sourceClass,
@@ -246,7 +250,7 @@
 
     return {
       enabled: true,
-      status: "staged-partial-or-ready",
+      status: "staged-awaiting-explicit-consent",
       targetRoot: root,
       requestPreview: JSON.stringify(request, null, 2)
     };
@@ -566,6 +570,7 @@
       `resume flow: ${state.contracts.browserSaveResume?.id || "unavailable"}`,
       `note editor: ${state.contracts.browserNoteEditor?.id || "unavailable"}`,
       `save bridge: ${state.contracts.browserSaveWriteBridge?.id || "unavailable"}`,
+      `apply request: ${state.contracts.applySaveRequest?.id || "unavailable"}`,
       `repo handler: ${state.contracts.repoSaveWriteHandler?.id || "unavailable"}`,
     ];
     document.getElementById("runsViewport").textContent = lines.join("\n");
@@ -623,6 +628,7 @@
       browserSaveResume,
       browserNoteEditor,
       browserSaveWriteBridge,
+      applySaveRequest,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
@@ -641,6 +647,7 @@
       loadJson("app/browser-save-resume.v1.json"),
       loadJson("app/browser-note-editor.v1.json"),
       loadJson("app/browser-save-write-bridge.v1.json"),
+      loadJson("app/apply-save-request.v1.json"),
       loadJson("app/repo-save-write-handler.v1.json"),
       loadJson("loaders/mode-resolver.v1.json"),
       loadJson("renderers/renderer-selection.v1.json"),
@@ -662,6 +669,7 @@
       browserSaveResume,
       browserNoteEditor,
       browserSaveWriteBridge,
+      applySaveRequest,
       repoSaveWriteHandler,
       modeResolver,
       rendererSelection,
