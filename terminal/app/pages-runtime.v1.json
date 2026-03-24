@@ -4,6 +4,7 @@
   "role": "pages-runtime-surface-contract",
   "surface": "github-pages",
   "entryHtml": "terminal/index.html",
+  "entryScript": "terminal/app/browser-runtime.js",
   "uiModel": "live-client-shell",
   "staticMock": false,
   "replacesGptSide": false,
@@ -34,6 +35,8 @@
     "load-shell-session-initial-state",
     "load-manifest-index",
     "load-board-enumeration",
+    "load-save-slot-index",
+    "load-browser-resolver-layer",
     "render-home-and-runs-surfaces",
     "enable-client-side-mode-switching"
   ],

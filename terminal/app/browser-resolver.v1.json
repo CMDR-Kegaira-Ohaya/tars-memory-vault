@@ -1,0 +1,56 @@
+{
+  "id": "terminal-browser-resolver-v1",
+  "version": "v1",
+  "role": "contract-backed-browser-runtime-resolver-layer",
+  "uses": {
+    "modeResolver": "terminal/loaders/mode-resolver.v1.json",
+    "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
+    "boardEnumeration": "terminal/app/board-enumeration.v1.json",
+    "actionState": "terminal/app/action-state.v1.json",
+    "statusStrip": "terminal/app/status-strip.v1.json",
+    "mountedViewport": "terminal/app/mounted-viewport.v1.json",
+    "homeSummary": "terminal/app/home-summary.v1.json"
+  },
+  "loadOrder": [
+    "shell-session-initial-state",
+    "manifest-index",
+    "board-enumeration",
+    "save-slot-index",
+    "mode-resolver",
+    "renderer-selection",
+    "action-state",
+    "status-strip",
+    "mounted-viewport",
+    "home-summary"
+  ],
+  "selectionFlows": {
+    "manifestMount": [
+      "select-manifest-index-entry",
+      "load-manifest-file",
+      "resolve-repo-cartridge-mode-rule",
+      "resolve-renderer-rule",
+      "set-mounted-session-fields",
+      "refresh-derived-shell-layers"
+    ],
+    "boardMount": [
+      "select-board-enumeration-entry",
+      "resolve-board-renderer-rule",
+      "set-read-only-board-session-fields",
+      "refresh-derived-shell-layers"
+    ],
+    "modeSwitch": [
+      "set-current-mode",
+      "refresh-derived-shell-layers"
+    ],
+    "unmount": [
+      "restore-shell-initial-state",
+      "refresh-derived-shell-layers"
+    ]
+  },
+  "guardrails": [
+    "Browser resolver uses landed repo contracts as runtime inputs instead of duplicating shell rules ad hoc.",
+    "Manifest mounting remains repo-cartridge only.",
+    "Board mounting remains approved-root live readout only.",
+    "Browser resolver does not introduce repo writes outside terminal/saves/."
+  ]
+}
