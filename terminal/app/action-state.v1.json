@@ -1,0 +1,83 @@
+{
+  "id": "terminal-action-state-v1",
+  "version": "v1",
+  "role": "shell-action-visibility-and-availability-contract",
+  "inputs": [
+    "currentMode",
+    "mountedKind",
+    "sourceClass",
+    "save",
+    "saveTag",
+    "exportSource",
+    "exportOutput",
+    "interaction.notes",
+    "state"
+  ],
+  "actions": [
+    "save",
+    "exportSource",
+    "exportOutput",
+    "notes",
+    "bookmarks"
+  ],
+  "states": {
+    "noMount": {
+      "match": {
+        "mountedKind": null
+      },
+      "derive": {
+        "save": "disabled",
+        "exportSource": "disabled",
+        "exportOutput": "placeholder-disabled",
+        "notes": "disabled",
+        "bookmarks": "disabled"
+      }
+    },
+    "boardMount": {
+      "match": {
+        "mountedKind": "board",
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "save": "disabled",
+        "exportSource": "enabled",
+        "exportOutput": "placeholder-disabled",
+        "notes": "disabled",
+        "bookmarks": "disabled",
+        "explanation": "Boards are live readouts. Save, notes, and bookmarks stay disabled in terminal."
+      }
+    },
+    "saveEligibleCartridge": {
+      "match": {
+        "mountedKind": "cartridge",
+        "save": "enabled|conditional"
+      },
+      "derive": {
+        "save": "enabled-or-conditional",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder",
+        "notes": "enabled-or-conditional",
+        "bookmarks": "enabled-or-conditional"
+      }
+    },
+    "nonSaveCartridge": {
+      "match": {
+        "mountedKind": "cartridge",
+        "save": "disabled"
+      },
+      "derive": {
+        "save": "disabled",
+        "exportSource": "conditional",
+        "exportOutput": "placeholder",
+        "notes": "disabled",
+        "bookmarks": "disabled"
+      }
+    }
+  },
+  "guardrails": [
+    "Action state derivation does not create new capabilities beyond mount/session contracts.",
+    "Boards keep save, notes, and bookmarks disabled.",
+    "Export Source and Export Output remain distinct actions.",
+    "Placeholder actions may be visible while disabled."
+  ]
+}
