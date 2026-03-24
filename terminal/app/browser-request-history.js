@@ -44,7 +44,7 @@
   }
 
   function matches(match, input) {
-    return Object.entries(match).every(([key, expected]) => {
+    return Object.entries(match || {}).every(([key, expected]) => {
       const actual = input[key];
       if (expected === null) {
         return actual == null;
@@ -132,13 +132,13 @@
   async function refresh() {
     const mountedSaveContext = readMountedSaveContext();
     const nextSaveTag = mountedSaveContext?.saveTag || null;
-    const nextHistoryPath = mountedSaveContext?.historyPath || (nextSaveTag ? `terminal/saves/${nextSaveTag}/request-history-index.v1.json` : null);
+    const nextHistoryPath = mountedSaveContext?.historyPath || null;
 
-    if (nextSaveTag !== runtime.currentSaveTag) {
+    if (nextSaveTag !== runtime.currentSaveTag || nextHistoryPath !== runtime.historyPath) {
       runtime.currentSaveTag = nextSaveTag;
       runtime.historyPath = nextHistoryPath;
-      runtime.historyIndex = nextSaveTag ? await loadOptionalJson(nextHistoryPath) : null;
-    } else if (nextSaveTag && !runtime.historyIndex) {
+      runtime.historyIndex = nextHistoryPath ? await loadOptionalJson(nextHistoryPath) : null;
+    } else if (nextHistoryPath && !runtime.historyIndex) {
       runtime.historyIndex = await loadOptionalJson(nextHistoryPath);
     }
 

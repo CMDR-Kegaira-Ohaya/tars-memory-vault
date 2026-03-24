@@ -88,11 +88,12 @@
       "refresh-mounted-save-context-output"
     ],
     "ingestRequestHistory": [
-      "read-mounted-save-context-field",
+      "read-mounted-save-context-field-path-refs",
       "load-request-history-index-for-mounted-save-slot",
       "render-request-history-surface"
     ],
     "ingestRepoVerifiedStatus": [
+      "read-mounted-save-context-field-path-refs",
       "load-optional-repo-handler-response-shape",
       "derive-repo-verified-save-status-surface"
     ],
@@ -119,7 +120,7 @@
     "Browser save-write staging remains bounded to terminal/saves/<tag>/.",
     "Apply-save-request handoff remains explicit and consent-gated.",
     "Apply-save status surface must not claim repo mutation by browser code alone.",
-    "Mounted save context must be read from the dedicated runtime field before request history enumeration.",
+    "Mounted save context path refs are the shared runtime source for request history and repo verified status reads.",
     "Request history surface must enumerate from index data rather than path guessing.",
     "Repo-verified status must remain distinct from local apply markers.",
     "Repo save handling remains explicit, bounded, and separately validated.",

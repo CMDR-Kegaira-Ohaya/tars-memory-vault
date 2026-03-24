@@ -17,6 +17,7 @@
     "requestHistorySurface": "terminal/app/request-history-surface.v1.json",
     "browserRequestHistory": "terminal/app/browser-request-history.js",
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
+    "browserRepoVerifiedStatus": "terminal/app/browser-repo-verified-status.js",
     "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json",
     "browserRuntime": "terminal/app/browser-runtime.js",
     "shellSession": "terminal/app/shell-session.v1.json",
@@ -63,8 +64,8 @@
       "explicit-consent-marker-toggle",
       "explicit-apply-save-request-handoff-status-marking",
       "mounted-save-context-field-refresh",
-      "request-history-enumeration-from-mounted-save-slot",
-      "repo-verified-status-ingest",
+      "request-history-enumeration-from-mounted-save-context-path-refs",
+      "repo-verified-status-ingest-from-mounted-save-context-path-refs",
       "explicit-repo-side-bounded-save-write-handling",
       "client-side-unmount"
     ]
