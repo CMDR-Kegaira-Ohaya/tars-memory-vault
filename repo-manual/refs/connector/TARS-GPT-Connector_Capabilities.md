@@ -24,6 +24,7 @@ Record the currently exposed GitHub operations available to TARS for this reposi
 - Deployments: read/write
 - Pages: read/write
 - Pull requests: read/write
+- Webhooks: read/write (configured permission; not yet live-validated in this manual)
 - Workflows: read/write
 
 ## Capability groups
@@ -93,6 +94,7 @@ The connector is working for:
 ## Permission note
 The current fine-grained PAT permission profile is sufficient for the live connector surface currently in use.
 That conclusion is based both on the configured permission set and on successful live validation of reads, file writes, branch creation, and fresh ref movement.
+Webhook read/write is now part of the documented configured permission profile, but it has not yet been live-validated through a connector-level operation in this repo manual.
 
 ## Working rule
 For normal repo work:
