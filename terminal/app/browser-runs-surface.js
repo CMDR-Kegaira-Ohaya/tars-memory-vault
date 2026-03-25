@@ -1,7 +1,15 @@
 (() => {
   const runtime = { contract: null };
-  const RAW_KEYS = [
-    "surface", "displayMode", "source", "mountedKind", "renderer", "engine", "readOnly", "sessionPersistence", "viewState"
+  const rawKeys = [
+    "surface",
+    "displayMode",
+    "source",
+    "mountedKind",
+    "renderer",
+    "engine",
+    "readOnly",
+    "sessionPersistence",
+    "viewState",
   ];
   const devtoolsKey = "__TARS_DEVTOOLS__";
   const devtools = window[devtoolsKey] || (window[devtoolsKey] = {
@@ -9,6 +17,8 @@
     requestHistorySurface: null,
     repoVerifiedSurface: null,
   });
+  const screenUiKey = "__TARS_SCREEN_UI__";
+  const screenUi = window[screenUiKey] || (window[screenUiKey] = { activeScreen: "home" });
 
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
@@ -45,13 +55,46 @@
       runtimeLabel: input.displayMode || "unknown",
       persistenceLabel: input.sessionPersistence || "none",
       mutabilityLabel: input.readOnly === "true" ? "read only" : "interactive",
-      detail: "Runs surface presentation fallback."
+      detail: "Runs surface presentation fallback.",
     };
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function setRawText(container, text) {
+    container.dataset.rawText = text;
+  }
+
+  function renderHtml(container, type, payload, html, rawText = "") {
+    const renderState = JSON.stringify({ type, payload });
+    if (container.dataset.renderState === renderState) {
+      if (rawText) setRawText(container, rawText);
+      return;
+    }
+    container.dataset.renderState = renderState;
+    if (rawText) setRawText(container, rawText);
+    container.innerHTML = html;
+  }
+
+  function parseHomeRawState() {
+    const home = document.getElementById("homeSummary");
+    try {
+      return JSON.parse(home?.dataset?.rawSummary || "{}");
+    } catch {
+      return {};
+    }
   }
 
   function parseRawText(container) {
     const text = container.textContent || "";
-    const looksRaw = RAW_KEYS.some((key) => text.includes(`${key}:`));
+    const looksRaw = rawKeys.some((key) => text.includes(`${key}:`));
     if (looksRaw) {
       container.dataset.rawText = text;
     }
@@ -66,36 +109,74 @@
     return result;
   }
 
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+  function mirrorScreenSource(container, type, sourceId, rawText, footerText = "") {
+    const source = document.getElementById(sourceId);
+    const sourceHtml = source?.innerHTML?.trim() || `<div class="surface-stack"><div class="surface-detail">Source panel unavailable.</div></div>`;
+    renderHtml(
+      container,
+      type,
+      { sourceId, sourceHtml, footerText, rawText },
+      `${sourceHtml}${footerText ? `<div class="surface-foot muted">${escapeHtml(footerText)}</div>` : ""}`,
+      rawText
+    );
   }
 
-  function renderDefaultSurface(surface, rawState, container) {
-    const renderState = JSON.stringify({ type: "default", surface, rawState });
-    if (container.dataset.renderState === renderState) return;
-    container.dataset.renderState = renderState;
-    container.innerHTML = `
-      <div class="surface-stack">
-        <div class="surface-header">
-          <div class="surface-title">${surface.title}</div>
-          <span class="surface-chip">${surface.statusChip}</span>
-        </div>
-        <div class="surface-meta-grid">
-          <div><span class="muted">source</span> ${rawState.source || "none"}</div>
-          <div><span class="muted">runtime</span> ${surface.runtimeLabel}</div>
-          <div><span class="muted">renderer</span> ${rawState.renderer || "none"}</div>
-          <div><span class="muted">engine</span> ${rawState.engine || "none"}</div>
-          <div><span class="muted">persistence</span> ${surface.persistenceLabel}</div>
-          <div><span class="muted">mutability</span> ${surface.mutabilityLabel}</div>
-        </div>
-        <div class="surface-detail">${surface.detail}</div>
-      </div>
-    `;
+  function renderHomeScreen(container) {
+    const raw = parseHomeRawState();
+    const rawText = [
+      `source: ${raw.currentMount || "none"}`,
+      `mode: ${raw.mode || "home"}`,
+      `save: ${raw.save || "disabled"}`,
+      `export: ${raw.exportSource || "disabled"}`,
+    ].join("\n");
+    mirrorScreenSource(container, "home", "homeSummary", rawText);
+  }
+
+  function renderCartridgeBayScreen(container) {
+    const raw = parseHomeRawState();
+    const rawText = [
+      `source: ${raw.currentMount || "none"}`,
+      "mode: cartridge-bay",
+    ].join("\n");
+    mirrorScreenSource(
+      container,
+      "cartridge-bay",
+      "cartridgeBaySummary",
+      rawText,
+      "A hands the selected cartridge into Collections."
+    );
+  }
+
+  function renderCollectionsScreen(container) {
+    const raw = parseHomeRawState();
+    const mountButton = document.getElementById("collectionsMountConfirm");
+    const rawText = [
+      `source: ${raw.currentMount || "none"}`,
+      `mode: ${raw.mode || "collections"}`,
+    ].join("\n");
+    mirrorScreenSource(
+      container,
+      "collections",
+      "collectionsResolvedSummary",
+      rawText,
+      mountButton && !mountButton.disabled ? "A mounts the current collection." : "Select a collection in the rail to enable A."
+    );
+  }
+
+  function renderBoardsScreen(container) {
+    const raw = parseHomeRawState();
+    const mountButton = document.getElementById("boardsMountConfirm");
+    const rawText = [
+      `source: ${raw.currentMount || "none"}`,
+      `mode: ${raw.mode || "boards"}`,
+    ].join("\n");
+    mirrorScreenSource(
+      container,
+      "boards",
+      "boardsResolvedSummary",
+      rawText,
+      mountButton && !mountButton.disabled ? "A mounts the current board." : "Select a board in the rail to enable A."
+    );
   }
 
   function renderRequestHistoryCartridge(container) {
@@ -105,31 +186,30 @@
         saveTag: null,
         historyPath: "none",
         entryCount: 0,
-        detail: "request-history-unavailable"
+        detail: "request-history-unavailable",
       },
       entries: [],
-      historyIndex: null,
-      mountedSaveContext: null
     };
 
-    const renderState = JSON.stringify({ type: "request-history", data });
-    if (container.dataset.renderState === renderState) return;
-    container.dataset.renderState = renderState;
+    const renderState = { type: "request-history", data };
+    if (container.dataset.renderState === JSON.stringify(renderState)) return;
+    container.dataset.renderState = JSON.stringify(renderState);
+    setRawText(container, `source: ${data.surface?.historyPath || "none"}\nmode: request-history`);
 
     const entries = data.entries || [];
     const entriesHtml = entries.length
       ? entries.map((entry) => `
           <div class="surface-list-item">
-            <div><span class="muted">${entry.order || "-"}.</span> ${escapeHtml(entry.kind || "unknown")} — ${escapeHtml(entry.status || "unknown")}</div>
+            <div><span class="muted">${entry.order || "-"}. </span>${escapeHtml(entry.kind || "unknown")} — ${escapeHtml(entry.status || "unknown")}</div>
             <div class="muted">${escapeHtml(entry.path || "none")}</div>
           </div>
         `).join("")
       : `<div class="muted">${data.surface?.saveTag ? "history index unavailable" : "no mounted save slot"}</div>`;
 
     container.innerHTML = `
-      <div class="surface-stack">
+      <div class="surface-stack screen-context screen-context-dev">
         <div class="surface-header">
-          <div class="surface-title">Request History Cartridge</div>
+          <div class="surface-title">Request History</div>
           <span class="surface-chip">${escapeHtml(data.surface?.status || "unknown")}</span>
         </div>
         <div class="surface-meta-grid">
@@ -138,12 +218,7 @@
           <div><span class="muted">discovery path</span> ${escapeHtml(data.surface?.historyPath || "none")}</div>
           <div><span class="muted">detail</span> ${escapeHtml(data.surface?.detail || "none")}</div>
         </div>
-        <div class="surface-detail">Dev surface mounted into the main viewport.</div>
         <div class="surface-list">${entriesHtml}</div>
-        <details class="inspector-panel">
-          <summary>Open raw preview</summary>
-          <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
-        </details>
       </div>
     `;
   }
@@ -157,77 +232,117 @@
         saveTag: null,
         verifiedHead: "none",
         pathsVerified: [],
-        trusted: false
+        trusted: false,
       },
-      repoVerifiedResponse: null,
-      mountedSaveContext: null,
-      pathsCount: 0
     };
-
-    const renderState = JSON.stringify({ type: "repo-verified", data });
-    if (container.dataset.renderState === renderState) return;
-    container.dataset.renderState = renderState;
-
     const status = data.repoVerifiedStatus || {};
+
+    const renderState = { type: "repo-verified", data };
+    if (container.dataset.renderState === JSON.stringify(renderState)) return;
+    container.dataset.renderState = JSON.stringify(renderState);
+    setRawText(container, `source: ${status.verifiedHead || "none"}\nmode: repo-verified`);
+
     const paths = Array.isArray(status.pathsVerified) ? status.pathsVerified : [];
     const pathsHtml = paths.length
       ? paths.map((path) => `<div class="surface-list-item"><div>${escapeHtml(path)}</div></div>`).join("")
       : `<div class="muted">no verified paths recorded</div>`;
 
     container.innerHTML = `
-      <div class="surface-stack">
+      <div class="surface-stack screen-context screen-context-dev">
         <div class="surface-header">
-          <div class="surface-title">Repo Verified Cartridge</div>
+          <div class="surface-title">Repo Verified</div>
           <span class="surface-chip">${escapeHtml(status.status || "unknown")}</span>
         </div>
         <div class="surface-meta-grid">
-          <div><span class="muted">consumed</span> ${status.consumed}</div>
+          <div><span class="muted">consumed</span> ${escapeHtml(String(status.consumed))}</div>
           <div><span class="muted">save tag</span> ${escapeHtml(status.saveTag || "none")}</div>
           <div><span class="muted">verified head</span> ${escapeHtml(status.verifiedHead || "none")}</div>
-          <div><span class="muted">trusted</span> ${status.trusted}</div>
-          <div><span class="muted">paths verified</span> ${Array.isArray(status.pathsVerified) ? status.pathsVerified.length : 0}</div>
+          <div><span class="muted">trusted</span> ${escapeHtml(String(status.trusted))}</div>
+          <div><span class="muted">paths verified</span> ${paths.length}</div>
           <div><span class="muted">detail</span> ${escapeHtml(status.detail || "none")}</div>
         </div>
-        <div class="surface-detail">Repo-verified state remains distinct from local apply markers.</div>
         <div class="surface-list">${pathsHtml}</div>
-        <details class="inspector-panel">
-          <summary>Open raw preview</summary>
-          <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
-        </details>
       </div>
     `;
+  }
+
+  function renderDefaultSurface(container) {
+    const rawState = parseRawText(container);
+    const surface = deriveSurface(rawState);
+    renderHtml(
+      container,
+      "default",
+      { surface, rawState },
+      `
+      <div class="surface-stack">
+        <div class="surface-header">
+          <div class="surface-title">${escapeHtml(surface.title || "Runs surface")}</div>
+          <span class="surface-chip">${escapeHtml(surface.statusChip || "idle")}</span>
+        </div>
+        <div class="surface-meta-grid">
+          <div><span class="muted">source</span> ${escapeHtml(rawState.source || "none")}</div>
+          <div><span class="muted">runtime</span> ${escapeHtml(surface.runtimeLabel || "unknown")}</div>
+          <div><span class="muted">renderer</span> ${escapeHtml(rawState.renderer || "none")}</div>
+          <div><span class="muted">engine</span> ${escapeHtml(rawState.engine || "none")}</div>
+          <div><span class="muted">persistence</span> ${escapeHtml(surface.persistenceLabel || "none")}</div>
+          <div><span class="muted">mutability</span> ${escapeHtml(surface.mutabilityLabel || "interactive")}</div>
+        </div>
+        <div class="surface-detail screen-copy">${escapeHtml(surface.detail || "Runs surface presentation fallback.")}</div>
+      </div>
+      `
+    );
+  }
+
+  function getActiveScreen() {
+    if (devtools.mountedCartridge === "request-history") return "request-history";
+    if (devtools.mountedCartridge === "repo-verified") return "repo-verified";
+    return screenUi.activeScreen || "home";
   }
 
   function refresh() {
     const container = document.getElementById("runsViewport");
     if (!container) return;
-
-    if (devtools.mountedCartridge === "request-history") {
-      renderRequestHistoryCartridge(container);
-      return;
+    switch (getActiveScreen()) {
+      case "home":
+        renderHomeScreen(container);
+        return;
+      case "cartridge-bay":
+        renderCartridgeBayScreen(container);
+        return;
+      case "collections":
+        renderCollectionsScreen(container);
+        return;
+      case "boards":
+        renderBoardsScreen(container);
+        return;
+      case "request-history":
+        renderRequestHistoryCartridge(container);
+        return;
+      case "repo-verified":
+        renderRepoVerifiedCartridge(container);
+        return;
+      default:
+        renderDefaultSurface(container);
     }
-
-    if (devtools.mountedCartridge === "repo-verified") {
-      renderRepoVerifiedCartridge(container);
-      return;
-    }
-
-    const rawState = parseRawText(container);
-    const surface = deriveSurface(rawState);
-    renderDefaultSurface(surface, rawState, container);
   }
 
   async function boot() {
-    runtime.contract = await loadJson("app/runs-surface.v1.json");
+    runtime.contract = await loadJson("app/runs-surface.v1.json").catch(() => null);
     refresh();
+
     const container = document.getElementById("runsViewport");
     if (container) {
       const observer = new MutationObserver(() => refresh());
       observer.observe(container, { childList: true, subtree: true, characterData: true });
     }
-    window.addEventListener("tars:devtools-changed", refresh);
-    window.addEventListener("tars:request-history-updated", refresh);
-    window.addEventListener("tars:repo-verified-updated", refresh);
+
+    [
+      "tars:screen-changed",
+      "tars:devtools-changed",
+      "tars:request-history-updated",
+      "tars:repo-verified-updated",
+    ].forEach((eventName) => window.addEventListener(eventName, refresh));
+
     window.setInterval(refresh, 1500);
   }
 
