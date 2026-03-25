@@ -5,6 +5,7 @@
   const devtools = window[devtoolsKey] || (window[devtoolsKey] = {
     mountedCartridge: null,
     requestHistorySurface: null,
+    repoVerifiedSurface: null,
   });
   if (shared.fetchBridgeInstalled) {
     return;
@@ -40,7 +41,9 @@
   ]);
   const cartridgeLabels = new Set([
     "REQUEST HISTORY INDEX",
-    "REQUEST HISTORY RAW PREVIEW"
+    "REQUEST HISTORY RAW PREVIEW",
+    "REPO VERIFIED SAVE STATUS",
+    "REPO VERIFIED RAW PREVIEW"
   ]);
 
   function getPanelLabel(panel) {
@@ -50,39 +53,44 @@
   function emitDevtoolsChanged() {
     window.dispatchEvent(new CustomEvent("tars:devtools-changed", {
       detail: {
-        mountedCartridge: devtools.mountedCartride
+        mountedCartridge: devtools.mountedCartridge
       }
     }));
   }
 
-  function ensureRequestHistoryLauncher() {
+  function toggleCartridge(key) {
+    devtools.mountedCartridge = devtools.mountedCartridge === key ? null : key;
+    ensureDevtoolsLaunchers();
+    emitDevtoolsChanged();
+  }
+
+  function upsertLauncher(actions, id, key, label) {
+    let button = document.getElementById(id);
+    if (!button || button.parentElement !== actions) {
+      button = document.createElement("button");
+      button.id = id;
+      button.addEventListener("click", () => toggleCartridge(key));
+      actions.appendChild(button);
+    }
+
+    const state = devtools.mountedCartridge === key ? "active" : "available";
+    button.disabled = false;
+    button.removeAttribute("aria-disabled");
+    button.dataset.actionKey = key;
+    button.dataset.actionState = state;
+    button.dataset.rawActionState = state;
+    button.dataset.rawText = `${label} : ${state}`;
+    button.textContent = button.dataset.rawText;
+  }
+
+  function ensureDevtoolsLaunchers() {
     const actions = document.getElementById("actions");
     if (!actions) {
       return;
     }
 
-    let button = document.getElementById("action-request-history");
-    if (!button || button.parentElement !== actions) {
-      button = document.createElement("button");
-      button.id = "action-request-history";
-      button.addEventListener("click", () => {
-        devtools.mountedCartridge = devtools.mountedCartridge === "request-history"
-          ? null
-          : "request-history";
-        ensureRequestHistoryLauncher();
-        emitDevtoolsChanged();
-      });
-      actions.appendChild(button);
-    }
-
-    const state = devtools.mountedCartridge === "request-history" ? "active" : "available";
-    button.disabled = false;
-    button.removeAttribute("aria-disabled");
-    button.dataset.actionKey = "request-history";
-    button.dataset.actionState = state;
-    button.dataset.rawActionState = state;
-    button.dataset.rawText = `request-history : ${state}`;
-    button.textContent = button.dataset.rawText;
+    upsertLauncher(actions, "action-request-history", "request-history", "request-history");
+    upsertLauncher(actions, "action-repo-verified", "repo-verified", "repo-verified");
   }
 
   function simplifyShell() {
@@ -135,7 +143,7 @@
       }
     });
 
-    ensureRequestHistoryLauncher();
+    ensureDevtoolsLaunchers();
   }
 
   function normalizeInput(input) {
@@ -178,7 +186,7 @@
 
   window.addEventListener("DOMContentLoaded", () => {
     simplifyShell();
-    ensureRequestHistoryLauncher();
-    window.setInterval(ensureRequestHistoryLauncher, 1500);
+    ensureDevtoolsLaunchers();
+    window.setInterval(ensureDevtoolsLaunchers, 1500);
   }, { once: true });
 })();
