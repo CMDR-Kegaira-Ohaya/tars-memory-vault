@@ -99,14 +99,13 @@ if __name__ == "__main__":
 
     overall_ok = True
 
-
     for r in results:
         print("---")
         print(f"URL: {r['url']}")
         print(f"Status: {r['status']}")
         print(f"OK: {r['ok']}")
         if r["errors"]:
-            print("Errors:", r["uerrors"])
+            print("Errors:", r["errors"])
         if not r["ok"]:
             overall_ok = False
 
