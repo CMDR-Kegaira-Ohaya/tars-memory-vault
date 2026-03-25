@@ -136,7 +136,11 @@ The utility fails when:
 - `unique_only=true` and the anchor is not unique
 - an operation produces no text change
 - `replace-between` cannot find a valid range
-- operations overlap or invalidate later anchors in the same patch step
+- a later sequential operation becomes invalid after an earlier one and can no longer satisfy its anchor constraints
+
+## Current v1 boundary
+
+This v1 applies operations sequentially and relies on per-step anchor validation. It does **not** yet implement a separate preflight overlap-analysis pass across all operations before mutation.
 
 ## Output
 
