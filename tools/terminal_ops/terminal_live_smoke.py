@@ -14,7 +14,7 @@ CRITICAL_SCRIPTS = [
     "browser-action-surface.js",
 ]
 
-REQIRED_ROOT_REDIRECT_TARGET = "./terminal/index.html"
+REQUIRED_ROOT_REDIRECT_TARGET = "./terminal/index.html"
 
 
 def base_result(url):
