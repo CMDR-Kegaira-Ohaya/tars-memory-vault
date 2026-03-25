@@ -242,12 +242,14 @@
   <script src="app/browser-runs-surface.js" defer></script>
   <script src="app/browser-home-surface.js" defer></script>
   <script src="app/browser-collections-browser.js" defer></script>
+  <script src="app/browser-cartridge-bay.js" defer></script>
   <script src="app/browser-boards-browser.js" defer></script>
   <script src="app/browser-boards-guardrails.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-export-controls.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
+  <script src="app/browser-delta-surface.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
   <script src="app/browser-repo-verified-status.js" defer></script>
   <script src="app/browser-apply-surface.js" defer></script>
@@ -289,6 +291,18 @@
 
     <section class="layout">
       <div class="panel">
+        <div class="label">CARTRIDGE BAY</div>
+        <div id="cartridgeBayList" class="surface-list"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">CARTRIDGE BAY HANDOFF</div>
+        <div id="cartridgeBaySummary" class="value">loading...</div>
+        <div class="muted" style="margin-top:8px;">Selection hands off into Collections resolve. Mount remains explicit there.</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
         <div class="label">COLLECTIONS BROWSER</div>
         <div id="collectionsBrowserList" class="surface-list"><span class="muted">loading...</span></div>
       </div>
@@ -324,7 +338,7 @@
       </div>
       <div class="panel">
         <div class="label">DISABLED SAVE EXPLANATION</div>
-        <div class="muted">In Boards mode, Save stays visually muted but can explain why it is unavailable.</div>
+        <div class="muted">In Boards mode, Save stays fisually muted but can explain why it is unavailable.</div>
         <div class="muted" style="margin-top:8px;">Click the muted Save action while a board is mounted to open the explanation popup.</div>
       </div>
     </section>
@@ -385,6 +399,23 @@
 
     <section class="layout">
       <div class="panel">
+        <div class="label">DELTA SUMMARY</div>
+        <div id="deltaSummary" class="value">loading...</div>
+      </div>
+      <div class="panel">
+        <div class="label">DELTA RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Delta stays derived and read-only; use it to see what will change before apply.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="deltaPreview">loading...</pre>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
         <div class="label">MOUNTED SOURCE CONTEXT</div>
         <div id="mountedSourceContextSummary" class="value">loading...</div>
       </div>
@@ -419,7 +450,7 @@
         </label>
         <div class="row" style="margin-bottom:8px;">
           <button id="requestApplySave">Request apply</button>
-          <button id="markApplyAsApplied">Mark applied</button>
+          <button id="markApplyAsAapplied">Mark applied</button>
           <button id="markApplyAsRejected">Mark rejected</button>
           <button id="resetApplyStatus">Reset status</button>
         </div>

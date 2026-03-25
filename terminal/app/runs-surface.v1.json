@@ -21,6 +21,10 @@
     "runtimeLabel",
     "persistenceLabel",
     "mutabilityLabel",
+    "surfaceLabel",
+    "executionLabel",
+    "saveFlowLabel",
+    "verificationLabel",
     "detail"
   ],
   "states": {
@@ -34,6 +38,10 @@
         "runtimeLabel": "no mount",
         "persistenceLabel": "none",
         "mutabilityLabel": "read only",
+        "surfaceLabel": "placeholder",
+        "executionLabel": "none",
+        "saveFlowLabel": "not active",
+        "verificationLabel": "not applicable",
         "detail": "Mount a cartridge or board to enter the runs surface."
       }
     },
@@ -48,6 +56,10 @@
         "runtimeLabel": "markdown readout",
         "persistenceLabel": "ephemeral",
         "mutabilityLabel": "read only",
+        "surfaceLabel": "live board",
+        "executionLabel": "reader-backed",
+        "saveFlowLabel": "blocked",
+        "verificationLabel": "not applicable",
         "detail": "Board content is mounted as live readout without terminal save behavior."
       }
     },
@@ -62,6 +74,10 @@
         "runtimeLabel": "renderer backed",
         "persistenceLabel": "save slots",
         "mutabilityLabel": "interactive",
+        "surfaceLabel": "renderer runtime",
+        "executionLabel": "renderer-backed",
+        "saveFlowLabel": "eligible",
+        "verificationLabel": "avaits repo verification after apply",
         "detail": "Cartridge source is mounted through the current renderer with slot-aware runtime behavior."
       }
     },
@@ -76,6 +92,10 @@
         "runtimeLabel": "engine backed",
         "persistenceLabel": "save slots",
         "mutabilityLabel": "interactive",
+        "surfaceLabel": "engine runtime",
+        "executionLabel": "engine-backed",
+        "saveFlowLabel": "eligible",
+        "verificationLabel": "awaits repo verification after apply",
         "detail": "Engine-backed runtime is active for the mounted cartridge."
       }
     }

@@ -3,6 +3,7 @@
   "version": "v1",
   "role": "bounded-pages-runtime-save-write-request-bridge",
   "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json",
     "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
     "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
@@ -18,6 +19,7 @@
     "repo-board"
   ],
   "stagingMode": "client-staged-write-request-only",
+  "statusStages": "terminal-save-manager-v1.statusStages",
   "handoff": {
     "target": "terminal/app/apply-save-request.v1.json",
     "requiresExplicitRepoWriteConsent": true,
@@ -26,30 +28,15 @@
   "requestShape": {
     "saveTag": "string",
     "writeRoot": "terminal/saves/<tag>/",
+    "writeRootMustMatch": "terminal-save-manager-v1.saveRootFormat",
     "sourceClass": "repo-cartridge-or-disk-cartridge-or-drag-drop-cartridge",
     "mountedId": "string",
     "manifestId": "string-or-null",
-    "writes": [
-      {
-        "kind": "state",
-        "path": "terminal/saves/<tag>/state.json",
-        "payload": "object"
-      },
-      {
-        "kind": "session",
-        "path": "terminal/saves/<tag>/session.json",
-        "payload": "object"
-      },
-      {
-        "kind": "notes",
-        "path": "terminal/saves/<tag>/notes.json",
-        "payload": "object"
-      }
-    ],
+    "writes": "terminal-save-manager-v1.allowedWrites",
     "coverage": {
       "bookmarks": "tracked-or-declared-partial"
     },
-    "status": "staged-partial-or-ready"
+    "status": "staged-only"
   },
   "guardrails": [
     "The bridge packages bounded save requests only for terminal/saves/<tag>/.",

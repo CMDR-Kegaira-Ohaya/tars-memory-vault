@@ -1,0 +1,89 @@
+{
+  "id": "terminal-save-manager-v1",
+  "version": "v1",
+  "role": "canonical-bounded-terminal-save-manager-contract",
+  "root": "terminal/saves/",
+  "appliesTo": [
+    "repo-cartridge",
+    "disk-cartridge",
+    "drag-drop-cartridge"
+  ],
+  "excludes": [
+    "repo-board"
+  ],
+  "saveRootFormat": "terminal/saves/<tag>/",
+  "allowedWrites": [
+    {
+      "kind": "state",
+      "path": "terminal/saves/<tag>/state.json",
+      "payloadType": "object"
+    },
+    {
+      "kind": "session",
+      "path": "terminal/saves/<tag>/session.json",
+      "payloadType": "object"
+    },
+    {
+      "kind": "notes",
+      "path": "terminal/saves/<tag>/notes.json",
+      "payloadType": "object"
+    }
+  ],
+  "statusStages": [
+    "disabled",
+    "staged-only",
+    "awaiting-consent",
+    "handed-off",
+    "rejected",
+    "applied",
+    "repo-verified-applied"
+  ],
+  "transactionPolicy": {
+    "requestIdField": "requestId",
+    "requiredShape": "unique-per-staged-request",
+    "idempotentyScope": "saveTag+requestId",
+    "duplicateActiveRequests": "reject-or-resolve-as-same-transaction",
+    "indexUpdateAtomicity": "write-set-and-index-metadata-must-stay-in-the-same-bounded-operation",
+    "requestHistory": "terminal/saves/<tag>/request-history.json"
+  },
+  "indexPolicy": {
+    "target": "terminal/saves/save-slot-index.v1.json",
+    "updateMode": "metadata-only-if-save-write-applied",
+    "allowedFields": [
+      "saveTag",
+      "mountedId",
+      "mountedKind",
+      "sourceClass",
+      "sourcePath",
+      "manifestId",
+      "title",
+      "renderer",
+      "notesCount",
+      "bookmarksCount",
+      "updatedAt"
+    ]
+  },
+  "resumeEligibility": {
+    "requiredFiles": [
+      "state.json",
+      "session.json"
+    ],
+    "optionalFiles": [
+      "notes.json"
+    ],
+    "blockedStates": [
+      "malformed-slot",
+      "mismatched-save-root",
+      "missing-required-files",
+      "non-cartridge-source-class"
+    ]
+  },
+  "guardrails": [
+    "All terminal save writes remain bounded to terminal/saves/<tag>/ only.",
+    "Boards are excluded because Boards never use terminal/saves/.",
+    "Save root must exactly match the current saveTag.",
+    "Only state.json, session.json, and notes.json are allowed write targets.",
+    "Repo-verified applied state remains distinct from browser-only status markers.",
+    "Request identity and idempotent scope must stay bounded to saveTag+requestId per staged request."
+  ]
+}

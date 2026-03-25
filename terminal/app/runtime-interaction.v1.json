@@ -2,33 +2,79 @@
   "id": "terminal-runtime-interaction-v1",
   "version": "v1",
   "role": "interactive-runtime-state-contract",
-  "interactions": {
-    "reading": {
-      "pageTurns": "runtime-state",
-      "scrollPosition": "runtime-state",
-      "bookmarks": "terminal-save-state"
+  "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
+    "browserNoteEditor": "terminal/app/browser-note-editor.v1.json",
+    "browserSaveResume": "terminal/app/browser-save-resume.v1.json",
+    "runsSurface": "terminal/app/runs-surface.v1.json"
+  },
+  "readingInteractions": {
+    "pageTurns": {
+      "class": "runtime-state",
+      "persistsTo": "terminal/saves/<tag>/session.json",
+      "editsMountedSource": false
     },
-    "notes": {
+    "scrollPosition": {
+      "class": "runtime-state",
+      "persistsTo": "terminal/saves/<tag>/session.json",
+      "editsMountedSource": false
+    },
+    "readingProgress": {
+      "class": "runtime-state",
+      "persistsTo": "terminal/saves/<tag>/state.json",
+      "editsMountedSource": false
+    },
+    "bookmarks": {
+      "class": "terminal-save-state",
+      "persistsTo": "terminal/saves/<tag>/state.json",
+      "editsMountedSource": false
+    }
+  },
+  "notesInteractions": {
+    "droEditing": {
+      "class": "terminal-save-state",
       "persistsTo": "terminal/saves/<tag>/notes.json",
       "editsMountedSource": false,
       "exportLater": "optional"
-    },
-    "boards": {
-      "readOnly": true,
-      "save": "disabled",
-      "saveThroughGui": false,
-      "usesTerminalSaves": false
-    },
-    "gamesAndEngines": {
-      "runtimeState": true,
-      "persistsTo": "terminal/saves/<tag>/",
-      "repoMutationByDefault": false
     }
+  },
+  "boardsInteractions": {
+    "readOnly": true,
+    "save": "disabled",
+    "saveThroughGui": false,
+    "usesTerminalSaves": false,
+    "allowedInteractions": [
+      "select",
+      "mount",
+      "read",
+      "export-source",
+      "unmount"
+    ]
+  },
+  "engineAndGameInteractions": {
+    "runtimeState": true,
+    "persistsTo": "terminal/saves/<tag>/",
+    "repoMutationByDefault": false
   },
   "repoBehavior": {
     "defaultMutation": "none",
     "allowedWriteRoot": "terminal/saves/<tag>/",
+    "allowedWritesMustMatch": "terminal-save-manager-v1.saveRootFormat",
     "exportDistinctFromSave": true,
-    "clicksDoNotEditRepoSources": true
-  }
+    "clicksDoNotEditRepoSources": true,
+    "blockedRepoWriteRoots": [
+      "collections/",
+      "repo-manual/",
+      "logs/",
+      "work/",
+      ".github/"
+    ]
+  },
+  "guardrails": [
+    "Page turns, scroll, progress, and bookmarks update runtime state; they do not edit mounted source files.",
+    "Notes are terminal-owned state and remain bounded to terminal save paths.",
+    "Boards remain read-only live readout inside Runs and never write through terminal saves.",
+    "Engine and game interactions may be live and stateful, but repo mutation remains off by default.",
+    "Save and Export remain distinct: save persists inward, export takes content outward."
+  ]
 }

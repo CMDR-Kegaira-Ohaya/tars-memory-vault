@@ -3,6 +3,7 @@
   "version": "v1",
   "role": "repo-verified-save-status-ingest-contract",
   "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
     "repoSaveWriteHandler": "terminal/app/repo-save-write-handler.v1.json",
     "applySaveRequest": "terminal/app/apply-save-request.v1.json"
   },
@@ -22,6 +23,7 @@
     "pathsVerified",
     "trusted"
   ],
+  "statusStages": "terminal-save-manager-v1.statusStages",
   "states": {
     "noVerifiedResponse": {
       "match": {
@@ -29,7 +31,7 @@
       },
       "derive": {
         "consumed": false,
-        "status": "none",
+        "status": "disabled",
         "detail": "no-repo-verified-handler-response-loaded",
         "saveTag": "from-current-save-tag",
         "verifiedHead": "none",
@@ -44,7 +46,7 @@
       },
       "derive": {
         "consumed": true,
-        "status": "applied",
+        "status": "repo-verified-applied",
         "detail": "repo-verified-applied-state-from-handler-response",
         "saveTag": "from-current-save-tag",
         "verifiedHead": "from-verified-response-head",
@@ -74,7 +76,7 @@
       },
       "derive": {
         "consumed": true,
-        "status": "non-applied-response",
+        "status": "handed-off",
         "detail": "repo-response-loaded-but-not-verified-applied",
         "saveTag": "from-current-save-tag",
         "verifiedHead": "from-verified-response-head",

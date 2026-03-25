@@ -1,0 +1,45 @@
+{
+  "id": "terminal-gpt-terminal-boundary-v1",
+  "version": "v1",
+  "role": "canonical-gpt-terminal-boundary-contract",
+  "gptSide": {
+    "owns": [
+      "planning",
+      "repo-work",
+      "implementation-guidance",
+      "orchestration"
+    ],
+    "doesNotRunAsPagesTerminal": true
+  },
+  "terminalRuntime": {
+    "owns": [
+      "persistent-shell-ui",
+      "mode-switching",
+      "mount-and-read",
+      "runtime-state",
+      "page-turning",
+      "notes",
+      "save-slots",
+      "export-source"
+    ],
+    "doesNotOwn": [
+      "planning",
+      "repo-authoring-by-default",
+      "broad-repo-writes",
+      "board-writeback-through-gui"
+    ]
+  },
+  "boundaries": {
+    "planningAuthority": "gpt-side",
+    "runtimeAuthority": "pages-terminal",
+    "implementationSourceOfTruth": "working-board",
+    "boardSource": "workspace-source-files",
+    "allowedWriteRoot": "terminal/saves/<tag>/"
+  },
+  "guardrails": [
+    "Pages terminal is the user-facing runtime shell; it does not replace GPT-side planning or repo work.",
+    "The working board remains the implementation source of truth for terminal build direction.",
+    "Boards remain live readout only; terminal does not write their cource files.",
+    "Repo mutation remains off by default except through the allowed terminal save path."
+  ]
+}

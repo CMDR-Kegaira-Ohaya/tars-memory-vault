@@ -1,0 +1,85 @@
+{
+  "id": "terminal-delta-surface-v1",
+  "version": "v1",
+  "role": "derived-phase-2-delta-surface-contract",
+  "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
+    "mountedSaveContext": "terminal/app/mounted-save-context.v1.json",
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json"
+  },
+  "inputs": [
+    "currentSaveTag",
+    "currentRequestId",
+    "currentWrites",
+    "savedState",
+    "savedSession",
+    "savedNotes",
+    "verifiedStatus"
+  ],
+  "fields": [
+    "status",
+    "saveTag",
+    "requestId",
+    "changedFiles",
+    "changeCount",
+    "detail",
+    "targets"
+  ],
+  "states": {
+    "noSaveContext": {
+      "match": {
+        "currentSaveTag": null
+      },
+      "derive": {
+        "status": "disabled",
+        "saveTag": null,
+        "requestId": null,
+        "changedFiles": [],
+        "changeCount": 0,
+        "detail": "no-mounted-save-slot-context",
+        "targets": []
+      }
+    },
+    "noCurrentWrites": {
+      "match": {
+        "currentSaveTag": "non-null",
+        "currentWrites": null
+      },
+      "derive": {
+        "status": "idle",
+        "saveTag": "from-current-save-tag",
+        "requestId": null,
+        "changedFiles": [],
+        "changeCount": 0,
+        "detail": "no-current-staged-writes-to-compare",
+        "targets": [
+          "state.json",
+          "session.json",
+          "notes.json"
+        ]
+      }
+    },
+    "activeDelta": {
+      "match": {
+        "currentSaveTag": "non-null",
+        "currentWrites": "non-null"
+      },
+      "derive": {
+        "status": "active-delta",
+        "saveTag": "from-current-save-tag",
+        "requestId": "from-current-request-id",
+        "changedFiles": "from-changed-files",
+        "changeCount": "from-change-count",
+        "detail": "derived-delta-between-staged-write-set-and-last-saved-artifacts",
+        "targets": "from-targets"
+      }
+    }
+  },
+  "guardrails": [
+    "Delta surface is derived and read-only; it does not create new save or repo authority.",
+    "Delta comparestaged writes to currently saved artifacts inside the bounded save root only.",
+    "Delta presentation must not pretend that unverified staged writes are already applied.",
+    "Boards remain outside delta surface because Boards never use terminal/saves/."
+  ]
+}
