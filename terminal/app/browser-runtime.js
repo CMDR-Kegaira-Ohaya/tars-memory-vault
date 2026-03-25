@@ -883,11 +883,27 @@
   function renderActions() {
     const container = document.getElementById("actions");
     container.innerHTML = "";
+    const boardsMode = state.contracts.boardsMode || {};
+    const boardsSaveExplanation = boardsMode.actions?.save?.explanation || "Working boards are source files in workspace. Update them at their live path, not through terminal GUI.";
+    const isBoardsMount = state.session?.mountedKind === "board" && state.session?.sourceClass === "repo-board";
     for (const key of ACTION_KEYS) {
       const value = state.session.actionState?.[key] || "disabled";
       const button = document.createElement("button");
+      button.dataset.actionKey = key;
+      button.dataset.actionState = value;
+      button.dataset.rawActionState = value;
       button.textContent = `${key} : ${value}`;
-      button.disabled = value.includes("disabled") || value.includes("placeholder");
+
+      if (key === "save" && isBoardsMount && value === "disabled") {
+        button.disabled = false;
+        button.setAttribute("aria-disabled", "true");
+        button.dataset.guardrailAction = "disabled-save-explained";
+        button.dataset.guardrailReason = boardsSaveExplanation;
+        button.title = boardsSaveExplanation;
+      } else {
+        button.disabled = value.includes("disabled") || value.includes("placeholder");
+      }
+
       container.appendChild(button);
     }
   }

@@ -1,0 +1,56 @@
+{
+  "id": "terminal-boards-guardrails-v1",
+  "version": "v1",
+  "role": "boards-mode-guardrail-surface-and-disabled-save-explanation-contract",
+  "uses": {
+    "boardsMode": "terminal/app/boards-mode.v1.json",
+    "actionState": "terminal/app/action-state.v1.json"
+  },
+  "inputs": [
+    "currentMode",
+    "mountedKind",
+    "sourceClass",
+    "saveState",
+    "exportSourceState",
+    "exportOutputState"
+  ],
+  "fields": [
+    "title",
+    "stateChip",
+    "detail",
+    "saveExplanation",
+    "exportSummary"
+  ],
+  "states": {
+    "boardsMounted": {
+      "match": {
+        "currentMode": "boards",
+        "mountedKind": "board",
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "title": "Boards mode guardrails",
+        "stateChip": "read-only live board",
+        "detail": "Boards stay mounted as approved-root live readouts. Save, notes, and bookmarks remain unavailable in terminal while Export Source may remain active.",
+        "saveExplanation": "Working boards are source files in workspace. Update them at their live path, not through terminal GUI.",
+        "exportSummary": "Export Source available. Export Output placeholder disabled."
+      }
+    },
+    "fallback": {
+      "match": {},
+      "derive": {
+        "title": "Boards mode guardrails",
+        "stateChip": "inactive",
+        "detail": "Boards guardrails activate when a repo-board is mounted in Boards mode.",
+        "saveExplanation": "No active board guardrail explanation.",
+        "exportSummary": "No active board export summary."
+      }
+    }
+  },
+  "guardrails": [
+    "Boards remain read-only live readouts.",
+    "Disabled Save in Boards mode may explain itself, but explanation does not enable Save.",
+    "Export Source and Export Output remain distinct even when one is disabled.",
+    "Boards never write through terminal/saves/."
+  ]
+}
