@@ -1,10 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 
-URLS = [
-    "https://cmdr-kegaira-ohaya.github.io/tars-memory-vault/",
-    "https://cmdr-kegaira-ohaya.github.io/tars-memory-vault/terminal/index.html",
-]
+ROOT_URL = "https://cmdr-kegaira-ohaya.github.io/tars-memory-vault/"
+TERMINAL_URL = "https://cmdr-kegaira-ohaya.github.io/tars-memory-vault/terminal/index.html"
 
 EXPECTED_MARKERS = [
     "STATUS STRIP",
@@ -16,9 +14,11 @@ CRITICAL_SCRIPTS = [
     "browser-action-surface.js",
 ]
 
+REQIRED_ROOT_REDIRECT_TARGET = "./terminal/index.html"
 
-def check_url(url):
-    result = {
+
+def base_result(url):
+    return {
         "url": url,
         "status": None,
         "scripts": [],
@@ -28,6 +28,33 @@ def check_url(url):
         "errors": [],
     }
 
+
+def check_root(url):
+    result = base_result(url)
+    try:
+        r = requests.get(url, timeout=10)
+        result["status"] = r.status_code
+
+        if r.status_code != 200:
+            result["ok"] = False
+            result["errors"].append(f"HTTP {r.status_code}")
+            return result
+
+        text = r.text
+        if REQUIRED_ROOT_REDIRECT_TARGET not in text:
+            result["ok"] = False
+            result["errors"].append(
+                f"missing root redirect target: {REQUIRED_ROOT_REDIRECT_TARGET}"
+            )
+    except Exception as e:
+        result["ok"] = False
+        result["errors"].append(str(e))
+
+    return result
+
+
+def check_terminal(url):
+    result = base_result(url)
     try:
         r = requests.get(url, timeout=10)
         result["status"] = r.status_code
@@ -57,7 +84,6 @@ def check_url(url):
             if not present:
                 result["ok"] = False
                 result["errors"].append(f"missing marker: {m}")
-
     except Exception as e:
         result["ok"] = False
         result["errors"].append(str(e))
@@ -66,9 +92,13 @@ def check_url(url):
 
 
 if __name__ == "__main__":
-    results = [check_url(u) for u in URLS]
+    results = [
+        check_root(ROOT_URL),
+        check_terminal(TERMINAL_URL),
+    ]
 
     overall_ok = True
+
 
     for r in results:
         print("---")
@@ -76,8 +106,7 @@ if __name__ == "__main__":
         print(f"Status: {r['status']}")
         print(f"OK: {r['ok']}")
         if r["errors"]:
-            print("Errors:", r["errors"])
-
+            print("Errors:", r["uerrors"])
         if not r["ok"]:
             overall_ok = False
 
