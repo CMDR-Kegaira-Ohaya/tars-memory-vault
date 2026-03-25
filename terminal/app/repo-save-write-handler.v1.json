@@ -3,6 +3,7 @@
   "version": "v1",
   "role": "explicit-bounded-repo-save-write-handler-contract",
   "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "readerSessionSave": "terminal/app/reader-session-save.v1.json",
     "saveSlotIndex": "terminal/saves/save-slot-index.v1.json"
@@ -29,32 +30,21 @@
       "writes"
     ],
     "writeRoot": "terminal/saves/<tag>/",
-    "allowedKinds": [
-      "state",
-      "session",
-      "notes"
-    ],
-    "allowedPaths": [
-      "terminal/saves/<tag>/state.json",
-      "terminal/saves/<tag>/session.json",
-      "terminal/saves/<tag>/notes.json"
-    ],
+    "writeRootMustMatch": "terminal-save-manager-v1.saveRootFormat",
+    "allowedWrites": "terminal-save-manager-v1.allowedWrites",
     "payloadType": "object-only",
     "rejects": [
       "arbitrary-repo-paths",
       "collections-writes",
       "work-writes",
       "repo-manual-writes",
-      "board-save-requests"
+      "board-save-requests",
+      "mismatched-save-root"
     ]
   },
   "execution": {
-    "writes": [
-      "terminal/saves/<tag>/state.json",
-      "terminal/saves/<tag>/session.json",
-      "terminal/saves/<tag>/notes.json"
-    ],
-    "indexUpdate": "save-slot-index-metadata-may-be-updated-repo-side",
+    "writes": "terminal-save-manager-v1.allowedWrites",
+    "indexUpdate": "use-terminal-save-manager-v1.indexPolicy-metadata-only-if-save-write-applied",
     "verification": [
       "verify-new-head",
       "verify-written-paths-on-main",
