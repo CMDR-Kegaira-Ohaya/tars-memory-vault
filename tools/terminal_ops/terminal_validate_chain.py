@@ -52,5 +52,5 @@ def main():
         raise SystemExit("terminal_validate_chain FAILED")
 
 
- if __name__ == "__main__":
+if __name__ == "__main__":
     main()
