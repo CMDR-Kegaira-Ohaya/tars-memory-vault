@@ -86,6 +86,12 @@ Use when the direct file path is not the right tool or when multi-file construct
 ### Pages
 - `getPagesSite`
 
+## Workflow maintenance note
+- Use Node 24 as the workflow runtime baseline.
+- Prefer current action versions that run on Node 24.
+- Do not preserve Node 20 as a repo baseline just to silence transition warnings.
+- Revisit self-hosted caveats only if this repo later depends on macOS 13.4-or-lower runners or ARM32 self-hosted runners.
+
 ## Validation note
 Fresh ref operations were validated live on the disposable branch `test-update-ref`.
 That validation included moving the branch to a newly created commit, not just re-submitting the same SHA.

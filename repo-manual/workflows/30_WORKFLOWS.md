@@ -16,6 +16,18 @@ This file documents workflow intent, boundaries, and workflow-map references.
 - `pages-readiness.yml` — checks Pages readiness only after a Pages surface is introduced
 - `internal-link-guard.yml` — checks internal markdown links under `repo-manual/`
 
+## Workflow runtime baseline
+- Node 24 is the workflow runtime baseline for this repo.
+- Keep workflow maintenance aimed at the latest action versions that run on Node 24.
+- Do not treat Node 20 warnings by themselves as a rollback trigger.
+- Current transition markers recorded in the self layer:
+  - Node 20 EOL: April 2026
+  - GitHub-hosted runners default JavaScript actions to Node 24: June 2, 2026
+  - Node 20 removal later in fall 2026
+- Self-hosted caveats matter only if the repo later depends on:
+  - macOS 13.4 or lower
+  - ARM32 self-hosted runners
+
 ## Workflow intent
 
 ### repo-health.yml
