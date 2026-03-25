@@ -1,4 +1,11 @@
 (() => {
+  const devtoolsKey = "__TARS_DEVTOOLS__";
+  const devtools = window[devtoolsKey] || (window[devtoolsKey] = {
+    mountedCartridge: null,
+    requestHistorySurface: null,
+    repoVerifiedSurface: null,
+  });
+
   const runtime = {
     contract: null,
     currentSaveTag: null,
@@ -96,29 +103,26 @@
     };
   }
 
-  function render(surface) {
-    const summary = document.getElementById("repoVerifiedSummary");
-    const preview = document.getElementById("repoVerifiedPreview");
-    if (!summary || !preview) {
-      return;
-    }
+  function exportSurface() {
+    const mountedSaveContext = readMountedSaveContext();
+    const surface = deriveSurface({
+      responseLoaded: Boolean(runtime.verifiedResponse),
+      responseStatus: runtime.verifiedResponse?.status || null,
+      verificationHead: runtime.verifiedResponse?.verification?.head || null,
+      verifiedPaths: (runtime.verifiedResponse?.verification?.pathsVerified || []).length ? "present" : "empty",
+      currentSaveTag: runtime.currentSaveTag
+    });
 
-    summary.innerHTML = [
-      `<div><span class="muted">consumed</span> ${surface.consumed}</div>`,
-      `<div><span class="muted">status</span> ${surface.status}</div>`,
-      `<div><span class="muted">detail</span> ${surface.detail}</div>`,
-      `<div><span class="muted">save tag</span> ${surface.saveTag || "none"}</div>`,
-      `<div><span class="muted">verified head</span> ${surface.verifiedHead}</div>`,
-      `<div><span class="muted">trusted</span> ${surface.trusted}</div>`,
-      `<div><span class="muted">paths verified</span> ${Array.isArray(surface.pathsVerified) ? surface.pathsVerified.length : 0}</div>`,
-      `<div class="muted" style="margin-top:8px;">repo-verified state is driven from mounted save context path refs, not local apply markers</div>`
-    ].join("");
-
-    preview.textContent = JSON.stringify({
-      mountedSaveContext: readMountedSaveContext(),
+    devtools.repoVerifiedSurface = {
+      mountedSaveContext,
       repoVerifiedStatus: surface,
-      repoVerifiedResponse: runtime.verifiedResponse
-    }, null, 2);
+      repoVerifiedResponse: runtime.verifiedResponse,
+      pathsCount: Array.isArray(surface.pathsVerified) ? surface.pathsVerified.length : 0
+    };
+
+    window.dispatchEvent(new CustomEvent("tars:repo-verified-updated", {
+      detail: devtools.repoVerifiedSurface
+    }));
   }
 
   async function refresh() {
@@ -134,15 +138,7 @@
       runtime.verifiedResponse = await loadOptionalJson(nextVerifiedResponsePath);
     }
 
-    const surface = deriveSurface({
-      responseLoaded: Boolean(runtime.verifiedResponse),
-      responseStatus: runtime.verifiedResponse?.status || null,
-      verificationHead: runtime.verifiedResponse?.verification?.head || null,
-      verifiedPaths: (runtime.verifiedResponse?.verification?.pathsVerified || []).length ? "present" : "empty",
-      currentSaveTag: runtime.currentSaveTag,
-    });
-
-    render(surface);
+    exportSurface();
   }
 
   async function boot() {
@@ -163,13 +159,23 @@
   }
 
   boot().catch((error) => {
-    const summary = document.getElementById("repoVerifiedSummary");
-    const preview = document.getElementById("repoVerifiedPreview");
-    if (summary) {
-      summary.innerHTML = `<span class="warn">repo verified status bootstrap failed</span>`;
-    }
-    if (preview) {
-      preview.textContent = error.message;
-    }
+    devtools.repoVerifiedSurface = {
+      mountedSaveContext: readMountedSaveContext(),
+      repoVerifiedStatus: {
+        consumed: false,
+        status: "failed",
+        detail: "repo-verified-bootstrap-failed",
+        saveTag: runtime.currentSaveTag,
+        verifiedHead: "none",
+        pathsVerified: [],
+        trusted: false
+      },
+      repoVerifiedResponse: null,
+      pathsCount: 0,
+      error: error.message
+    };
+    window.dispatchEvent(new CustomEvent("tars:repo-verified-updated", {
+      detail: devtools.repoVerifiedSurface
+    }));
   });
 })();
