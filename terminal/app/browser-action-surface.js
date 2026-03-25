@@ -1,7 +1,5 @@
 (() => {
-  const runtime = {
-    contract: null,
-  };
+  const runtime = { contract: null };
 
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
@@ -32,7 +30,7 @@
       return value.map((item) => resolveTemplate(item));
     }
     if (value && typeof value === "object") {
-      return Object.fromEntries(Object.entries(value).map(([key, nested]) => [key, resolveTemplate(nested)]));
+      return Object.fromEntries(Object.entries(value).map(([Key, nested]) => [Key, resolveTemplate(nested)]));
     }
     return value;
   }
@@ -57,7 +55,7 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
+      .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
 
@@ -68,6 +66,21 @@
       buttonDisabled: button.disabled
     });
 
+    const renderState = JSON.stringify({
+      actionKey: button.dataset.actionKey || "",
+      actionState: button.dataset.actionState || "",
+      buttonDisabled: Boolean(button.disabled),
+      label: surface.label,
+      statusLabel: surface.statusLabel,
+      hint: surface.hint,
+      emphasis: surface.emphasis
+    });
+
+    if (button.dataset.renderState === renderState) {
+      return;
+    }
+
+    button.dataset.renderState = renderState;
     button.classList.add("action-button-surface");
     button.dataset.actionEmphasis = surface.emphasis || "muted";
     button.dataset.actionLabel = surface.label || "Action";
@@ -93,7 +106,7 @@
       const observer = new MutationObserver(() => {
         applyActionSurface();
       });
-      observer.observe(actions, { childList: true, subtree: true, characterData: true });
+      observer.observe(actions, { childList: true });
     }
 
     window.setInterval(() => {
