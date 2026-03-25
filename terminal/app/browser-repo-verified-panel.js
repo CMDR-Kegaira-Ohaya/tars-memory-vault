@@ -16,7 +16,7 @@
   }
 
   function matches(match, input) {
-    return Object.entries(match || {}).every(([key, expected]) => {
+    return Object.entries(match || e}).every(([key, expected]) => {
       const actual = input[key];
       if (expected === null) return actual == null;
       if (expected === "non-null") return actual != null;
@@ -67,7 +67,130 @@
     `;
   }
 
+  function injectFinishStyles() {
+    if (document.getElementById("terminal-shell-finish-style")) return;
+    const style = document.createElement("style");
+    style.id = "terminal-shell-finish-style";
+    style.textContent = `
+      :root {
+        --text: #e6ebf2;
+        --text-soft: #d9e0ea;
+        --muted: #b0b8c8;
+        --line: rgba(186, 156, 255, 0.24);
+        --line-strong: rgba(104, 236, 247, 0.32);
+      }
+
+      body {
+        color: var(--text);
+      }
+
+      .terminal-shell-v4 {
+        display: flex !important;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .terminal-header-shell { order: 0; }
+      .terminal-main-shell { order: 1; }
+      .terminal-footer-shell { order: 2; }
+      .terminal-rail-shell { order: 3; }
+
+      .terminal-header-shell,
+      .terminal-main-shell,
+      .terminal-footer-shell,
+      .terminal-rail-shell,
+      .terminal-dev-drawer {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(179, 140, 255, 0.06) 22%, rgba(88, 231, 243, 0.05) 58%, rgba(255, 255, 255, 0.02)),
+          linear-gradient(180deg, rgba(22, 26, 38, 0.96), rgba(10, 13, 20, 0.985));
+      }
+
+      .terminal-shell-v4 {
+        position: relative;
+      }
+
+      .terminal-header-shell,
+      .terminal-footer-shell,
+      .terminal-rail-shell,
+      .terminal-dev-drawer {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 10px 28px rgba(0, 0, 0, 0.18);
+      }
+
+      .terminal-main-shell {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 12px 34px rgba(0, 0, 0, 0.24);
+      }
+
+      .terminal-path-line,
+      .terminal-status-line,
+      .control-legend,
+      .terminal-rail-context,
+      .terminal-rail-shell .label,
+      .terminal-rail-shell .manifest-group-title,
+      .terminal-rail-shell .muted,
+      #runsViewport .muted {
+        color: var(--muted) !important;
+      }
+
+      .chip-value,
+      .terminal-rail-shell .surface-title,
+      .terminal-header-controls button,
+      .terminal-screen-tabs button,
+      .control-pad-button {
+        color: var(--text-soft) !important;
+      }
+
+      #runsViewport,
+      .terminal-main-shell .panel,
+      #runsViewport .surface-detail,
+      #runsViewport .surface-foot,
+      #runsViewport .surface-list-item,
+      #runsViewport pre,
+      #runsViewport .screen-copy {
+        color: var(--text) !important;
+      }
+
+      #runsViewport {
+        box-shadow:
+          inset 0 0 0 1px rgba(186, 156, 255, 0.06),
+          inset 0 0 26px rgba(104, 236, 247, 0.035),
+          0 0 0 1px rgba(104, 236, 247, 0.14),
+          0 0 18px rgba(104, 236, 247, 0.08) important;
+      }
+
+      .terminal-rail-shell {
+        margin-top: 0;
+      }
+
+      @media (max-width: 1080px) {
+        .terminal-shell-v4 {
+          gap: 12px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function applyShellFinish() {
+    injectFinishStyles();
+    const shell = document.querySelector(".terminal-shell-v4");
+    if (!shell) return;
+    const header = shell.querySelector(".terminal-header-shell");
+    const main = shell.querySelector(".terminal-main-shell");
+    const footer = shell.querySelector(".terminal-footer-shell");
+    const rail = shell.querySelector(".terminal-rail-shell");
+    if (header && main && footer && rail) {
+      if (shell.lastElementChild !== rail || main.nextElementSibling !== footer) {
+        shell.append(header, main, footer, rail);
+      }
+    }
+  }
+
   function refresh() {
+    applyShellFinish();
     const container = document.getElementById("repoVerifiedSummary");
     if (!container) return;
     const panelState = readPanelState();
@@ -83,11 +206,21 @@
   async function boot() {
     runtime.contract = await loadJson("app/repo-verified-panel.v1.json");
     refresh();
+
     const preview = document.getElementById("repoVerifiedPreview");
     if (preview) {
       const observer = new MutationObserver(() => refresh());
       observer.observe(preview, { childList: true, subtree: true, characterData: true });
     }
+
+    const shellHost = document.querySelector(".shell");
+    if (shellHost) {
+      const observer = new MutationObserver(() => applyShellFinish());
+      observer.observe(shellHost, { childList: true, subtree: true });
+    }
+
+    window.addEventListener("tars:screen-changed", applyShellFinish);
+    window.addEventListener("tars:devtools-changed", applyShellFinish);
     window.setInterval(refresh, 1500);
   }
 
