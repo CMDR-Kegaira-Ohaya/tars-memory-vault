@@ -1,19 +1,15 @@
-# WORKFLOWS.
+# Workflow Surface
 
-## Purpose
-This directory holds executable GitHub Actions workflow files.
+This directory contains repo workflows and their adjacent notes.
 
-## Boundary
-- Explanation, maps, and rationale belong in `repo-manual/workflows/`
-- Actual runnable workflow YAML files belong here
+## Current workflows
 
-## Current live workflow set
-- `repo-health.yml`
-- `scaffold-guard.yml`
-- `doc-sync.yml`
-- `connector-self-sync.yml`
-- `pages-readiness.yml`
-- `internal-link-guard.yml`
+- `repo-health.yml` — baseline repo surface presence checks
+- `repo-health-diagnostic.yml` — manual diagnostic variant that echoes each checked path before verdict
+- `scaffold-guard.yml` — scaffold integrity checks
+- `connector-self-sync.yml` — connector-facing sync lane
+- `doc-sync.yml` — document sync lane
+- `internal-link-guard.yml` — internal reference validation
+- `pages-readiness.yml` — Pages delivery readiness checks
 
-## Working rule
-Keep workflows small, clear, and tied to a documented purpose in the repo-manual layer.
+Use the diagnostic variant when `repo-health.yml` fails but the failing expected path is not obvious from the workflow surface alone.

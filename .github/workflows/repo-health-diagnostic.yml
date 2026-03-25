@@ -1,0 +1,52 @@
+name: repo-health-diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  repo-health-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify repo-health expected surfaces with diagnostics
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          missing=0
+
+          check_path() {
+            local path="$1"
+            echo "CHECK $path"
+            if [ -f "$path" ]; then
+              echo "OK    $path"
+            else
+              echo "MISS  $path"
+              missing=1
+            fi
+          }
+
+          check_path "README.md"
+          check_path "REPO_BOOTSTRAP.md"
+          check_path "repo-manual/core/00_ORIENTATION.md"
+          check_path "repo-manual/core/01_SYSTEM_MAP.md"
+          check_path "repo-manual/core/10_ROUTER.md"
+          check_path "repo-manual/core/11_PIPELINES.md"
+          check_path "repo-manual/procedures/00_PROCEDURES_INDEX.md"
+          check_path "repo-manual/procedures/build/BUILD_PROCEDURES.md"
+          check_path "repo-manual/procedures/runtime/RUNTIME_PROCEDURES.md"
+          check_path "repo-manual/procedures/maintenance/MAINTENANCE_PROCEDURES.md"
+          check_path "repo-manual/refs/connector/TARS-GPT-Connector_Capabilities.md"
+          check_path "repo-manual/refs/connector/TARS-GPT-Connector_Operations.md"
+          check_path "repo-manual/workflows/30_WORKFLOWS.md"
+          check_path "repo-manual/workflows/maps/WORKFLOW_MAPS.md"
+          check_path ".github/workflows/README.md"
+
+          if [ "$missing" -ne 0 ]; then
+            echo "repo-health-diagnostic: missing expected surface(s)"
+            exit 1
+          fi
+
+          echo "repo-health-diagnostic: all expected surfaces present"
