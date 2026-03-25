@@ -1,0 +1,17 @@
+{
+  "path": "terminal/index.html",
+  "expected_sha256": null,
+  "newline": "preserve",
+  "operations": [
+    {
+      "op": "insert-after",
+      "anchor": {
+        "type": "exact",
+        "value": "  <title>TARS Terminal</title>",
+        "expected_matches": 1,
+        "unique_only": true
+      },
+      "content": "\n  <meta name=\"repo-patch-example\" content=\"safe\" />"
+    }
+  ]
+}
