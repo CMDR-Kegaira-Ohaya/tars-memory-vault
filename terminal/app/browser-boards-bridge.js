@@ -5,6 +5,16 @@
     return;
   }
 
+  function ensureApplyButtonIdAlias() {
+    const canonicalId = "markApplyAsApplied";
+    const legacyId = "markApplyAsAapplied";
+    const canonicalButton = document.getElementById(canonicalId);
+    const legacyButton = document.getElementById(legacyId);
+    if (!canonicalButton && legacyButton) {
+      legacyButton.id = canonicalId;
+    }
+  }
+
   function normalizeInput(input) {
     const raw = typeof input === "string" ? input : input?.url || "";
     return String(raw).replace(/^terminal\//, "");
@@ -24,6 +34,8 @@
       }
     });
   }
+
+  ensureApplyButtonIdAlias();
 
   const originalFetch = window.fetch.bind(window);
   shared.fetchBridgeInstalled = true;
