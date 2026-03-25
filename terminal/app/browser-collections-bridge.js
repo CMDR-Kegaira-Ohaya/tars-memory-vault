@@ -1,3 +1,4 @@
+
 (() => {
   const collectionsKey = "__TARS_COLLECTIONS__";
   const shared = window[collectionsKey] || (window[collectionsKey] = {});
@@ -7,8 +8,6 @@
     requestHistorySurface: null,
     repoVerifiedSurface: null,
   });
-  const screenSourcesKey = "__TARS_SCREEN_SOURCES__";
-  const screenSources = window[screenSourcesKey] || (window[screenSourcesKey] = {});
   const screenUiKey = "__TARS_SCREEN_UI__";
   const screenUi = window[screenUiKey] || (window[screenUiKey] = {
     activeScreen: "home",
@@ -16,60 +15,32 @@
     shellBuilt: false,
   });
 
-  if (shared.fetchBridgeInstalled) {
-    return;
-  }
+  if (shared.fetchBridgeInstalled) return;
 
-  const screenOrder = [
-    "home",
-    "cartridge-bay",
-    "collections",
-    "boards",
-    "request-history",
-    "repo-verified",
-  ];
-
-  const legacyMarkAppliedButton = document.getElementById("markApplyAsAapplied");
-  if (legacyMarkAppliedButton && !document.getElementById("markApplyAsApplied")) {
-    legacyMarkAppliedButton.id = "markApplyAsApplied";
-  }
+  const screenOrder = ["home", "cartridge-bay", "collections", "boards", "request-history", "repo-verified"];
+  const baseScreens = ["cartridge-bay", "collections", "boards"];
 
   function displayName(screen) {
     switch (screen) {
-      case "home":
-        return "Home";
-      case "cartridge-bay":
-        return "Cartridges";
-      case "collections":
-        return "Collections";
-      case "boards":
-        return "Boards";
-      case "request-history":
-        return "Request History";
-      case "repo-verified":
-        return "Repo Verified";
-      default:
-        return "Screen";
+      case "home": return "Home";
+      case "cartridge-bay": return "Cartridges";
+      case "collections": return "Collections";
+      case "boards": return "Boards";
+      case "request-history": return "Request History";
+      case "repo-verified": return "Repo Verified";
+      default: return "Screen";
     }
   }
 
-  function emitDevtoolsChanged() {
-    window.dispatchEvent(
-      new CustomEvent("tars:devtools-changed", {
-        detail: { mountedCartridge: devtools.mountedCartridge },
-      })
-    );
+  function railSourceScreen() {
+    const active = getActiveScreen();
+    if (baseScreens.includes(active)) return active;
+    if (baseScreens.includes(screenUi.lastBaseScreen)) return screenUi.lastBaseScreen;
+    return "cartridge-bay";
   }
 
-  function emitScreenChanged() {
-    window.dispatchEvent(
-      new CustomEvent("tars:screen-changed", {
-        detail: {
-          activeScreen: screenUi.activeScreen,
-          lastBaseScreen: screenUi.lastBaseScreen,
-        },
-      })
-    );
+  function emit(name, detail) {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
   }
 
   function getActiveScreen() {
@@ -81,32 +52,207 @@
   function setActiveScreen(screen, { syncDevtools = true } = {}) {
     const nextScreen = screen || "home";
     const previousMounted = devtools.mountedCartridge;
+    const previousActive = getActiveScreen();
+
     if (syncDevtools) {
       if (nextScreen === "request-history" || nextScreen === "repo-verified") {
         devtools.mountedCartridge = nextScreen;
-      } else if (devtools.mountedCartridge) {
+      } else {
         devtools.mountedCartridge = null;
       }
     }
 
-    if (nextScreen !== "request-history" && nextScreen !== "repo-verified") {
-      screenUi.activeScreen = nextScreen;
+    screenUi.activeScreen = nextScreen;
+    if (baseScreens.includes(nextScreen)) {
       screenUi.lastBaseScreen = nextScreen;
-    } else {
-      screenUi.activeScreen = nextScreen;
     }
 
     if (previousMounted !== devtools.mountedCartridge) {
-      emitDevtoolsChanged();
+      emit("tars:devtools-changed", { mountedCartridge: devtools.mountedCartridge });
     }
-    emitScreenChanged();
+    if (previousActive !== getActiveScreen()) {
+      emit("tars:screen-changed", {
+        activeScreen: screenUi.activeScreen,
+        lastBaseScreen: screenUi.lastBaseScreen,
+      });
+    }
     renderShellChrome();
   }
 
-  function handleScreenRequest(event) {
-    const requested = event?.detail?.screen;
-    if (!requested) return;
-    setActiveScreen(requested);
+  function normalizeInput(input) {
+    const raw = typeof input === "string" ? input : input?.url || "";
+    return String(raw).replace(/^terminal\//, "");
+  }
+
+  function wrapJsonResponse(response, onJson) {
+    return new Proxy(response, {
+      get(target, prop) {
+        if (prop === "json") {
+          return async () => {
+            const data = await target.clone().json();
+            return onJson(data);
+          };
+        }
+        const value = target[prop];
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+  }
+
+  function parseStatusStrip() {
+    const text = document.getElementById("statusStrip")?.textContent || "";
+    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+    const state = {};
+    for (const line of lines) {
+      const idx = line.indexOf(":");
+      if (idx === -1) continue;
+      state[line.slice(0, idx).trim().toLowerCase()] = line.slice(idx + 1).trim();
+    }
+    return { text, lines, state };
+  }
+
+  function parseHomeRawState() {
+    const home = document.getElementById("homeSummary");
+    try {
+      return JSON.parse(home?.dataset?.rawSummary || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function screenToListId(screen) {
+    switch (screen) {
+      case "cartridge-bay": return "cartridgeBayList";
+      case "collections": return "collectionsBrowserList";
+      case "boards": return "boardsBrowserList";
+      default: return "";
+    }
+  }
+
+  function selectedLabelFor(screen) {
+    const selected = document.querySelector(`#${screenToListId(screen)} button[data-selected="true"] .surface-title`);
+    return selected?.textContent?.trim() || "none";
+  }
+
+  function currentSelectionLabel() {
+    const active = getActiveScreen();
+    if (baseScreens.includes(active)) return selectedLabelFor(active);
+    if (active === "request-history" || active === "repo-verified") return displayName(active);
+    return selectedLabelFor(railSourceScreen());
+  }
+
+  function getListButtonsForScreen(screen) {
+    const container = document.getElementById(screenToListId(screen));
+    return container ? Array.from(container.querySelectorAll("button.manifest-entry")) : [];
+  }
+
+  function selectRelative(delta) {
+    const buttons = getListButtonsForScreen(railSourceScreen());
+    if (!buttons.length) return false;
+    let index = buttons.findIndex((button) => button.dataset.selected === "true");
+    index = index === -1 ? 0 : (index + delta + buttons.length) % buttons.length;
+    buttons[index]?.click();
+    return true;
+  }
+
+  function cycleScreen(delta) {
+    const active = getActiveScreen();
+    const index = screenOrder.indexOf(active);
+    const nextIndex = (index + delta + screenOrder.length) % screenOrder.length;
+    setActiveScreen(screenOrder[nextIndex]);
+  }
+
+  function primaryAction() {
+    const active = getActiveScreen();
+    if (active === "home") {
+      setActiveScreen(screenUi.lastBaseScreen || "cartridge-bay");
+      return;
+    }
+    if (active === "cartridge-bay") {
+      if (document.querySelector('#cartridgeBayList button[data-selected="true"]')) {
+        setActiveScreen("collections");
+      } else {
+        selectRelative(1);
+      }
+      return;
+    }
+    if (active === "collections") {
+      const button = document.getElementById("collectionsMountConfirm");
+      if (button && !button.disabled) button.click();
+      else selectRelative(1);
+      return;
+    }
+    if (active === "boards") {
+      const button = document.getElementById("boardsMountConfirm");
+      if (button && !button.disabled) button.click();
+      else selectRelative(1);
+    }
+  }
+
+  function secondaryAction() {
+    const active = getActiveScreen();
+    if (active === "request-history" || active === "repo-verified") {
+      setActiveScreen(screenUi.lastBaseScreen || "home");
+      return;
+    }
+    if (active !== "home") setActiveScreen("home");
+  }
+
+  function getControlMap() {
+    const active = getActiveScreen();
+    const railScreen = railSourceScreen();
+    const railButtons = getListButtonsForScreen(railScreen);
+    const mountCollectionsDisabled = document.getElementById("collectionsMountConfirm")?.disabled ?? true;
+    const mountBoardsDisabled = document.getElementById("boardsMountConfirm")?.disabled ?? true;
+
+    const map = {
+      up: {
+        enabled: railButtons.length > 0,
+        label: railButtons.length > 0 ? `prev ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        action: () => selectRelative(-1),
+      },
+      down: {
+        enabled: railButtons.length > 0,
+        label: railButtons.length > 0 ? `next ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        action: () => selectRelative(1),
+      },
+      left: {
+        enabled: true,
+        label: "prev tab",
+        action: () => cycleScreen(-1),
+      },
+      right: {
+        enabled: true,
+        label: "next tab",
+        action: () => cycleScreen(1),
+      },
+      a: {
+        enabled: active !== "request-history" && active !== "repo-verified",
+        label:
+          active === "home" ? "open" :
+          active === "cartridge-bay" ? "handoff" :
+          active === "collections" ? (mountCollectionsDisabled ? "select" : "mount") :
+          active === "boards" ? (mountBoardsDisabled ? "select" : "mount") :
+          "none",
+        action: primaryAction,
+      },
+      b: {
+        enabled: active !== "home",
+        label: (active === "request-history" || active === "repo-verified") ? "back" : "home",
+        action: secondaryAction,
+      },
+    };
+
+    if (active === "request-history" || active === "repo-verified") {
+      map.up.enabled = false;
+      map.up.label = "none";
+      map.down.enabled = false;
+      map.down.label = "none";
+      map.a.enabled = false;
+      map.a.label = "none";
+    }
+
+    return map;
   }
 
   function upsertLauncher(actions, id, key, label) {
@@ -141,43 +287,23 @@
     upsertLauncher(actions, "action-repo-verified", "repo-verified", "repo-verified");
   }
 
-  function normalizeInput(input) {
-    const raw = typeof input === "string" ? input : input?.url || "";
-    return String(raw).replace(/^terminal\//, "");
-  }
-
-  function wrapJsonResponse(response, onJson) {
-    return new Proxy(response, {
-      get(target, prop) {
-        if (prop === "json") {
-          return async () => {
-            const data = await target.clone().json();
-            return onJson(data);
-          };
-        }
-        const value = target[prop];
-        return typeof value === "function" ? value.bind(target) : value;
-      },
-    });
-  }
-
   function injectStyles() {
-    if (document.getElementById("terminal-shell-v2-style")) return;
+    if (document.getElementById("terminal-shell-v4-style")) return;
     const style = document.createElement("style");
-    style.id = "terminal-shell-v2-style";
+    style.id = "terminal-shell-v4-style";
     style.textContent = `
       :root {
         --bg: #090b12;
         --panel: #10131c;
+        --screen: #0b0f16;
         --line: rgba(179, 140, 255, 0.22);
         --line-strong: rgba(88, 231, 243, 0.28);
         --text: #c8ced7;
+        --text-soft: #a8afbc;
         --muted: #8f96ab;
         --accent: #58e7f3;
         --accent-2: #b38cff;
         --warn: #ffbe86;
-        --screen: #0b0f16;
-        --screen-edge: rgba(179, 140, 255, 0.18);
         --glow-soft: 0 0 14px rgba(88, 231, 243, 0.08);
       }
 
@@ -195,37 +321,28 @@
         padding: 16px;
       }
 
-      .terminal-shell-v2 {
+      .terminal-shell-v4 {
         display: grid;
-        grid-template-columns: 280px minmax(0, 1fr);
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        grid-template-areas:
-          "header header"
-          "rail main"
-          "footer footer";
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto;
         gap: 14px;
         min-height: calc(100vh - 32px);
       }
 
-      .terminal-header-shell { grid-area: header; }
-      .terminal-rail-shell { grid-area: rail; min-width: 0; }
-      .terminal-main-shell { grid-area: main; min-width: 0; min-height: 0; }
-      .terminal-footer-shell { grid-area: footer; }
-
       .terminal-header-shell,
-      .terminal-rail-shell,
       .terminal-main-shell,
+      .terminal-rail-shell,
       .terminal-footer-shell,
       .terminal-dev-drawer {
         border: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(9, 11, 18, 0.98));
         border-radius: 18px;
+        background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(9, 11, 18, 0.98));
         overflow: hidden;
       }
 
       .terminal-header-shell {
         display: grid;
-        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+        grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
       }
 
       .terminal-header-bar,
@@ -267,6 +384,11 @@
         font-size: 11px;
       }
 
+      .terminal-path-line {
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
       .terminal-header-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -280,7 +402,7 @@
         background: rgba(255, 255, 255, 0.01);
       }
 
-      .header-chip .chip-label {
+      .chip-label {
         display: block;
         font-size: 10px;
         text-transform: uppercase;
@@ -289,8 +411,8 @@
         margin-bottom: 6px;
       }
 
-      .header-chip .chip-value {
-        color: var(--text);
+      .chip-value {
+        color: var(--text-soft);
         line-height: 1.4;
       }
 
@@ -310,15 +432,19 @@
         padding: 0;
       }
 
-      .terminal-header-controls .label {
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
+      .terminal-header-controls .label,
+      .terminal-main-title,
+      .terminal-rail-title,
+      .terminal-footer-label {
         color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 11px;
       }
 
       .terminal-header-controls #nav,
-      .terminal-header-controls #actions {
+      .terminal-header-controls #actions,
+      .terminal-screen-tabs {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
@@ -326,7 +452,8 @@
 
       .terminal-header-controls button,
       .terminal-screen-tabs button,
-      .control-pad-button {
+      .control-pad-button,
+      .terminal-rail-shell .manifest-entry {
         border-radius: 999px;
         border: 1px solid var(--line);
         background: rgba(255, 255, 255, 0.02);
@@ -336,7 +463,6 @@
 
       .terminal-header-controls button[data-action-state="active"],
       .terminal-screen-tabs button[data-active="true"],
-      .terminal-rail-shell .manifest-entry[data-selected="true"],
       .control-pad-button[data-active="true"] {
         border-color: var(--line-strong);
         color: var(--accent);
@@ -345,30 +471,109 @@
 
       .terminal-header-controls button:hover,
       .terminal-screen-tabs button:hover,
-      .terminal-rail-shell .manifest-entry:hover,
-      .control-pad-button:hover:not([disabled]) {
+      .control-pad-button:hover:not([disabled]),
+      .terminal-rail-shell .manifest-entry:hover {
         border-color: rgba(88, 231, 243, 0.4);
       }
 
-      .terminal-rail-shell {
-        padding: 14px;
+      .terminal-main-shell {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-height: clamp(560px, 68vh, 860px);
+        max-height: clamp(560px, 68vh, 860px);
+      }
+
+      .terminal-main-topbar {
         display: grid;
         gap: 12px;
-        align-content: start;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
       }
 
-      .terminal-rail-title {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-        color: var(--accent-2);
+      .terminal-main-shell .panel {
+        border: none;
+        background: transparent;
+        padding: 16px;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
       }
+
+      .terminal-main-shell .label {
+        color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      #runsViewport {
+        height: 100%;
+        min-height: 0;
+        overflow: auto;
+        border: 1px solid rgba(179, 140, 255, 0.18);
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent),
+          var(--screen);
+        color: var(--text);
+        padding: 18px;
+        box-shadow: inset 0 0 0 1px rgba(179, 140, 255, 0.05);
+      }
+
+      #runsViewport .surface-title,
+      #runsViewport .manifest-group-title { color: var(--accent-2); }
+      #runsViewport .surface-chip {
+        border-radius: 999px;
+        border-color: rgba(88, 231, 243, 0.26);
+        color: var(--accent);
+      }
+      #runsViewport .surface-detail,
+      #runsViewport .surface-foot,
+      #runsViewport .surface-list-item,
+      #runsViewport pre,
+      #runsViewport .screen-copy { color: var(--text); }
+      #runsViewport .muted { color: var(--muted); }
+      #runsViewport .warn { color: var(--warn); }
+      #runsViewport .surface-list-item {
+        background: rgba(255, 255, 255, 0.018);
+        border-radius: 14px;
+        border-color: rgba(179, 140, 255, 0.16);
+      }
+
+      .terminal-rail-shell {
+        padding: 14px 16px 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .terminal-rail-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .terminal-rail-context { color: var(--muted); }
+
+      .terminal-rail-host { min-height: 0; }
 
       .terminal-rail-shell .panel {
+        margin: 0;
         padding: 12px;
         border-radius: 16px;
         border-color: var(--line);
         background: rgba(8, 10, 16, 0.56);
+      }
+
+      .terminal-rail-shell .label {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .terminal-rail-shell .surface-list,
+      .terminal-rail-shell .manifest-group {
+        display: grid;
+        gap: 10px;
       }
 
       .terminal-rail-shell .manifest-group-title {
@@ -381,133 +586,39 @@
       .terminal-rail-shell .manifest-entry {
         width: 100%;
         text-align: left;
+        padding: 10px 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.02);
         display: block;
-        padding: 9px 12px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .terminal-rail-shell .manifest-entry[data-selected="true"] {
+        border-color: var(--line-strong);
+        color: var(--accent);
+        box-shadow: var(--glow-soft);
       }
 
       .terminal-rail-shell .manifest-entry .surface-header {
         justify-content: flex-start;
+        gap: 0;
       }
 
       .terminal-rail-shell .manifest-entry .surface-title {
         font-size: 13px;
         line-height: 1.35;
-        color: var(--text);
+        color: var(--text-soft);
       }
+
+      .terminal-rail-shell .manifest-entry[data-selected="true"] .surface-title { color: var(--accent); }
 
       .terminal-rail-shell .manifest-entry .surface-chip,
       .terminal-rail-shell .manifest-entry .manifest-entry-meta,
-      .terminal-rail-shell .manifest-entry .surface-foot {
-        display: none;
-      }
-
-      .terminal-main-shell {
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
-      }
-
-      .terminal-main-topbar {
-        display: grid;
-        gap: 12px;
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .terminal-main-title {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-        color: var(--accent-2);
-      }
-
-      .terminal-screen-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .terminal-screen-tabs button {
-        padding: 8px 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-size: 11px;
-      }
-
-      .terminal-main-shell .panel {
-        border: none;
-        border-radius: 0;
-        background: transparent;
-        padding: 16px;
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
-        min-height: 0;
-      }
-
-      .terminal-main-shell .label {
-        color: var(--accent-2);
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-      }
-
-      #runsViewport {
-        min-height: 0;
-        height: 100%;
-        border: 1px solid rgba(179, 140, 255, 0.18);
-        border-radius: 18px;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent),
-          #0b0f16;
-        color: var(--text);
-        padding: 18px;
-        box-shadow: inset 0 0 0 1px rgba(179, 140, 255, 0.05);
-      }
-
-      #runsViewport .surface-title,
-      #runsViewport .manifest-group-title {
-        color: var(--accent-2);
-      }
-
-      #runsViewport .surface-chip {
-        border-radius: 999px;
-        border-color: rgba(88, 231, 243, 0.26);
-        color: var(--accent);
-      }
-
-      #runsViewport .surface-detail,
-      #runsViewport .surface-foot,
-      #runsViewport .surface-list-item,
-      #runsViewport pre,
-      #runsViewport .screen-copy {
-        color: var(--text);
-      }
-
-      #runsViewport .muted {
-        color: var(--muted);
-      }
-
-      #runsViewport .warn {
-        color: var(--warn);
-      }
-
-      #runsViewport .surface-list-item {
-        background: rgba(255, 255, 255, 0.018);
-        border-radius: 14px;
-        border-color: rgba(179, 140, 255, 0.16);
-      }
+      .terminal-rail-shell .manifest-entry .surface-foot { display: none; }
 
       .terminal-footer-shell {
         padding: 12px 16px;
         display: grid;
         gap: 12px;
-      }
-
-      .terminal-footer-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-        color: var(--accent-2);
       }
 
       .control-pad-grid {
@@ -516,33 +627,12 @@
         gap: 10px;
       }
 
-      .control-slot {
-        display: grid;
-        gap: 6px;
-      }
+      .control-slot { display: grid; gap: 6px; }
+      .control-pad-button { padding: 10px 12px; font-size: 14px; font-weight: 600; }
+      .control-pad-button[disabled] { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+      .control-legend { color: var(--muted); line-height: 1.4; min-height: 2.8em; }
 
-      .control-pad-button {
-        padding: 10px 12px;
-        font-size: 14px;
-        font-weight: 600;
-      }
-
-      .control-pad-button[disabled] {
-        opacity: 0.45;
-        cursor: not-allowed;
-        box-shadow: none;
-      }
-
-      .control-legend {
-        color: var(--muted);
-        line-height: 1.4;
-        min-height: 2.8em;
-      }
-
-      .terminal-dev-drawer {
-        margin-top: 14px;
-      }
-
+      .terminal-dev-drawer { margin-top: 14px; }
       .terminal-dev-drawer > summary {
         cursor: pointer;
         list-style: none;
@@ -552,85 +642,35 @@
         text-transform: uppercase;
         letter-spacing: 0.14em;
       }
-
-      .terminal-dev-drawer-content {
-        padding: 0 16px 16px;
-        display: grid;
-        gap: 12px;
-      }
-
-      .terminal-hidden-sources,
-      .source-panel-hidden {
-        display: none !important;
-      }
+      .terminal-dev-drawer-content { padding: 0 16px 16px; display: grid; gap: 12px; }
+      .terminal-hidden-sources, .source-panel-hidden { display: none !important; }
 
       @media (max-width: 1080px) {
-        .terminal-shell-v2 {
-          grid-template-columns: 1fr;
-          grid-template-areas:
-            "header"
-            "rail"
-            "main"
-            "footer";
-        }
-
-        .terminal-header-shell {
-          grid-template-columns: 1fr;
-        }
-
-        .terminal-header-bar {
-          border-right: none;
-          border-bottom: 1px solid var(--line);
-        }
-
-        .terminal-header-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .control-pad-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+        .terminal-header-shell { grid-template-columns: 1fr; }
+        .terminal-header-bar { border-right: none; border-bottom: 1px solid var(--line); }
+        .terminal-header-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .control-pad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .terminal-main-shell {
+          min-height: clamp(480px, 62vh, 720px);
+          max-height: clamp(480px, 62vh, 720px);
         }
       }
     `;
     document.head.appendChild(style);
   }
 
-  function parseStatusStrip() {
-    const text = document.getElementById("statusStrip")?.textContent || "";
-    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
-    const state = {};
-    lines.forEach((line) => {
-      const idx = line.indexOf(":");
-      if (idx === -1) return;
-      const key = line.slice(0, idx).trim().toLowerCase();
-      const value = line.slice(idx + 1).trim();
-      state[key] = value;
-    });
-    return { text, lines, state };
-  }
-
-  function getHomeRawState() {
-    if (screenSources.homeSurface?.rawState) return screenSources.homeSurface.rawState;
-    const home = document.getElementById("homeSummary");
-    try {
-      return JSON.parse(home?.dataset?.rawSummary || "{}");
-    } catch {
-      return {};
-    }
-  }
-
   function renderHeaderBar() {
     const headerBar = document.getElementById("terminalHeaderBar");
     if (!headerBar) return;
+
     const activeScreen = getActiveScreen();
     const status = parseStatusStrip();
-    const rawHome = getHomeRawState();
-
+    const home = parseHomeRawState();
     const chips = [
-      { label: "mode", value: rawHome.mode || status.state.mode || "home" },
-      { label: "mount", value: rawHome.currentMount || status.state.mount || "none" },
-      { label: "recent save", value: rawHome.recentSave || "none" },
-      { label: "export", value: rawHome.exportSource || "disabled" },
+      { label: "mode", value: home.mode || status.state.mode || "home" },
+      { label: "mount", value: home.currentMount || status.state.mount || "none" },
+      { label: "selection", value: currentSelectionLabel() },
+      { label: "export", value: home.exportSource || "disabled" },
     ];
 
     headerBar.innerHTML = `
@@ -638,6 +678,7 @@
         <div class="terminal-brand">TARS TERMINAL</div>
         <div class="terminal-active-screen">${displayName(activeScreen)}</div>
       </div>
+      <div class="terminal-path-line">Home / ${displayName(railSourceScreen())} / ${currentSelectionLabel()}</div>
       <div class="terminal-header-grid">
         ${chips.map((chip) => `
           <div class="header-chip">
@@ -655,168 +696,47 @@
     if (!tabs) return;
     const activeScreen = getActiveScreen();
     tabs.innerHTML = "";
-    screenOrder.forEach((screen) => {
+    for (const screen of screenOrder) {
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.active = String(activeScreen === screen);
       button.textContent = displayName(screen);
       button.addEventListener("click", () => setActiveScreen(screen));
       tabs.appendChild(button);
-    });
-  }
-
-  function getListButtonsForScreen(screen) {
-    const idMap = {
-      "cartridge-bay": "cartridgeBayList",
-      "collections": "collectionsBrowserList",
-      "boards": "boardsBrowserList",
-    };
-    const container = document.getElementById(idMap[screen] || "");
-    return container ? Array.from(container.querySelectorAll("button.manifest-entry")) : [];
-  }
-
-  function selectRelative(delta) {
-    const activeScreen = getActiveScreen();
-    const buttons = getListButtonsForScreen(activeScreen);
-    if (!buttons.length) return false;
-
-    let index = buttons.findIndex((button) => button.dataset.selected === "true");
-    if (index === -1) index = 0;
-    else index = (index + delta + buttons.length) % buttons.length;
-    buttons[index]?.click();
-    return true;
-  }
-
-  function primaryAction() {
-    const activeScreen = getActiveScreen();
-    switch (activeScreen) {
-      case "home":
-        setActiveScreen(screenUi.lastBaseScreen || "cartridge-bay");
-        return;
-      case "cartridge-bay":
-        if (screenSources.cartridgeBaySurface?.selectedEntry || document.querySelector('#cartridgeBayList button[data-selected="true"]')) {
-          setActiveScreen("collections");
-        } else {
-          selectRelative(1);
-        }
-        return;
-      case "collections": {
-        const button = document.getElementById("collectionsMountConfirm");
-        if (button && !button.disabled) button.click();
-        else selectRelative(1);
-        return;
-      }
-      case "boards": {
-        const button = document.getElementById("boardsMountConfirm");
-        if (button && !button.disabled) button.click();
-        else selectRelative(1);
-        return;
-      }
-      default:
-        return;
     }
   }
 
-  function secondaryAction() {
-    const activeScreen = getActiveScreen();
-    if (activeScreen === "request-history" || activeScreen === "repo-verified") {
-      setActiveScreen(screenUi.lastBaseScreen || "home");
-      return;
+  function renderRail() {
+    const host = document.getElementById("terminalRailHost");
+    const title = document.getElementById("terminalRailTitle");
+    const context = document.getElementById("terminalRailContext");
+    if (!host || !title || !context) return;
+
+    const sourceScreen = railSourceScreen();
+    title.textContent = `${displayName(sourceScreen)} Rail`;
+    context.textContent = `${displayName(sourceScreen)} selectors`;
+
+    const sourcePanel = {
+      "cartridge-bay": document.getElementById("cartridgeBayList")?.closest(".panel"),
+      "collections": document.getElementById("collectionsBrowserList")?.closest(".panel"),
+      "boards": document.getElementById("boardsBrowserList")?.closest(".panel"),
+    }[sourceScreen] || null;
+
+    host.innerHTML = "";
+    if (sourcePanel) {
+      sourcePanel.classList.remove("source-panel-hidden");
+      host.appendChild(sourcePanel);
     }
-    if (activeScreen !== "home") {
-      setActiveScreen("home");
-    }
-  }
-
-  function cycleScreen(delta) {
-    const activeScreen = getActiveScreen();
-    const index = screenOrder.indexOf(activeScreen);
-    const nextIndex = (index + delta + screenOrder.length) % screenOrder.length;
-    setActiveScreen(screenOrder[nextIndex]);
-  }
-
-  function getControlMap() {
-    const activeScreen = getActiveScreen();
-    const listButtons = getListButtonsForScreen(activeScreen);
-    const controlMap = {
-      up: {
-        enabled: listButtons.length > 0,
-        label: listButtons.length > 0 ? "prev item" : "none",
-        action: () => selectRelative(-1),
-      },
-      down: {
-        enabled: listButtons.length > 0,
-        label: listButtons.length > 0 ? "next item" : "none",
-        action: () => selectRelative(1),
-      },
-      left: {
-        enabled: true,
-        label: "prev screen",
-        action: () => cycleScreen(-1),
-      },
-      right: {
-        enabled: true,
-        label: "next screen",
-        action: () => cycleScreen(1),
-      },
-      a: {
-        enabled: !["request-history", "repo-verified"].includes(activeScreen),
-        label:
-          activeScreen === "home"
-            ? "open"
-            : activeScreen === "cartridge-bay"
-              ? "handoff"
-              : activeScreen === "collections"
-                ? "mount"
-                : activeScreen === "boards"
-                  ? "mount"
-                  : "none",
-        action: primaryAction,
-      },
-      b: {
-        enabled: activeScreen !== "home",
-        label: activeScreen === "request-history" || activeScreen === "repo-verified" ? "back" : "home",
-        action: secondaryAction,
-      },
-    };
-
-    if (activeScreen === "collections" && document.getElementById("collectionsMountConfirm")?.disabled) {
-      controlMap.a.label = listButtons.length ? "select" : "none";
-      controlMap.a.enabled = listButtons.length > 0;
-    }
-
-    if (activeScreen === "boards" && document.getElementById("boardsMountConfirm")?.disabled) {
-      controlMap.a.label = listButtons.length ? "select" : "none";
-      controlMap.a.enabled = listButtons.length > 0;
-    }
-
-    if (activeScreen === "request-history" || activeScreen === "repo-verified") {
-      controlMap.a.enabled = false;
-      controlMap.a.label = "none";
-      controlMap.up.enabled = false;
-      controlMap.up.label = "none";
-      controlMap.down.enabled = false;
-      controlMap.down.label = "none";
-    }
-
-    return controlMap;
   }
 
   function renderFooter() {
     const footer = document.getElementById("terminalControlPad");
     if (!footer) return;
     const map = getControlMap();
-    const order = [
-      ["up", "↑"],
-      ["down", "↓"],
-      ["left", "←"],
-      ["right", "→"],
-      ["a", "A"],
-      ["b", "B"],
-    ];
+    const order = [["up", "↑"], ["down", "↓"], ["left", "←"], ["right", "→"], ["a", "A"], ["b", "B"]];
 
     footer.innerHTML = "";
-    order.forEach(([key, symbol]) => {
+    for (const [key, symbol] of order) {
       const slot = document.createElement("div");
       slot.className = "control-slot";
       const button = document.createElement("button");
@@ -835,17 +755,18 @@
       slot.appendChild(button);
       slot.appendChild(legend);
       footer.appendChild(slot);
-    });
+    }
   }
 
   function renderShellChrome() {
     renderHeaderBar();
     renderScreenTabs();
+    renderRail();
     renderFooter();
     ensureDevtoolsLaunchers();
   }
 
-  function moveToHiddenStash(stash, node) {
+  function moveToStash(stash, node) {
     if (!node) return;
     node.classList.add("source-panel-hidden");
     stash.appendChild(node);
@@ -874,8 +795,8 @@
     const boardsListPanel = document.getElementById("boardsBrowserList")?.closest(".panel");
     const boardsSummaryPanel = document.getElementById("boardsResolvedSummary")?.closest(".panel");
 
-    const shellV2 = document.createElement("div");
-    shellV2.className = "terminal-shell-v2";
+    const shellV4 = document.createElement("div");
+    shellV4.className = "terminal-shell-v4";
 
     const header = document.createElement("section");
     header.className = "terminal-header-shell";
@@ -893,13 +814,6 @@
       </div>
     `;
 
-    const rail = document.createElement("aside");
-    rail.className = "terminal-rail-shell";
-    const railTitle = document.createElement("div");
-    railTitle.className = "terminal-rail-title";
-    railTitle.textContent = "selector rail";
-    rail.appendChild(railTitle);
-
     const main = document.createElement("section");
     main.className = "terminal-main-shell";
     main.innerHTML = `
@@ -907,6 +821,16 @@
         <div class="terminal-main-title">main screen</div>
         <div class="terminal-screen-tabs" id="terminalScreenTabs"></div>
       </div>
+    `;
+
+    const rail = document.createElement("section");
+    rail.className = "terminal-rail-shell";
+    rail.innerHTML = `
+      <div class="terminal-rail-head">
+        <div class="terminal-rail-title" id="terminalRailTitle">selector rail</div>
+        <div class="terminal-rail-context" id="terminalRailContext"></div>
+      </div>
+      <div class="terminal-rail-host" id="terminalRailHost"></div>
     `;
 
     const footer = document.createElement("section");
@@ -930,24 +854,16 @@
     if (runsLabel) runsLabel.textContent = "MAIN SCREEN";
     main.appendChild(mainPanel);
 
-    if (navSection) {
-      const navHost = header.querySelector("#terminalHeaderNav");
-      const navNode = document.getElementById("nav");
-      if (navNode) navHost.appendChild(navNode);
-    }
+    const navHost = header.querySelector("#terminalHeaderNav");
+    const navNode = document.getElementById("nav");
+    if (navHost && navNode) navHost.appendChild(navNode);
 
-    if (actionsSection) {
-      const actionsHost = header.querySelector("#terminalHeaderActions");
-      const actionsNode = document.getElementById("actions");
-      if (actionsNode) actionsHost.appendChild(actionsNode);
-
-      Array.from(actionsSection.children).forEach((child) => {
-        if (child !== actionsNode) hiddenStash.appendChild(child);
-      });
-    }
+    const actionsHost = header.querySelector("#terminalHeaderActions");
+    const actionsNode = document.getElementById("actions");
+    if (actionsHost && actionsNode) actionsHost.appendChild(actionsNode);
 
     [cartridgeListPanel, collectionsListPanel, boardsListPanel].forEach((panel) => {
-      if (panel) rail.appendChild(panel);
+      if (panel) hiddenStash.appendChild(panel);
     });
 
     [
@@ -958,7 +874,7 @@
       boardsSummaryPanel,
       navSection,
       actionsSection,
-    ].forEach((node) => moveToHiddenStash(hiddenStash, node));
+    ].forEach((node) => moveToStash(hiddenStash, node));
 
     const preservedNodes = Array.from(shell.children).filter((child) => {
       if ([
@@ -973,9 +889,7 @@
         collectionsSummaryPanel,
         boardsListPanel,
         boardsSummaryPanel,
-      ].includes(child)) {
-        return false;
-      }
+      ].includes(child)) return false;
       return child.childElementCount > 0;
     });
 
@@ -983,14 +897,14 @@
     preservedNodes.forEach((node) => devContent.appendChild(node));
 
     shell.innerHTML = "";
-    shell.appendChild(shellV2);
+    shell.appendChild(shellV4);
     shell.appendChild(devDrawer);
     shell.appendChild(hiddenStash);
 
-    shellV2.appendChild(header);
-    shellV2.appendChild(rail);
-    shellV2.appendChild(main);
-    shellV2.appendChild(footer);
+    shellV4.appendChild(header);
+    shellV4.appendChild(main);
+    shellV4.appendChild(rail);
+    shellV4.appendChild(footer);
 
     ["cartridgeBayList", "collectionsBrowserList", "boardsBrowserList"].forEach((id) => {
       const container = document.getElementById(id);
@@ -998,26 +912,35 @@
       container.addEventListener("click", (event) => {
         if (!event.target.closest("button")) return;
         const screen = id === "cartridgeBayList" ? "cartridge-bay" : id === "collectionsBrowserList" ? "collections" : "boards";
-        setActiveScreen(screen, { syncDevtools: true });
+        setActiveScreen(screen);
       });
     });
 
-    window.addEventListener("tars:screen-request", handleScreenRequest);
-
     const statusTarget = document.getElementById("statusStrip");
     if (statusTarget) {
-      const observer = new MutationObserver(() => renderHeaderBar());
-      observer.observe(statusTarget, { childList: true, subtree: true, characterData: true });
+      new MutationObserver(() => renderHeaderBar()).observe(statusTarget, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
     }
 
     const homeTarget = document.getElementById("homeSummary");
     if (homeTarget) {
-      const observer = new MutationObserver(() => {
+      new MutationObserver(() => {
         renderHeaderBar();
         renderFooter();
+      }).observe(homeTarget, {
+        childList: true,
+        subtree: true,
+        characterData: true,
       });
-      observer.observe(homeTarget, { childList: true, subtree: true, characterData: true });
     }
+
+    window.addEventListener("tars:screen-request", (event) => {
+      const requested = event?.detail?.screen;
+      if (requested) setActiveScreen(requested);
+    });
 
     screenUi.shellBuilt = true;
     renderShellChrome();
@@ -1030,19 +953,16 @@
   window.fetch = async (...args) => {
     const response = await originalFetch(...args);
     const path = normalizeInput(args[0]);
-
     if (path.endsWith("manifests/manifest-index.v1.json")) {
       return wrapJsonResponse(response, (data) => {
         shared.manifestIndex = data;
         return data;
       });
     }
-
     return response;
   };
 
   window.addEventListener("DOMContentLoaded", () => {
-    ensureDevtoolsLaunchers();
     buildShell();
     renderShellChrome();
     window.setInterval(renderShellChrome, 1500);
