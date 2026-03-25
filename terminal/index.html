@@ -249,6 +249,7 @@
   <script src="app/browser-export-source.js" defer></script>
   <script src="app/browser-export-controls.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
+  <script src="app/browser-delta-surface.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
   <script src="app/browser-repo-verified-status.js" defer></script>
   <script src="app/browser-apply-surface.js" defer></script>
@@ -294,7 +295,7 @@
         <div id="cartridgeBayList" class="surface-list"><span class="muted">loading...</span></div>
       </div>
       <div class="panel">
-        <div class="label">CARTRIDGE BAY HANDDODF</div>
+        <div class="label">CARTRIDGE BAY HANDOFF</div>
         <div id="cartridgeBaySummary" class="value">loading...</div>
         <div class="muted" style="margin-top:8px;">Selection hands off into Collections resolve. Mount remains explicit there.</div>
       </div>
@@ -398,6 +399,23 @@
 
     <section class="layout">
       <div class="panel">
+        <div class="label">DELTA SUMMARY</div>
+        <div id="deltaSummary" class="value">loading...</div>
+      </div>
+      <div class="panel">
+        <div class="label">DELTA RAW PREVIEW</div>
+        <div class="inspector-shell">
+          <div class="inspector-hint">Delta stays derived and read-only; use it to see what will change before apply.</div>
+          <details class="inspector-panel">
+            <summary>Open raw preview</summary>
+            <pre id="deltaPreview">loading...</pre>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
         <div class="label">MOUNTED SOURCE CONTEXT</div>
         <div id="mountedSourceContextSummary" class="value">loading...</div>
       </div>
@@ -432,7 +450,7 @@
         </label>
         <div class="row" style="margin-bottom:8px;">
           <button id="requestApplySave">Request apply</button>
-          <button id="markApplyAsApplied">Mark applied</button>
+          <button id="markApplyAsAapplied">Mark applied</button>
           <button id="markApplyAsRejected">Mark rejected</button>
           <button id="resetApplyStatus">Reset status</button>
         </div>
