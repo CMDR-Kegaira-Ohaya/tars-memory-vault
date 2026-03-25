@@ -5,6 +5,11 @@
     return;
   }
 
+  const legacyMarkAppliedButton = document.getElementById("markApplyAsAapplied");
+  if (legacyMarkAppliedButton && !document.getElementById("markApplyAsApplied")) {
+    legacyMarkAppliedButton.id = "markApplyAsApplied";
+  }
+
   function normalizeInput(input) {
     const raw = typeof input === "string" ? input : input?.url || "";
     return String(raw).replace(/^terminal\//, "");
