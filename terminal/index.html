@@ -242,6 +242,7 @@
   <script src="app/browser-runs-surface.js" defer></script>
   <script src="app/browser-home-surface.js" defer></script>
   <script src="app/browser-collections-browser.js" defer></script>
+  <script src="app/browser-cartridge-bay.js" defer></script>
   <script src="app/browser-boards-browser.js" defer></script>
   <script src="app/browser-boards-guardrails.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
@@ -289,6 +290,18 @@
 
     <section class="layout">
       <div class="panel">
+        <div class="label">CARTRIDGE BAY</div>
+        <div id="cartridgeBayList" class="surface-list"><span class="muted">loading...</span></div>
+      </div>
+      <div class="panel">
+        <div class="label">CARTRIDGE BAY HANDDODF</div>
+        <div id="cartridgeBaySummary" class="value">loading...</div>
+        <div class="muted" style="margin-top:8px;">Selection hands off into Collections resolve. Mount remains explicit there.</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
         <div class="label">COLLECTIONS BROWSER</div>
         <div id="collectionsBrowserList" class="surface-list"><span class="muted">loading...</span></div>
       </div>
@@ -324,7 +337,7 @@
       </div>
       <div class="panel">
         <div class="label">DISABLED SAVE EXPLANATION</div>
-        <div class="muted">In Boards mode, Save stays visually muted but can explain why it is unavailable.</div>
+        <div class="muted">In Boards mode, Save stays fisually muted but can explain why it is unavailable.</div>
         <div class="muted" style="margin-top:8px;">Click the muted Save action while a board is mounted to open the explanation popup.</div>
       </div>
     </section>
