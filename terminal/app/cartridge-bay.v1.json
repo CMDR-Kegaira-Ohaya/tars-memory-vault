@@ -1,0 +1,51 @@
+{
+  "id": "terminal-cartridge-bay-v1",
+  "version": "v1",
+  "role": "cartridge-bay-selection-surface-contract",
+  "uses": {
+    "manifestIndex": "terminal/manifests/manifest-index.v1.json",
+    "manifestSelection": "terminal/manifests/repo-manifest-selection.v1.json",
+    "runtimeApi": "window.__TARS_COLLECTIONS__.runtimeApi"
+  },
+  "inputs": [
+    "manifestIndex",
+    "selectedManifestId",
+    "resolvedManifestId"
+  ],
+  "fields": [
+    "title",
+    "statusChip",
+    "detail",
+    "selectionAction"
+  ],
+  "states": {
+    "idle": {
+      "match": {
+        "selectedManifestId": null
+      },
+      "derive": {
+        "title": "Cartridge bay",
+        "statusChip": "idle",
+        "detail": "Select a repo cartridge to hand off into the manifest-backed Collections resolve flow.",
+        "selectionAction": "select"
+      }
+    },
+    "selected": {
+      "match": {
+        "selectedManifestId": "non-null"
+      },
+      "derive": {
+        "title": "Cartridge bay",
+        "statusChip": "selected",
+        "detail": "Selection has been handed to the existing Collections resolve surface. Mount remains explicit there.",
+        "selectionAction": "selected"
+      }
+    }
+  },
+  "guardrails": [
+    "Cartridge Bay does not bypass manifest validation.",
+    "Cartridge Bay does not mount directly.",
+    "Cartridge Bay selection hands off into the existing Collections resolve-then-mount flow.",
+    "Cartridge Bay does not change save or export boundaries."
+  ]
+}
