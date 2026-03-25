@@ -1,4 +1,10 @@
 (() => {
+  const devtoolsKey = "__TARS_DEVTOOLS__";
+  const devtools = window[devtoolsKey] || (window[devtoolsKey] = {
+    mountedCartridge: null,
+    requestHistorySurface: null,
+  });
+
   const runtime = {
     contract: null,
     currentSaveTag: null,
@@ -24,23 +30,6 @@
       return null;
     }
     return response.json();
-  }
-
-  function deriveSurface(input) {
-    const states = runtime.contract?.states || {};
-    for (const stateConfig of Object.values(states)) {
-      if (matches(stateConfig.match || {}, input)) {
-        return resolveTemplate(stateConfig.derive || {}, input);
-      }
-    }
-    return {
-      consumed: false,
-      status: "unknown",
-      saveTag: input.currentSaveTag,
-      historyPath: input.historyPath || "none",
-      entryCount: 0,
-      detail: "unmatched-history-surface-state"
-    };
   }
 
   function matches(match, input) {
@@ -90,43 +79,42 @@
     return parseJsonText(document.getElementById("mountedSaveContextPreview")?.textContent || "");
   }
 
-  function render(surface) {
-    const summary = document.getElementById("requestHistorySummary");
-    const list = document.getElementById("requestHistoryList");
-    const preview = document.getElementById("requestHistoryPreview");
-    if (!summary || !list || !preview) {
-      return;
-    }
-
-    summary.innerHTML = [
-      `<div><span class="muted">status</span> ${surface.status}</div>`,
-      `<div><span class="muted">save tag</span> ${surface.saveTag || "none"}</div>`,
-      `<div><span class="muted">history path</span> ${surface.historyPath}</div>`,
-      `<div><span class="muted">entry count</span> ${surface.entryCount}</div>`,
-      `<div><span class="muted">detail</span> ${surface.detail}</div>`
-    ].join("");
-
-    list.innerHTML = "";
-    const entries = runtime.historyIndex?.entries || [];
-    if (!entries.length) {
-      const span = document.createElement("span");
-      span.className = "muted";
-      span.textContent = runtime.currentSaveTag ? "history index unavailable" : "no mounted save slot";
-      list.appendChild(span);
-    } else {
-      for (const entry of entries) {
-        const item = document.createElement("div");
-        item.className = "value";
-        item.innerHTML = `<span class="muted">${entry.order}.</span> ${entry.kind} — ${entry.status}<br><span class="muted">${entry.path}</span>`;
-        list.appendChild(item);
+  function deriveSurface(input) {
+    const states = runtime.contract?.states || {};
+    for (const stateConfig of Object.values(states)) {
+      if (matches(stateConfig.match || {}, input)) {
+        return resolveTemplate(stateConfig.derive || {}, input);
       }
     }
+    return {
+      consumed: false,
+      status: "unknown",
+      saveTag: input.currentSaveTag,
+      historyPath: input.historyPath || "none",
+      entryCount: 0,
+      detail: "unmatched-history-surface-state"
+    };
+  }
 
-    preview.textContent = JSON.stringify({
-      mountedSaveContext: readMountedSaveContext(),
+  function exportSurface() {
+    const mountedSaveContext = readMountedSaveContext();
+    const surface = deriveSurface({
+      currentSaveTag: runtime.currentSaveTag,
+      historyLoaded: Boolean(runtime.historyIndex),
+      historyPath: runtime.historyPath,
+      entryCount: runtime.historyIndex?.entries?.length || 0
+    });
+
+    devtools.requestHistorySurface = {
+      mountedSaveContext,
       surface,
-      historyIndex: runtime.historyIndex
-    }, null, 2);
+      historyIndex: runtime.historyIndex,
+      entries: runtime.historyIndex?.entries || []
+    };
+
+    window.dispatchEvent(new CustomEvent("tars:request-history-updated", {
+      detail: devtools.requestHistorySurface
+    }));
   }
 
   async function refresh() {
@@ -142,13 +130,7 @@
       runtime.historyIndex = await loadOptionalJson(nextHistoryPath);
     }
 
-    const surface = deriveSurface({
-      currentSaveTag: runtime.currentSaveTag,
-      historyLoaded: Boolean(runtime.historyIndex),
-      historyPath: runtime.historyPath,
-      entryCount: runtime.historyIndex?.entries?.length || 0
-    });
-    render(surface);
+    exportSurface();
   }
 
   async function boot() {
@@ -169,13 +151,21 @@
   }
 
   boot().catch((error) => {
-    const preview = document.getElementById("requestHistoryPreview");
-    const summary = document.getElementById("requestHistorySummary");
-    if (summary) {
-      summary.innerHTML = `<span class="warn">request history bootstrap failed</span>`;
-    }
-    if (preview) {
-      preview.textContent = error.message;
-    }
+    devtools.requestHistorySurface = {
+      mountedSaveContext: readMountedSaveContext(),
+      surface: {
+        status: "failed",
+        saveTag: runtime.currentSaveTag,
+        historyPath: runtime.historyPath || "none",
+        entryCount: 0,
+        detail: "request-history-bootstrap-failed"
+      },
+      historyIndex: null,
+      entries: [],
+      error: error.message
+    };
+    window.dispatchEvent(new CustomEvent("tars:request-history-updated", {
+      detail: devtools.requestHistorySurface
+    }));
   });
 })();
