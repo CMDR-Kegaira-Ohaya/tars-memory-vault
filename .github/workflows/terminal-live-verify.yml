@@ -1,0 +1,70 @@
+name: Terminal Live Verify
+
+on:
+  workflow_run:
+    workflows: ["Deploy Terminal to Pages"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jebs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Python deps
+        run: pip install requests beautifulsoup4
+
+      - name: Run validation chain
+        id: validate
+        shell: bash
+        run: |
+          set +e
+          python tools/terminal_ops/terminal_validate_chain.py > report.json 2> stderr.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Print validation report
+        if: always()
+        shell: bash
+        run: |
+          echo "=== report.json ==="
+          cat report.json || true
+          echo "=== stderr.txt ==="
+          cat stderr.txt || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terminal-validation
+          path: |
+            report.json
+            stderr.txt
+
+      - name: Fail if validation failed
+        if: steps.validate.outputs.exit_code != '0'
+        run: |
+          echo "Validation failed. See logs and artifacts."
+          exit 1
