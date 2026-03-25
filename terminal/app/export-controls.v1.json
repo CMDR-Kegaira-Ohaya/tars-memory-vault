@@ -1,0 +1,73 @@
+{
+  "id": "terminal-export-controls-v1",
+  "version": "v1",
+  "role": "export-controls-surface-and-placeholder-explanation-contract",
+  "uses": {
+    "exportSource": "terminal/app/export-source.v1.json",
+    "actionState": "terminal/app/action-state.v1.json"
+  },
+  "inputs": [
+    "currentMode",
+    "mountedKind",
+    "sourceClass",
+    "exportSourceState",
+    "exportOutputState"
+  ],
+  "fields": [
+    "title",
+    "stateChip",
+    "detail",
+    "sourceSummary",
+    "outputSummary",
+    "outputExplanation"
+  ],
+  "states": {
+    "boardsMounted": {
+      "match": {
+        "currentMode": "boards",
+        "mountedKind": "board",
+        "sourceClass": "repo-board"
+      },
+      "derive": {
+        "title": "Export controls",
+        "stateChip": "boards",
+        "detail": "Boards may export source while remaining read-only live board mounts. Export Output stays a visible placeholder until transformed-output flows exist.",
+        "sourceSummary": "Export Source available for the mounted live board path.",
+        "outputSummary": "Export Output placeholder disabled.",
+        "outputExplanation": "Export Output is reserved for a future transformed-output flow. Boards currently export the source file only."
+      }
+    },
+    "collectionsMounted": {
+      "match": {
+        "currentMode": "collections|runs",
+        "mountedKind": "cartridge",
+        "exportSourceState": "enabled|conditional"
+      },
+      "derive": {
+        "title": "Export controls",
+        "stateChip": "cartridge",
+        "detail": "Export Source is the active outbound path in v1. Export Output remains distinct and visible as a placeholder, not as save behavior.",
+        "sourceSummary": "Export Source available or conditional for the mounted cartridge source.",
+        "outputSummary": "Export Output placeholder visible but disabled.",
+        "outputExplanation": "Export Output will later package rendered or transformed output. In v1, only source export is implemented."
+      }
+    },
+    "fallback": {
+      "match": {},
+      "derive": {
+        "title": "Export controls",
+        "stateChip": "inactive",
+        "detail": "Export controls activate when a mounted source exposes outbound export behavior.",
+        "sourceSummary": "No active export source path.",
+        "outputSummary": "No active export output path.",
+        "outputExplanation": "Export Output explanation becomes active when a mounted source is present."
+      }
+    }
+  },
+  "guardrails": [
+    "Export Source is outbound download behavior, not terminal save persistence.",
+    "Export Output remains distinct from Save even while disabled as a placeholder.",
+    "Placeholder explanations may clarify disabled export output without enabling it.",
+    "Boards may export source while remaining read-only and outside terminal/saves/."
+  ]
+}
