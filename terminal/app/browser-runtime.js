@@ -885,7 +885,11 @@
     container.innerHTML = "";
     const boardsMode = state.contracts.boardsMode || {};
     const boardsSaveExplanation = boardsMode.actions?.save?.explanation || "Working boards are source files in workspace. Update them at their live path, not through terminal GUI.";
+    const exportOutputExplanation = state.session?.mountedKind === "board" && state.session?.sourceClass === "repo-board"
+      ? "Export Output is reserved for a future transformed-output flow. Boards currently export the source file only."
+      : "Export Output will later package rendered or transformed output. In v1, only source export is implemented.";
     const isBoardsMount = state.session?.mountedKind === "board" && state.session?.sourceClass === "repo-board";
+    const hasMountedSource = Boolean(state.session?.mountedKind && state.session?.sourcePath);
     for (const key of ACTION_KEYS) {
       const value = state.session.actionState?.[key] || "disabled";
       const button = document.createElement("button");
@@ -900,6 +904,12 @@
         button.dataset.guardrailAction = "disabled-save-explained";
         button.dataset.guardrailReason = boardsSaveExplanation;
         button.title = boardsSaveExplanation;
+      } else if (key === "exportOutput" && value.includes("placeholder") && hasMountedSource) {
+        button.disabled = false;
+        button.setAttribute("aria-disabled", "true");
+        button.dataset.guardrailAction = "placeholder-export-output-explained";
+        button.dataset.guardrailReason = exportOutputExplanation;
+        button.title = exportOutputExplanation;
       } else {
         button.disabled = value.includes("disabled") || value.includes("placeholder");
       }

@@ -246,6 +246,7 @@
   <script src="app/browser-boards-guardrails.js" defer></script>
   <script src="app/browser-source-context.js" defer></script>
   <script src="app/browser-export-source.js" defer></script>
+  <script src="app/browser-export-controls.js" defer></script>
   <script src="app/browser-save-context.js" defer></script>
   <script src="app/browser-request-history.js" defer></script>
   <script src="app/browser-repo-verified-status.js" defer></script>
@@ -330,6 +331,19 @@
 
     <section class="layout">
       <div class="panel">
+        <div class="label">EXPORT SOURCE</div>
+        <div id="exportSourceSummary" class="value">loading...</div>
+        <div class="muted" style="margin-top:8px;">click the exportSource action to download mounted source without repo write</div>
+      </div>
+      <div class="panel">
+        <div class="label">EXPORT CONTROLS</div>
+        <div id="exportControlsSummary" class="value">loading...</div>
+        <div class="muted" style="margin-top:8px;">Click the muted Export Output action while a source is mounted to see why it remains a placeholder.</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
         <div class="label">NOTE EDITOR</div>
         <div id="noteTarget" class="muted" style="margin-bottom:8px;">loading...</div>
         <textarea id="noteDraft" placeholder="Notes for save-eligible cartridges only"></textarea>
@@ -388,11 +402,6 @@
 
     <section class="layout">
       <div class="panel">
-        <div class="label">EXPORT SOURCE</div>
-        <div id="exportSourceSummary" class="value">loading...</div>
-        <div class="muted" style="margin-top:8px;">click the exportSource action to download mounted source without repo write</div>
-      </div>
-      <div class="panel">
         <div class="label">EXPORT SOURCE RAW PREVIEW</div>
         <div class="inspector-shell">
           <div class="inspector-hint">Use this only for low-level inspection of export-state details.</div>
@@ -402,9 +411,6 @@
           </details>
         </div>
       </div>
-    </section>
-
-    <section class="layout">
       <div class="panel">
         <div class="label">APPLY SAVE REQUEST STATUS</div>
         <label class="row muted" style="margin-bottom:8px;">
@@ -419,6 +425,9 @@
         </div>
         <div id="applyStatusSummary" class="value">loading...</div>
       </div>
+    </section>
+
+    <section class="layout">
       <div class="panel">
         <div class="label">APPLY SAVE STATUS RAW PREVIEW</div>
         <div class="inspector-shell">
@@ -429,13 +438,13 @@
           </details>
         </div>
       </div>
-    </section>
-
-    <section class="layout">
       <div class="panel">
         <div class="label">MOUNTED SAVE CONTEXT</div>
         <div id="mountedSaveContextSummary" class="value">loading...</div>
       </div>
+    </section>
+
+    <section class="layout">
       <div class="panel">
         <div class="label">MOUNTED SAVE CONTEXT RAW PREVIEW</div>
         <div class="inspector-shell">
@@ -446,15 +455,15 @@
           </details>
         </div>
       </div>
-    </section>
-
-    <section class="layout">
       <div class="panel">
         <div class="label">REQUEST HISTORY INDEX</div>
         <div id="requestHistorySummary" class="value">loading...</div>
         <div class="label" style="margin-top:12px;">REQUEST CHAIN</div>
         <div id="requestHistoryList" class="value"><span class="muted">loading...</span></div>
       </div>
+    </section>
+
+    <section class="layout">
       <div class="panel">
         <div class="label">REQUEST HISTORY RAW PREVIEW</div>
         <div class="inspector-shell">
@@ -465,13 +474,13 @@
           </details>
         </div>
       </div>
-    </section>
-
-    <section class="layout">
       <div class="panel">
         <div class="label">REPO VERIFIED SAVE STATUS</div>
         <div id="repoVerifiedSummary" class="value">loading...</div>
       </div>
+    </section>
+
+    <section class="layout">
       <div class="panel">
         <div class="label">REPO VERIFIED RAW PREVIEW</div>
         <div class="inspector-shell">
@@ -494,6 +503,19 @@
       <div id="boardsSaveExplanationText" class="surface-detail">Working boards are source files in workspace. Update them at their live path, not through terminal GUI.</div>
       <div class="row">
         <button id="boardsSaveExplanationDismiss">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="exportOutputExplanationPopup" class="guardrail-popup">
+    <div class="guardrail-popup-shell">
+      <div class="surface-header">
+        <div class="surface-title">Export Output is not live yet</div>
+        <span class="surface-chip">placeholder</span>
+      </div>
+      <div id="exportOutputExplanationText" class="surface-detail">Export Output will later package rendered or transformed output. In v1, only source export is implemented.</div>
+      <div class="row">
+        <button id="exportOutputExplanationDismiss">Close</button>
       </div>
     </div>
   </dialog>
