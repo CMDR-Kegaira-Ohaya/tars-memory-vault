@@ -26,7 +26,7 @@ def run_step(name, cmd):
 
 
 def main():
-    parser = argparser.ArgumentParser(description="Run the terminal validation chain.")
+    parser = argparse.ArgumentParser(description="Run the terminal validation chain.")
     parser.add_argument("--skip-live-smoke", action="store_true", help="Skip the live Pages smoke probe.")
     parser.add_argument("--root", default="terminal", help="Root path for cut-check.")
     args = parser.parse_args()
