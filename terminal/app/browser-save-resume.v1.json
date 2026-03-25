@@ -3,6 +3,7 @@
   "version": "v1",
   "role": "contract-backed-browser-save-resume-flow",
   "uses": {
+    "saveManager": "terminal/app/save-manager.v1.json",
     "saveSlotIndex": "terminal/saves/save-slot-index.v1.json",
     "resumeState": "terminal/app/resume-state.v1.json",
     "browserResolver": "terminal/app/browser-resolver.v1.json"
@@ -14,9 +15,11 @@
   "flow": [
     "enumerate-save-slot-index",
     "select-save-slot",
+    "validate-save-root-against-save-manager-format",
     "load-state-json",
     "load-session-json",
     "load-notes-json-if-present",
+    "block-on-save-manager-resume-eligibility-failure",
     "resolve-resume-state",
     "set-current-mode-runs",
     "restore-mounted-session-fields",
@@ -25,8 +28,10 @@
   "fileRequirements": {
     "state": "required",
     "session": "required",
-    "notes": "optional"
+    "notes": "optional",
+    "requiredBySaveManager": "terminal-save-manager-v1.resumeEligibility.requiredFiles"
   },
+  "blockedStates": "terminal-save-manager-v1.resumeEligibility.blockedStates",
   "guardrails": [
     "Browser save resume remains bounded to terminal/saves/<tag>/.",
     "Boards are excluded because Boards never use terminal/saves/.",
