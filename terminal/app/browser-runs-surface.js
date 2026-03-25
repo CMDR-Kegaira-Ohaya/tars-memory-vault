@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 (() => {
   const runtime = { contract: null };
   const RAW_KEYS = [
@@ -9,6 +7,7 @@
   const devtools = window[devtoolsKey] || (window[devtoolsKey] = {
     mountedCartridge: null,
     requestHistorySurface: null,
+    repoVerifiedSurface: null,
   });
 
   function normalizePath(path) {
@@ -149,12 +148,67 @@
     `;
   }
 
+  function renderRepoVerifiedCartridge(container) {
+    const data = devtools.repoVerifiedSurface || {
+      repoVerifiedStatus: {
+        consumed: false,
+        status: "idle",
+        detail: "repo-verified-unavailable",
+        saveTag: null,
+        verifiedHead: "none",
+        pathsVerified: [],
+        trusted: false
+      },
+      repoVerifiedResponse: null,
+      mountedSaveContext: null,
+      pathsCount: 0
+    };
+
+    const renderState = JSON.stringify({ type: "repo-verified", data });
+    if (container.dataset.renderState === renderState) return;
+    container.dataset.renderState = renderState;
+
+    const status = data.repoVerifiedStatus || {};
+    const paths = Array.isArray(status.pathsVerified) ? status.pathsVerified : [];
+    const pathsHtml = paths.length
+      ? paths.map((path) => `<div class="surface-list-item"><div>${escapeHtml(path)}</div></div>`).join("")
+      : `<div class="muted">no verified paths recorded</div>`;
+
+    container.innerHTML = `
+      <div class="surface-stack">
+        <div class="surface-header">
+          <div class="surface-title">Repo Verified Cartridge</div>
+          <span class="surface-chip">${escapeHtml(status.status || "unknown")}</span>
+        </div>
+        <div class="surface-meta-grid">
+          <div><span class="muted">consumed</span> ${status.consumed}</div>
+          <div><span class="muted">save tag</span> ${escapeHtml(status.saveTag || "none")}</div>
+          <div><span class="muted">verified head</span> ${escapeHtml(status.verifiedHead || "none")}</div>
+          <div><span class="muted">trusted</span> ${status.trusted}</div>
+          <div><span class="muted">paths verified</span> ${Array.isArray(status.pathsVerified) ? status.pathsVerified.length : 0}</div>
+          <div><span class="muted">detail</span> ${escapeHtml(status.detail || "none")}</div>
+        </div>
+        <div class="surface-detail">Repo-verified state remains distinct from local apply markers.</div>
+        <div class="surface-list">${pathsHtml}</div>
+        <details class="inspector-panel">
+          <summary>Open raw preview</summary>
+          <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+        </details>
+      </div>
+    `;
+  }
+
   function refresh() {
     const container = document.getElementById("runsViewport");
     if (!container) return;
 
     if (devtools.mountedCartridge === "request-history") {
       renderRequestHistoryCartridge(container);
+      return;
+    }
+
+    if (devtools.mountedCartridge === "repo-verified") {
+      renderRepoVerifiedCartridge(container);
       return;
     }
 
@@ -173,6 +227,7 @@
     }
     window.addEventListener("tars:devtools-changed", refresh);
     window.addEventListener("tars:request-history-updated", refresh);
+    window.addEventListener("tars:repo-verified-updated", refresh);
     window.setInterval(refresh, 1500);
   }
 
