@@ -5,12 +5,14 @@
   "uses": {
     "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
     "applySaveStatus": "terminal/app/apply-save-status.v1.json",
-    "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json"
+    "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json",
+    "mountedSourceContext": "terminal/app/mounted-source-context.v1.json"
   },
   "inputs": [
     "currentSaveTag",
     "historyPath",
-    "verifiedResponsePath"
+    "verifiedResponsePath",
+    "mountedSourcePath"
   ],
   "fields": [
     "status",
@@ -49,6 +51,7 @@
     "Mounted save context is a dedicated runtime field for downstream consumers like request history enumeration.",
     "Consumers should read this field instead of parsing unrelated preview surfaces directly.",
     "The field stays read-oriented and does not create new write authority.",
+    "When explicit save-request or verified-response previews are absent, the field may derive a save tag from the mounted collections source path to preserve stable operator inspection.",
     "Boards remain outside save context because Boards never use terminal/saves/."
   ]
 }
