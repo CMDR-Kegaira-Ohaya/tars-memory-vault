@@ -1,7 +1,7 @@
 {
   "id": "terminal-request-history-panel-v1",
   "version": "v1",
-  "role": "stable-request-history-panel-presentation-contract",
+  "role": "stable-operator-facing-request-history-panel-presentation-contract",
   "uses": {
     "requestHistorySurface": "terminal/app/request-history-surface.v1.json"
   },
@@ -22,10 +22,10 @@
         "status": "disabled"
       },
       "derive": {
-        "title": "Request history idle",
-        "statusChip": "no slot",
-        "detail": "No mounted save slot is active, so there is no request chain to enumerate.",
-        "chainLabel": "history unavailable"
+        "title": "Request History idle",
+        "statusChip": "no mounted item",
+        "detail": "This screen is for inspecting the save/apply chain of the currently mounted item. Mount an item in Collections Explorer first, then return here.",
+        "chainLabel": "no request chain loaded"
       }
     },
     "awaitingIndex": {
@@ -33,10 +33,10 @@
         "status": "awaiting-index"
       },
       "derive": {
-        "title": "Request history pending",
-        "statusChip": "awaiting index",
-        "detail": "A mounted save slot is present, but the repo-side request-history index is not yet available.",
-        "chainLabel": "waiting for repo index"
+        "title": "Request History waiting",
+        "statusChip": "loading chain",
+        "detail": "A mounted item is present, but its indexed request chain is not loaded yet. Refresh the catalogue or remount the item if you expected a save/apply chain.",
+        "chainLabel": "waiting for request index"
       }
     },
     "indexed": {
@@ -44,15 +44,15 @@
         "status": "indexed"
       },
       "derive": {
-        "title": "Request history ready",
-        "statusChip": "indexed",
-        "detail": "The mounted save slot request chain is enumerated directly from the repo history index.",
+        "title": "Request History ready",
+        "statusChip": "indexed chain",
+        "detail": "This screen shows the ordered request chain for the mounted item: staged request, handoff, handler, and response artifacts. It is an inspection screen, not a browsing screen.",
         "chainLabel": "ordered request chain"
       }
     }
   },
   "guardrails": [
-    "Request history presentation should summarize the index-driven chain rather than exposing only raw preview output.",
+    "Request history presentation should summarize the index-driven chain in operator-facing language rather than exposing only raw preview output.",
     "The chain remains descriptive and read-oriented.",
     "Boards remain excluded because Boards never use terminal/saves/."
   ]

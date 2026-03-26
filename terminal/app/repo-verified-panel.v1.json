@@ -1,7 +1,7 @@
 {
   "id": "terminal-repo-verified-panel-v1",
   "version": "v1",
-  "role": "stable-repo-verified-panel-presentation-contract",
+  "role": "stable-operator-facing-repo-verified-panel-presentation-contract",
   "uses": {
     "repoVerifiedSaveStatus": "terminal/app/repo-verified-save-status.v1.json"
   },
@@ -22,10 +22,10 @@
         "status": "none|unknown"
       },
       "derive": {
-        "title": "Repo verification idle",
-        "statusChip": "none",
-        "detail": "No repo-verified response is currently loaded for the mounted save slot.",
-        "trustLabel": "not trusted"
+        "title": "Repo Verified idle",
+        "statusChip": "no verified response",
+        "detail": "No authenticated repo response is loaded for the mounted item yet. Mount the saved item in Collections Explorer first, then return here to inspect landed repo verification.",
+        "trustLabel": "not verified yet"
       }
     },
     "trusted": {
@@ -33,21 +33,21 @@
         "trusted": true
       },
       "derive": {
-        "title": "Repo verification confirmed",
+        "title": "Repo Verified confirmed",
         "statusChip": "trusted",
-        "detail": "Repo-side verification data is present and marked trusted for the mounted save slot.",
+        "detail": "Authenticated repo verification is present and trusted for the mounted item. This is the screen that confirms the repo-side ingest landed and was checked against the verified repo response.",
         "trustLabel": "repo verified"
       }
     },
     "loadedUntrusted": {
       "match": {
-        "status": "loaded|applied|indexed|handled-off|untrusted|pending|partial|none",
+        "status": "loaded|applied|indexed|handed-off|untrusted|pending|partial|none",
         "trusted": false
       },
       "derive": {
-        "title": "Repo verification loaded",
+        "title": "Repo Verified review",
         "statusChip": "review",
-        "detail": "Repo-side response data is present, but trust is not yet established from the available verification state.",
+        "detail": "A repo response is loaded, but trust is not fully established from the available verification state. Review the verified head and paths before treating the ingest as confirmed.",
         "trustLabel": "inspect head and paths"
       }
     }
