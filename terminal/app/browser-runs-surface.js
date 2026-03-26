@@ -111,7 +111,9 @@
 
   function mirrorScreenSource(container, type, sourceId, rawText, footerText = "") {
     const source = document.getElementById(sourceId);
-    const sourceHtml = source?.innerHTML?.trim() || `<div class="surface-stack"><div class="surface-detail">Source panel unavailable.</div></div>`;
+    const sourceHtml =
+      source?.innerHTML?.trim() ||
+      `<div class="surface-stack"><div class="surface-detail">Source panel unavailable.</div></div>`;
     renderHtml(
       container,
       type,
@@ -302,7 +304,13 @@
   function refresh() {
     const container = document.getElementById("runsViewport");
     if (!container) return;
-    switch (getActiveScreen()) {
+
+    const activeScreen = getActiveScreen();
+    if (activeScreen === "debug-intake") {
+      return;
+    }
+
+    switch (activeScreen) {
       case "home":
         renderHomeScreen(container);
         return;
@@ -332,7 +340,10 @@
 
     const container = document.getElementById("runsViewport");
     if (container) {
-      const observer = new MutationObserver(() => refresh());
+      const observer = new MutationObserver(() => {
+        if (getActiveScreen() === "debug-intake") return;
+        refresh();
+      });
       observer.observe(container, { childList: true, subtree: true, characterData: true });
     }
 
@@ -343,7 +354,10 @@
       "tars:repo-verified-updated",
     ].forEach((eventName) => window.addEventListener(eventName, refresh));
 
-    window.setInterval(refresh, 1500);
+    window.setInterval(() => {
+      if (getActiveScreen() === "debug-intake") return;
+      refresh();
+    }, 1500);
   }
 
   boot().catch(() => {});
