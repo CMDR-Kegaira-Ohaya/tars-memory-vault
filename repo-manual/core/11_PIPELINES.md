@@ -1,5 +1,3 @@
-# 11_PIPELINES.md
-
 ## Pipeline 1 — build
 `work/scratch -> work/dev | work/op-a | work/op-b -> work/shared -> repo-manual/* -> logs/decisions/*`
 
@@ -20,3 +18,9 @@ Document workflow intent first, install executable workflow files second, captur
 
 Do not turn every incident into a permanent rule.
 Only promote repeated or structural lessons.
+
+## Pipeline 5 — GPT-side reference installs
+`design intent -> repo-manual/refs/gpt -> hidden GPT-side stack update later`
+
+Use this when a GPT-side module or root-index patch needs a canonical repo-side reference before the hidden stack is changed.
+The repo reference is authoritative for draft/install intent, but it is not the live hidden stack by itself.

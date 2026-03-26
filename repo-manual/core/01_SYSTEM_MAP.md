@@ -24,3 +24,7 @@ Decision records and incident records.
 ### Automation plane
 `.github/workflows/`
 Executable GitHub workflow files.
+
+### GPT reference plane
+`repo-manual/refs/gpt/`
+Canonical repo-side reference install for proposed GPT-side stack additions such as packager modules and root-index patches.

@@ -1,5 +1,3 @@
-# 10_ROUTER.md
-
 ## Purpose
 This file routes operators and future repo-side logic to the correct section of the repository.
 
@@ -39,6 +37,14 @@ Go to:
 ### Find connector surface and connector-use notes
 Go to:
 - `repo-manual/refs/connector/`
+
+### Find terminal surface and terminal-use notes
+Go to:
+- `repo-manual/refs/terminal/`
+
+### Find GPT-side reference installs and proposed stack extensions
+Go to:
+- `repo-manual/refs/gpt/`
 
 ### Find unstable drafts or active work
 Go to:

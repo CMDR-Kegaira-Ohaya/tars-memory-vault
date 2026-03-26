@@ -6,6 +6,7 @@
 - Pipelines: `repo-manual/core/11_PIPELINES.md`
 - Connector reference: `repo-manual/refs/connector/`
 - Terminal reference: `repo-manual/refs/terminal/TARS_TERMINAL_REFERENCE.md`
+- GPT-side reference install: `repo-manual/refs/gpt/README.md`
 - Troubleshooting: `repo-manual/troubleshooting/TROUBLESHOOTING_REPO_TIPS.md`
 
 ## Working rule
