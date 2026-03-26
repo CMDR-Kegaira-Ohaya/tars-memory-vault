@@ -16,7 +16,7 @@
   ],
   "updatedIndexes": true,
   "verification": {
-    "head": "pending-post-commit-head",
+    "head": "cca8a29b6a064a87d2f78fa5232e762620efc4a8",
     "pathsVerified": [
       "collections/books/test-drive-text-file/manifest.json",
       "collections/books/test-drive-text-file/content/index.md",
@@ -28,7 +28,7 @@
       "terminal/saves/test-drive-text-file/request-history-index.v1.json",
       "terminal/saves/test-drive-text-file/repo-write-response.v1.json"
     ],
-    "verifiedAt": "2026-03-26T18:23:51Z"
+    "verifiedAt": "2026-03-26T18:34:30Z"
   },
   "assumptions": {
     "saveTag": "derived-from-request-manifest-slug"
