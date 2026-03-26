@@ -252,27 +252,13 @@
     button.textContent = button.dataset.rawText;
   }
 
-  function ensureTab() {
-    const tabs = document.getElementById("terminalScreenTabs");
-    if (!tabs) return;
-    let button = document.getElementById("terminalScreenTab-debug-intake");
-    if (!button) {
-      button = document.createElement("button");
-      button.id = "terminalScreenTab-debug-intake";
-      button.type = "button";
-      button.addEventListener("click", () => {
-        if (getActiveScreen() === "debug-intake") closeDebugIntake();
-        else openDebugIntake();
-      });
-      tabs.appendChild(button);
-    }
-    button.textContent = "Debug Intake";
-    button.dataset.active = String(getActiveScreen() === "debug-intake");
+  function removeLegacyTab() {
+    document.getElementById("terminalScreenTab-debug-intake")?.remove();
   }
 
   function ensureChrome() {
     ensureLauncher();
-    ensureTab();
+    removeLegacyTab();
     if (getActiveScreen() === "debug-intake") {
       const activeChip = document.querySelector(".terminal-active-screen");
       if (activeChip) activeChip.textContent = "Debug Intake";
