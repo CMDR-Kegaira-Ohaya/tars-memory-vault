@@ -1,0 +1,108 @@
+{
+  "id": "terminal-repo-collections-ingest-handler-v1",
+  "version": "v1",
+  "role": "explicit-authenticated-collections-ingest-handler-contract",
+  "uses": {
+    "browserSaveWriteBridge": "terminal/app/browser-save-write-bridge.v1.json",
+    "applySaveRequest": "terminal/app/apply-save-request.v1.json",
+    "collectionsRootIndex": "collections/index.v1.json",
+    "familyIndexes": [
+      "collections/books/index.v1.json",
+      "collections/cartridges/index.v1.json",
+      "collections/entertainment/index.v1.json",
+      "collections/various/index.v1.json"
+    ]
+  },
+  "accepts": {
+    "requestShape": "terminal-browser-save-write-bridge-v1.requestShape",
+    "source": "explicit-pages-runtime-collections-ingest-request",
+    "consent": "explicit-repo-write-required"
+  },
+  "validation": {
+    "required": [
+      "saveTag",
+      "sourceClass",
+      "mountedId",
+      "family",
+      "slug",
+      "catalogId",
+      "title",
+      "kind",
+      "mountable",
+      "packageRoot",
+      "packageFiles",
+      "responseRoot"
+    ],
+    "allowedFamilies": [
+      "cartridges",
+      "books",
+      "entertainment",
+      "various"
+    ],
+    "slugFormat": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+    "catalogIdFormat": "repo:<slug>",
+    "packageRoot": "collections/<family>/<slug>/",
+    "packageManifestPath": "collections/<family>/<slug>/manifest.json",
+    "responseRoot": "terminal/saves/<saveTag>/",
+    "responseArtifacts": [
+      "terminal/saves/<saveTag>/repo-write-response.v1.json",
+      "terminal/saves/<saveTag>/request-history-index.v1.json"
+    ],
+    "payloadTypes": [
+      "object",
+      "text"
+    ],
+    "rejects": [
+      "arbitrary-repo-paths",
+      "non-collections-package-roots",
+      "mismatched-family-slug-package-root",
+      "missing-package-manifest",
+      "boards-ingest-requests",
+      "repo-manual-writes",
+      "work-writes",
+      "logs-writes",
+      "mismatched-response-root"
+    ]
+  },
+  "execution": {
+    "writes": [
+      "collections/<family>/<slug>/manifest.json",
+      "collections/<family>/<slug>/content/*",
+      "collections/<family>/<slug>/assets/*",
+      "collections/<family>/index.v1.json",
+      "collections/index.v1.json",
+      "terminal/saves/<saveTag>/repo-write-response.v1.json",
+      "terminal/saves/<saveTag>/request-history-index.v1.json"
+    ],
+    "indexUpdatePolicy": {
+      "rootIndex": "upsert-entry-by-catalogId",
+      "familyIndex": "upsert-entry-by-catalogId",
+      "sortOrder": "append-or-replace-existing-catalogId-in-place"
+    },
+    "verification": [
+      "verify-new-head",
+      "verify-written-package-paths-on-main",
+      "verify-root-and-family-index-entry",
+      "verify-response-sidecars-on-main",
+      "verify-no-out-of-bounds-write"
+    ]
+  },
+  "responseShape": {
+    "status": "rejected-or-applied",
+    "writtenPaths": [],
+    "updatedIndexes": [
+      "collections/index.v1.json",
+      "collections/<family>/index.v1.json"
+    ],
+    "verification": {
+      "head": "commit-sha",
+      "pathsVerified": []
+    }
+  },
+  "guardrails": [
+    "Collections ingest is a separate authenticated path from terminal save-state writes and does not widen terminal/saves/ permissions.",
+    "Canonical package writes remain constrained to collections/<family>/<slug>/ only.",
+    "Operator-facing response/history artifacts stay in terminal/saves/<saveTag>/ so Request History and Repo Verified remain stable.",
+    "Success claims require landed-state verification after the write."
+  ]
+}

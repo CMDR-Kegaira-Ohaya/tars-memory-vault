@@ -1,0 +1,21 @@
+{
+  "id": "import-bay-sample-001",
+  "title": "Import Bay Sample Entry",
+  "type": "markdown",
+  "source": "repo",
+  "entry": "collections/books/import-bay-sample-001/content/primary.md",
+  "renderer": "markdown-reader",
+  "save": {
+    "enabled": true,
+    "tag": "import-bay-sample-001"
+  },
+  "meta": {
+    "description": "Compatibility manifest for the canonical collections package used to validate authenticated collections ingest.",
+    "author": "repo",
+    "tags": [
+      "book",
+      "import-bay",
+      "collections-ingest"
+    ]
+  }
+}

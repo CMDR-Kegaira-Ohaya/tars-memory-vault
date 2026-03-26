@@ -40,6 +40,18 @@
       "manifestPath": "../terminal/manifests/books-example-001.manifest.v1.json",
       "entryPath": "../collections/books/example.md",
       "mountable": false
+    },
+    {
+      "catalogId": "repo:import-bay-sample-001",
+      "source": "repo",
+      "family": "books",
+      "kind": "book",
+      "title": "Import Bay Sample Entry",
+      "slug": "import-bay-sample-001",
+      "summary": "Sample canonical collections package created to validate authenticated collections ingest from terminal save-request output.",
+      "manifestPath": "../collections/books/import-bay-sample-001/manifest.json",
+      "entryPath": "../collections/books/import-bay-sample-001/content/primary.md",
+      "mountable": false
     }
   ]
 }

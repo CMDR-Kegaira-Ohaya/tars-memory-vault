@@ -20,6 +20,14 @@
       "entry": "collections/books/example.md",
       "type": "markdown",
       "source": "repo"
+    },
+    {
+      "manifestId": "import-bay-sample-001",
+      "manifestPath": "terminal/manifests/import-bay-sample-001.manifest.v1.json",
+      "category": "books",
+      "entry": "collections/books/import-bay-sample-001/content/primary.md",
+      "type": "markdown",
+      "source": "repo"
     }
   ],
   "rules": [
