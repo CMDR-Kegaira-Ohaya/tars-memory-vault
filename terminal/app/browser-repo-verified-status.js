@@ -19,17 +19,13 @@
 
   async function loadJson(path) {
     const response = await fetch(normalizePath(path));
-    if (!response.ok) {
-      throw new Error(`failed to load ${path}`);
-    }
+    if (!response.ok) throw new Error(`failed to load ${path}`);
     return response.json();
   }
 
   async function loadOptionalJson(path) {
     const response = await fetch(normalizePath(path));
-    if (!response.ok) {
-      return null;
-    }
+    if (!response.ok) return null;
     return response.json();
   }
 
@@ -45,15 +41,21 @@
     return parseJsonText(document.getElementById("mountedSaveContextPreview")?.textContent || "");
   }
 
+  function readMountedSourceContext() {
+    return parseJsonText(document.getElementById("mountedSourceContextPreview")?.textContent || "");
+  }
+
+  function deriveSaveTagFromSourcePath(sourcePath) {
+    const segments = String(sourcePath || "").split("/").filter(Boolean);
+    if (segments[0] !== "collections" || segments.length < 3) return null;
+    return segments[2] || null;
+  }
+
   function matches(match, input) {
     return Object.entries(match || {}).every(([key, expected]) => {
       const actual = input[key];
-      if (expected === null) {
-        return actual == null;
-      }
-      if (expected === "non-null") {
-        return actual != null;
-      }
+      if (expected === null) return actual == null;
+      if (expected === "non-null") return actual != null;
       if (typeof expected === "string" && expected.includes("|")) {
         return expected.split("|").includes(String(actual));
       }
@@ -62,17 +64,11 @@
   }
 
   function resolveTemplate(value, input) {
-    if (Array.isArray(value)) {
-      return value.map((item) => resolveTemplate(item, input));
-    }
+    if (Array.isArray(value)) return value.map((item) => resolveTemplate(item, input));
     if (value && typeof value === "object") {
-      return Object.fromEntries(
-        Object.entries(value).map(([key, nested]) => [key, resolveTemplate(nested, input)])
-      );
+      return Object.fromEntries(Object.entries(value).map(([key, nested]) => [key, resolveTemplate(nested, input)]));
     }
-    if (typeof value !== "string") {
-      return value;
-    }
+    if (typeof value !== "string") return value;
     switch (value) {
       case "from-current-save-tag":
         return input.currentSaveTag;
@@ -99,36 +95,46 @@
       saveTag: input.currentSaveTag,
       verifiedHead: "none",
       pathsVerified: [],
-      trusted: false
+      trusted: false,
     };
   }
 
-  function exportSurface() {
-    const mountedSaveContext = readMountedSaveContext();
+  function exportSurface(mountedSaveContext, mountedSourceContext) {
     const surface = deriveSurface({
       responseLoaded: Boolean(runtime.verifiedResponse),
       responseStatus: runtime.verifiedResponse?.status || null,
       verificationHead: runtime.verifiedResponse?.verification?.head || null,
       verifiedPaths: (runtime.verifiedResponse?.verification?.pathsVerified || []).length ? "present" : "empty",
-      currentSaveTag: runtime.currentSaveTag
+      currentSaveTag: runtime.currentSaveTag,
     });
 
     devtools.repoVerifiedSurface = {
       mountedSaveContext,
+      mountedSourceContext,
       repoVerifiedStatus: surface,
       repoVerifiedResponse: runtime.verifiedResponse,
-      pathsCount: Array.isArray(surface.pathsVerified) ? surface.pathsVerified.length : 0
+      pathsCount: Array.isArray(surface.pathsVerified) ? surface.pathsVerified.length : 0,
     };
 
-    window.dispatchEvent(new CustomEvent("tars:repo-verified-updated", {
-      detail: devtools.repoVerifiedSurface
-    }));
+    window.dispatchEvent(
+      new CustomEvent("tars:repo-verified-updated", {
+        detail: devtools.repoVerifiedSurface,
+      }),
+    );
   }
 
   async function refresh() {
     const mountedSaveContext = readMountedSaveContext();
-    const nextSaveTag = mountedSaveContext?.saveTag || null;
-    const nextVerifiedResponsePath = mountedSaveContext?.verifiedResponsePath || null;
+    const mountedSourceContext = readMountedSourceContext();
+
+    const nextSaveTag =
+      mountedSaveContext?.saveTag ||
+      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
+      null;
+
+    const nextVerifiedResponsePath =
+      mountedSaveContext?.verifiedResponsePath ||
+      (nextSaveTag ? `terminal/saves/${nextSaveTag}/repo-write-response.v1.json` : null);
 
     if (nextSaveTag !== runtime.currentSaveTag || nextVerifiedResponsePath !== runtime.verifiedResponsePath) {
       runtime.currentSaveTag = nextSaveTag;
@@ -138,20 +144,21 @@
       runtime.verifiedResponse = await loadOptionalJson(nextVerifiedResponsePath);
     }
 
-    exportSurface();
+    exportSurface(mountedSaveContext, mountedSourceContext);
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/repo-verified-save-status.v1.json");
     await refresh();
 
-    const contextTarget = document.getElementById("mountedSaveContextPreview");
-    if (contextTarget) {
+    ["mountedSaveContextPreview", "mountedSourceContextPreview"].forEach((id) => {
+      const target = document.getElementById(id);
+      if (!target) return;
       const observer = new MutationObserver(() => {
         refresh().catch(() => {});
       });
-      observer.observe(contextTarget, { childList: true, subtree: true, characterData: true });
-    }
+      observer.observe(target, { childList: true, subtree: true, characterData: true });
+    });
 
     window.setInterval(() => {
       refresh().catch(() => {});
@@ -161,6 +168,7 @@
   boot().catch((error) => {
     devtools.repoVerifiedSurface = {
       mountedSaveContext: readMountedSaveContext(),
+      mountedSourceContext: readMountedSourceContext(),
       repoVerifiedStatus: {
         consumed: false,
         status: "failed",
@@ -168,14 +176,16 @@
         saveTag: runtime.currentSaveTag,
         verifiedHead: "none",
         pathsVerified: [],
-        trusted: false
+        trusted: false,
       },
       repoVerifiedResponse: null,
       pathsCount: 0,
-      error: error.message
+      error: error.message,
     };
-    window.dispatchEvent(new CustomEvent("tars:repo-verified-updated", {
-      detail: devtools.repoVerifiedSurface
-    }));
+    window.dispatchEvent(
+      new CustomEvent("tars:repo-verified-updated", {
+        detail: devtools.repoVerifiedSurface,
+      }),
+    );
   });
 })();
