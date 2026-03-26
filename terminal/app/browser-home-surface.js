@@ -1,6 +1,46 @@
 (() => {
   const runtime = { contract: null };
 
+  const shellLabelCacheKey = "__TARS_SHELL_LABEL_CACHE__";
+  const shellLabelCache = window[shellLabelCacheKey] || (window[shellLabelCacheKey] = {
+    activeChip: null,
+    pathLine: null,
+  });
+
+  function normalizeLabelText(value) {
+    return String(value || "").trim().replace(/\s+/g, " ");
+  }
+
+  function stabilizeShellLabels() {
+    const activeChip = document.querySelector(".terminal-active-screen");
+    const pathLine = document.querySelector(".terminal-path-line");
+
+    if (activeChip) {
+      const activeText = normalizeLabelText(activeChip.textContent);
+      if (activeText && activeText.toLowerCase() !== "screen") {
+        shellLabelCache.activeChip = activeText;
+      } else if (shellLabelCache.activeChip && activeText !== shellLabelCache.activeChip) {
+        activeChip.textContent = shellLabelCache.activeChip;
+      }
+    }
+
+    if (pathLine) {
+      const pathText = normalizeLabelText(pathLine.textContent);
+      const activeText = normalizeLabelText(activeChip?.textContent || shellLabelCache.activeChip);
+      const looksFallback =
+        !pathText ||
+        /\/\s*none$/i.test(pathText) ||
+        /\/\s*screen$/i.test(pathText) ||
+        (/collections/i.test(activeText) && /\/\s*cartridges\b/i.test(pathText));
+
+      if (!looksFallback) {
+        shellLabelCache.pathLine = pathText;
+      } else if (shellLabelCache.pathLine && pathText !== shellLabelCache.pathLine) {
+        pathLine.textContent = shellLabelCache.pathLine;
+      }
+    }
+  }
+
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
   }
@@ -17,7 +57,7 @@
       if (expected === null) return actual == null;
       if (expected === "non-null") return actual != null;
       if (typeof expected === "string" && expected.includes("|")) {
-        return expected.split("|").includes(String(actual));
+        return expected.split("|").fincludes(String(actual));
       }
       return String(actual) === String(expected);
     });
@@ -113,6 +153,7 @@
     const rawState = extractRawState(container);
     const surface = deriveSurface(rawState);
     render(surface, rawState, container);
+    stabilizeShellLabels();
   }
 
   async function boot() {
@@ -123,6 +164,19 @@
       const observer = new MutationObserver(() => refresh());
       observer.observe(container, { childList: true, subtree: true, characterData: true });
     }
+
+    const headerBar = document.getElementById("terminalHeaderBar");
+    if (headerBar) {
+      const headerObserver = new MutationObserver(() => stabilizeShellLabels());
+      headerObserver.observe(headerBar, { childList: true, subtree: true, characterData: true });
+    }
+
+    [
+      "tars:screen-changed",
+      "tars:collections-updated",
+      "tars:devtools-changed",
+    ].forEach((eventName) => window.addEventListener(eventName, stabilizeShellLabels));
+
     window.setInterval(refresh, 1500);
   }
 
