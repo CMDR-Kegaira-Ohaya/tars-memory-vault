@@ -9,8 +9,8 @@
     selectedManifest: null,
     lastMountRequest: {
       status: "idle",
-      detail: "no-mount-request-yet",
-    },
+      detail: "no-mount-request-yet"
+    }
   };
 
   function normalizePath(path) {
@@ -26,12 +26,10 @@
   }
 
   function getByPath(obj, path) {
-    return String(path || "")
-      .split(".")
-      .reduce((acc, key) => {
-        if (acc == null) return undefined;
-        return acc[key];
-      }, obj);
+    return String(path || "").split(".").reduce((acc, key) => {
+      if (acc == null) return undefined;
+      return acc[key];
+    }, obj);
   }
 
   function matches(match, input) {
@@ -57,7 +55,7 @@
       title: "Collections browser",
       statusChip: input.selectedManifestId ? "resolved" : "idle",
       detail: "Collections browser presentation fallback.",
-      mountAction: input.selectedManifestId ? "confirm" : "disabled",
+      mountAction: input.selectedManifestId ? "confirm" : "disabled"
     };
   }
 
@@ -139,7 +137,6 @@
     if (runtime.selectedEntry?.manifestId === entry.manifestId) {
       button.dataset.selected = "true";
     }
-
     const title = manifest?.title || entry.manifestId;
     const type = manifest?.type || entry.type || "unknown";
     button.innerHTML = `
@@ -163,8 +160,8 @@
   async function renderList() {
     const container = document.getElementById("collectionsBrowserList");
     if (!container) return;
-
     container.innerHTML = "";
+
     const entries = runtime.manifestIndex?.entries || [];
     if (!entries.length) {
       container.innerHTML = `<div class="surface-foot muted">No canonical Collections manifests are currently indexed.</div>`;
@@ -178,12 +175,10 @@
       title.className = "manifest-group-title";
       title.textContent = category;
       group.appendChild(title);
-
       for (const entry of items) {
         const manifest = runtime.manifestCache.get(entry.manifestPath) || null;
         group.appendChild(renderEntryButton(entry, manifest));
       }
-
       container.appendChild(group);
     }
   }
@@ -212,15 +207,13 @@
     const allowedSurfaces = runtime.selectionContract?.selectionSurfaces || [];
     const entryPath = String(manifest?.entry || "");
     const manifestSource = String(manifest?.source || "");
-    const entryAllowed =
-      entryPath.startsWith(selectionRoot) &&
-      (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
+    const entryAllowed = entryPath.startsWith(selectionRoot) && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
     const sourceAllowed = manifestSource === "repo";
     return {
       valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
       missing,
       sourceAllowed,
-      entryAllowed,
+      entryAllowed
     };
   }
 
@@ -229,18 +222,16 @@
     const button = document.getElementById("collectionsMountConfirm");
     if (!container || !button) return;
 
-    const validation =
-      runtime.selectedEntry && runtime.selectedManifest
-        ? validateSelectedManifest(runtime.selectedEntry, runtime.selectedManifest)
-        : { valid: false, missing: [], sourceAllowed: false, entryAllowed: false };
-
+    const validation = runtime.selectedEntry && runtime.selectedManifest
+      ? validateSelectedManifest(runtime.selectedEntry, runtime.selectedManifest)
+      : { valid: false, missing: [], sourceAllowed: false, entryAllowed: false };
     const mountedSourcePath = readMountedSourcePath();
     const input = {
       selectedManifestId: runtime.selectedManifest?.id || null,
       selectedEntryPath: runtime.selectedManifest?.entry || null,
       currentMountedEntryPath: mountedSourcePath,
       manifestValid: validation.valid,
-      selectionMatchesMount: runtime.selectedManifest?.entry === mountedSourcePath,
+      selectionMatchesMount: runtime.selectedManifest?.entry === mountedSourcePath
     };
     const surface = deriveSurface(input);
 
@@ -284,33 +275,19 @@
         </div>
         <div class="surface-detail">${surface.detail}</div>
         <div class="surface-foot muted">last mount request: ${runtime.lastMountRequest.status} — ${runtime.lastMountRequest.detail}</div>
-        ${
-          validation.valid
-            ? ""
-            : `<div class="surface-foot warn">manifest validation failed${
-                validation.missing.length ? ` (missing: ${validation.missing.join(", ")})` : ""
-              }</div>`
-        }
+        ${validation.valid ? "" : `<div class=\"surface-foot warn\">manifest validation failed${validation.missing.length ? ` (missing: ${validation.missing.join(", ")})` : ""}</div>`}
       </div>
     `;
-  }
-
-  function emitCollectionsUpdated() {
-    window.dispatchEvent(
-      new CustomEvent("tars:collections-updated", {
-        detail: {
-          selectedManifestId: runtime.selectedManifest?.id || null,
-          entryCount: runtime.manifestIndex?.entries?.length || 0,
-        },
-      }),
-    );
   }
 
   async function requestMountSelected() {
     if (!runtime.selectedEntry || !runtime.selectedManifest) return;
     const validation = validateSelectedManifest(runtime.selectedEntry, runtime.selectedManifest);
     if (!validation.valid) {
-      runtime.lastMountRequest = { status: "blocked", detail: "manifest-validation-failed" };
+      runtime.lastMountRequest = {
+        status: "blocked",
+        detail: "manifest-validation-failed"
+      };
       renderResolved();
       return;
     }
@@ -326,45 +303,40 @@
       return;
     }
 
-    runtime.lastMountRequest = { status: "blocked", detail: "runtime-api-unavailable" };
+    runtime.lastMountRequest = {
+      status: "blocked",
+      detail: "runtime-api-unavailable"
+    };
     renderResolved();
   }
 
   function render() {
     renderList().catch(showError);
     renderResolved();
-    emitCollectionsUpdated();
-  }
-
-  function refreshFromSignals() {
-    syncLocalSelectionWithRuntime();
-    render();
   }
 
   function showError(error) {
     const container = document.getElementById("collectionsResolvedSummary");
     if (container) {
-      container.innerHTML = `collections browser failed: ${error.message}`;
+      container.innerHTML = `<span class="warn">collections browser failed: ${error.message}</span>`;
     }
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/collections-browser.v1.json");
     runtime.selectionContract = await loadJson("manifests/repo-manifest-selection.v1.json");
-    runtime.manifestIndex = shared.manifestIndex || (await loadJson("manifests/manifest-index.v1.json"));
+    runtime.manifestIndex = shared.manifestIndex || await loadJson("manifests/manifest-index.v1.json");
     shared.manifestIndex = runtime.manifestIndex;
 
     const entries = runtime.manifestIndex?.entries || [];
-    await Promise.all(
-      entries.map(async (entry) => {
-        try {
-          const manifest = await ensureManifest(entry);
-          runtime.manifestCache.set(entry.manifestPath, manifest);
-        } catch {
-          // leave unresolved until selection
-        }
-      }),
-    );
+    await Promise.all(entries.map(async (entry) => {
+      try {
+        const manifest = await ensureManifest(entry);
+        runtime.manifestCache.set(entry.manifestPath, manifest);
+      } catch {
+        // leave unresolved until selection
+      }
+    }));
 
     syncLocalSelectionWithRuntime();
     render();
@@ -379,24 +351,9 @@
       const observer = new MutationObserver(() => {
         syncLocalSelectionWithRuntime();
         renderResolved();
-        emitCollectionsUpdated();
       });
       observer.observe(viewport, { childList: true, subtree: true, characterData: true });
     }
-
-    window.addEventListener("tars:screen-changed", () => {
-      refreshFromSignals();
-    });
-    window.addEventListener("tars:devtools-changed", () => {
-      refreshFromSignals();
-    });
-    window.addEventListener("tars:packager-updated", () => {
-      refreshFromSignals();
-    });
-
-    window.setInterval(() => {
-      refreshFromSignals();
-    }, 1500);
   }
 
   boot().catch(showError);

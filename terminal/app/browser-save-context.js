@@ -67,7 +67,7 @@
       saveTag: input.currentSaveTag,
       historyPath: input.historyPath || "none",
       verifiedResponsePath: input.verifiedResponsePath || "none",
-      source: "dedicated-runtime-field",
+      source: "dedicated-runtime-field"
     };
   }
 
@@ -79,32 +79,14 @@
     return parseJsonText(document.getElementById("repoVerifiedPreview")?.textContent || "");
   }
 
-  function readMountedSourceContext() {
-    return parseJsonText(document.getElementById("mountedSourceContextPreview")?.textContent || "");
-  }
-
-  function deriveSaveTagFromSourcePath(sourcePath) {
-    const segments = String(sourcePath || "").split("/").filter(Boolean);
-    if (segments[0] !== "collections" || segments.length < 3) {
-      return null;
-    }
-    return segments[2] || null;
-  }
-
   function buildInput() {
     const saveBridgeRequest = readSaveBridgeRequest();
     const repoVerifiedPreview = readRepoVerifiedPreview();
-    const mountedSourceContext = readMountedSourceContext();
-    const currentSaveTag =
-      saveBridgeRequest?.saveTag ||
-      repoVerifiedPreview?.repoVerifiedStatus?.saveTag ||
-      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
-      null;
-
+    const currentSaveTag = saveBridgeRequest?.saveTag || repoVerifiedPreview?.repoVerifiedStatus?.saveTag || null;
     return {
       currentSaveTag,
       historyPath: currentSaveTag ? `terminal/saves/${currentSaveTag}/request-history-index.v1.json` : null,
-      verifiedResponsePath: currentSaveTag ? `terminal/saves/${currentSaveTag}/repo-write-response.v1.json` : null,
+      verifiedResponsePath: currentSaveTag ? `terminal/saves/${currentSaveTag}/repo-write-response.v1.json` : null
     };
   }
 
@@ -118,7 +100,7 @@
         `<div><span class="muted">save tag</span> ${surface.saveTag || "none"}</div>`,
         `<div><span class="muted">history path</span> ${surface.historyPath}</div>`,
         `<div><span class="muted">verified response</span> ${surface.verifiedResponsePath}</div>`,
-        `<div><span class="muted">source</span> ${surface.source}</div>`,
+        `<div><span class="muted">source</span> ${surface.source}</div>`
       ].join("");
     }
 
@@ -138,21 +120,13 @@
 
     const observerTargets = [
       document.getElementById("saveBridgePreview"),
-      document.getElementById("repoVerifiedPreview"),
-      document.getElementById("mountedSourceContextPreview"),
+      document.getElementById("repoVerifiedPreview")
     ].filter(Boolean);
 
     const observer = new MutationObserver(() => {
       refresh().catch(() => {});
     });
     observerTargets.forEach((target) => observer.observe(target, { childList: true, subtree: true, characterData: true }));
-
-    window.addEventListener("tars:screen-changed", () => {
-      refresh().catch(() => {});
-    });
-    window.addEventListener("tars:devtools-changed", () => {
-      refresh().catch(() => {});
-    });
 
     window.setInterval(() => {
       refresh().catch(() => {});
@@ -166,15 +140,11 @@
       summary.innerHTML = `<span class="warn">mounted save context bootstrap failed</span>`;
     }
     if (preview) {
-      preview.textContent = JSON.stringify(
-        {
-          status: "bootstrap-error",
-          message: error.message,
-          source: "dedicated-runtime-field",
-        },
-        null,
-        2,
-      );
+      preview.textContent = JSON.stringify({
+        status: "bootstrap-error",
+        message: error.message,
+        source: "dedicated-runtime-field"
+      }, null, 2);
     }
   });
 })();
