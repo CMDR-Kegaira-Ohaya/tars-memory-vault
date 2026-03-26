@@ -11,6 +11,10 @@
     currentSaveTag: null,
     verifiedResponsePath: null,
     verifiedResponse: null,
+    lastInputSignature: null,
+    lastExportSignature: null,
+    refreshScheduled: false,
+    loadingPath: null,
   };
 
   function normalizePath(path) {
@@ -99,6 +103,29 @@
     };
   }
 
+  function buildDerivedInput() {
+    const mountedSaveContext = readMountedSaveContext();
+    const mountedSourceContext = readMountedSourceContext();
+    const nextSaveTag =
+      mountedSaveContext?.saveTag ||
+      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
+      null;
+    const nextVerifiedResponsePath =
+      mountedSaveContext?.verifiedResponsePath ||
+      (nextSaveTag ? `terminal/saves/${nextSaveTag}/repo-write-response.v1.json` : null);
+
+    return {
+      mountedSaveContext,
+      mountedSourceContext,
+      nextSaveTag,
+      nextVerifiedResponsePath,
+      inputSignature: JSON.stringify({
+        saveTag: nextSaveTag,
+        verifiedResponsePath: nextVerifiedResponsePath,
+      }),
+    };
+  }
+
   function exportSurface(mountedSaveContext, mountedSourceContext) {
     const surface = deriveSurface({
       responseLoaded: Boolean(runtime.verifiedResponse),
@@ -107,6 +134,17 @@
       verifiedPaths: (runtime.verifiedResponse?.verification?.pathsVerified || []).length ? "present" : "empty",
       currentSaveTag: runtime.currentSaveTag,
     });
+
+    const exportSignature = JSON.stringify({
+      saveTag: surface.saveTag || null,
+      status: surface.status || "unknown",
+      trusted: surface.trusted === true,
+      verifiedHead: surface.verifiedHead || "none",
+      pathsCount: Array.isArray(surface.pathsVerified) ? surface.pathsVerified.length : 0,
+      detail: surface.detail || "",
+    });
+    if (runtime.lastExportSignature === exportSignature) return;
+    runtime.lastExportSignature = exportSignature;
 
     devtools.repoVerifiedSurface = {
       mountedSaveContext,
@@ -123,46 +161,56 @@
     );
   }
 
-  async function refresh() {
-    const mountedSaveContext = readMountedSaveContext();
-    const mountedSourceContext = readMountedSourceContext();
+  async function refreshNow() {
+    runtime.refreshScheduled = false;
+    const derived = buildDerivedInput();
 
-    const nextSaveTag =
-      mountedSaveContext?.saveTag ||
-      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
-      null;
+    if (runtime.lastInputSignature !== derived.inputSignature) {
+      runtime.lastInputSignature = derived.inputSignature;
+      runtime.currentSaveTag = derived.nextSaveTag;
+      runtime.verifiedResponsePath = derived.nextVerifiedResponsePath;
 
-    const nextVerifiedResponsePath =
-      mountedSaveContext?.verifiedResponsePath ||
-      (nextSaveTag ? `terminal/saves/${nextSaveTag}/repo-write-response.v1.json` : null);
-
-    if (nextSaveTag !== runtime.currentSaveTag || nextVerifiedResponsePath !== runtime.verifiedResponsePath) {
-      runtime.currentSaveTag = nextSaveTag;
-      runtime.verifiedResponsePath = nextVerifiedResponsePath;
-      runtime.verifiedResponse = nextVerifiedResponsePath ? await loadOptionalJson(nextVerifiedResponsePath) : null;
-    } else if (nextVerifiedResponsePath && !runtime.verifiedResponse) {
-      runtime.verifiedResponse = await loadOptionalJson(nextVerifiedResponsePath);
+      if (derived.nextVerifiedResponsePath) {
+        if (runtime.loadingPath !== derived.nextVerifiedResponsePath) {
+          runtime.loadingPath = derived.nextVerifiedResponsePath;
+          runtime.verifiedResponse = await loadOptionalJson(derived.nextVerifiedResponsePath);
+          runtime.loadingPath = null;
+        }
+      } else {
+        runtime.loadingPath = null;
+        runtime.verifiedResponse = null;
+      }
     }
 
-    exportSurface(mountedSaveContext, mountedSourceContext);
+    exportSurface(derived.mountedSaveContext, derived.mountedSourceContext);
+  }
+
+  function scheduleRefresh() {
+    if (runtime.refreshScheduled) return;
+    runtime.refreshScheduled = true;
+    queueMicrotask(() => {
+      refreshNow().catch(() => {
+        runtime.refreshScheduled = false;
+      });
+    });
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/repo-verified-save-status.v1.json");
-    await refresh();
+    await refreshNow();
 
     ["mountedSaveContextPreview", "mountedSourceContextPreview"].forEach((id) => {
       const target = document.getElementById(id);
       if (!target) return;
       const observer = new MutationObserver(() => {
-        refresh().catch(() => {});
+        scheduleRefresh();
       });
       observer.observe(target, { childList: true, subtree: true, characterData: true });
     });
 
-    window.setInterval(() => {
-      refresh().catch(() => {});
-    }, 1500);
+    ["tars:screen-changed", "tars:collections-updated", "tars:request-history-updated"].forEach((eventName) => {
+      window.addEventListener(eventName, scheduleRefresh);
+    });
   }
 
   boot().catch((error) => {

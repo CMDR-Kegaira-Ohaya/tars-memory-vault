@@ -10,6 +10,10 @@
     currentSaveTag: null,
     historyPath: null,
     historyIndex: null,
+    lastInputSignature: null,
+    lastExportSignature: null,
+    refreshScheduled: false,
+    loadingPath: null,
   };
 
   function normalizePath(path) {
@@ -89,8 +93,31 @@
       status: "unknown",
       saveTag: input.currentSaveTag,
       historyPath: input.historyPath || "none",
-      entryCount: 0,
+      entryCount: input.entryCount || 0,
       detail: "unmatched-history-surface-state",
+    };
+  }
+
+  function buildDerivedInput() {
+    const mountedSaveContext = readMountedSaveContext();
+    const mountedSourceContext = readMountedSourceContext();
+    const nextSaveTag =
+      mountedSaveContext?.saveTag ||
+      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
+      null;
+    const nextHistoryPath =
+      mountedSaveContext?.historyPath ||
+      (nextSaveTag ? `terminal/saves/${nextSaveTag}/request-history-index.v1.json` : null);
+
+    return {
+      mountedSaveContext,
+      mountedSourceContext,
+      nextSaveTag,
+      nextHistoryPath,
+      inputSignature: JSON.stringify({
+        saveTag: nextSaveTag,
+        historyPath: nextHistoryPath,
+      }),
     };
   }
 
@@ -101,6 +128,16 @@
       historyPath: runtime.historyPath,
       entryCount: runtime.historyIndex?.entries?.length || 0,
     });
+
+    const exportSignature = JSON.stringify({
+      saveTag: surface.saveTag || null,
+      historyPath: surface.historyPath || "none",
+      entryCount: surface.entryCount || 0,
+      status: surface.status || "unknown",
+      detail: surface.detail || "",
+    });
+    if (runtime.lastExportSignature === exportSignature) return;
+    runtime.lastExportSignature = exportSignature;
 
     devtools.requestHistorySurface = {
       mountedSaveContext,
@@ -117,46 +154,56 @@
     );
   }
 
-  async function refresh() {
-    const mountedSaveContext = readMountedSaveContext();
-    const mountedSourceContext = readMountedSourceContext();
+  async function refreshNow() {
+    runtime.refreshScheduled = false;
+    const derived = buildDerivedInput();
 
-    const nextSaveTag =
-      mountedSaveContext?.saveTag ||
-      deriveSaveTagFromSourcePath(mountedSourceContext?.sourcePath) ||
-      null;
+    if (runtime.lastInputSignature !== derived.inputSignature) {
+      runtime.lastInputSignature = derived.inputSignature;
+      runtime.currentSaveTag = derived.nextSaveTag;
+      runtime.historyPath = derived.nextHistoryPath;
 
-    const nextHistoryPath =
-      mountedSaveContext?.historyPath ||
-      (nextSaveTag ? `terminal/saves/${nextSaveTag}/request-history-index.v1.json` : null);
-
-    if (nextSaveTag !== runtime.currentSaveTag || nextHistoryPath !== runtime.historyPath) {
-      runtime.currentSaveTag = nextSaveTag;
-      runtime.historyPath = nextHistoryPath;
-      runtime.historyIndex = nextHistoryPath ? await loadOptionalJson(nextHistoryPath) : null;
-    } else if (nextHistoryPath && !runtime.historyIndex) {
-      runtime.historyIndex = await loadOptionalJson(nextHistoryPath);
+      if (derived.nextHistoryPath) {
+        if (runtime.loadingPath !== derived.nextHistoryPath) {
+          runtime.loadingPath = derived.nextHistoryPath;
+          runtime.historyIndex = await loadOptionalJson(derived.nextHistoryPath);
+          runtime.loadingPath = null;
+        }
+      } else {
+        runtime.loadingPath = null;
+        runtime.historyIndex = null;
+      }
     }
 
-    exportSurface(mountedSaveContext, mountedSourceContext);
+    exportSurface(derived.mountedSaveContext, derived.mountedSourceContext);
+  }
+
+  function scheduleRefresh() {
+    if (runtime.refreshScheduled) return;
+    runtime.refreshScheduled = true;
+    queueMicrotask(() => {
+      refreshNow().catch(() => {
+        runtime.refreshScheduled = false;
+      });
+    });
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/request-history-surface.v1.json");
-    await refresh();
+    await refreshNow();
 
     ["mountedSaveContextPreview", "mountedSourceContextPreview"].forEach((id) => {
       const target = document.getElementById(id);
       if (!target) return;
       const observer = new MutationObserver(() => {
-        refresh().catch(() => {});
+        scheduleRefresh();
       });
       observer.observe(target, { childList: true, subtree: true, characterData: true });
     });
 
-    window.setInterval(() => {
-      refresh().catch(() => {});
-    }, 1500);
+    ["tars:screen-changed", "tars:collections-updated", "tars:repo-verified-updated"].forEach((eventName) => {
+      window.addEventListener(eventName, scheduleRefresh);
+    });
   }
 
   boot().catch((error) => {
