@@ -306,7 +306,7 @@
     if (!container) return;
 
     const activeScreen = getActiveScreen();
-    if (activeScreen === "debug-intake") {
+    if (["debug-intake", "import-bay", "collections-explorer"].includes(activeScreen)) {
       return;
     }
 
@@ -341,7 +341,7 @@
     const container = document.getElementById("runsViewport");
     if (container) {
       const observer = new MutationObserver(() => {
-        if (getActiveScreen() === "debug-intake") return;
+        if (["debug-intake", "import-bay", "collections-explorer"].includes(getActiveScreen())) return;
         refresh();
       });
       observer.observe(container, { childList: true, subtree: true, characterData: true });
@@ -355,7 +355,7 @@
     ].forEach((eventName) => window.addEventListener(eventName, refresh));
 
     window.setInterval(() => {
-      if (getActiveScreen() === "debug-intake") return;
+      if (["debug-intake", "import-bay", "collections-explorer"].includes(getActiveScreen())) return;
       refresh();
     }, 1500);
   }

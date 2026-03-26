@@ -1,0 +1,45 @@
+{
+  "schema": "tars-collections-index.v1",
+  "root": "collections/",
+  "generatedBy": "repo-static-index",
+  "families": [
+    {
+      "id": "cartridges",
+      "title": "Cartridges",
+      "indexPath": "collections/cartridges/index.v1.json",
+      "mountableByDefault": true
+    },
+    {
+      "id": "books",
+      "title": "Books",
+      "indexPath": "collections/books/index.v1.json",
+      "mountableByDefault": false
+    },
+    {
+      "id": "entertainment",
+      "title": "Entertainment",
+      "indexPath": "collections/entertainment/index.v1.json",
+      "mountableByDefault": false
+    },
+    {
+      "id": "various",
+      "title": "Various",
+      "indexPath": "collections/various/index.v1.json",
+      "mountableByDefault": false
+    }
+  ],
+  "entries": [
+    {
+      "catalogId": "repo:books-example-001",
+      "source": "repo",
+      "family": "books",
+      "kind": "book",
+      "title": "Example Cartridge",
+      "slug": "books-example-001",
+      "summary": "Minimal repo-backed markdown entry for manifest-backed browsing.",
+      "manifestPath": "../terminal/manifests/books-example-001.manifest.v1.json",
+      "entryPath": "../collections/books/example.md",
+      "mountable": false
+    }
+  ]
+}
