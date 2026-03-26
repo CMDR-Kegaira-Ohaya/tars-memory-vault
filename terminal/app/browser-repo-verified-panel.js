@@ -1,6 +1,14 @@
 (() => {
   const runtime = { contract: null };
 
+  const FAMILY_OPTIONS = ["cartridges", "books", "entertainment", "various"];
+  const KIND_BY_FAMILY = {
+    cartridges: "cartridge",
+    books: "book",
+    entertainment: "media-entry",
+    various: "bundle",
+  };
+
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
   }
@@ -12,11 +20,15 @@
   }
 
   function parseJson(text) {
-    try { return JSON.parse(text); } catch { return null; }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   }
 
   function matches(match, input) {
-    return Object.entries(match || e}).every(([key, expected]) => {
+    return Object.entries(match || {}).every(([key, expected]) => {
       const actual = input[key];
       if (expected === null) return actual == null;
       if (expected === "non-null") return actual != null;
@@ -36,7 +48,7 @@
       title: "Repo verification",
       statusChip: input.status || "unknown",
       detail: "Repo verification presentation fallback.",
-      trustLabel: input.trusted ? "trusted" : "review"
+      trustLabel: input.trusted ? "trusted" : "review",
     };
   }
 
@@ -189,8 +201,128 @@
     }
   }
 
+  function getPackager() {
+    return window.__TARS_PACKAGER__ || null;
+  }
+
+  function slugify(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/^[^0-9a-z]+/g, "")
+      .replace(/[^0-9a-z]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64) || "untitled-pack";
+  }
+
+  function emitPackagerUpdate() {
+    const packager = getPackager();
+    if (!packager) return;
+    window.dispatchEvent(new CustomEvent("tars:packager-updated", {
+      detail: {
+        draft: packager.draft,
+        notice: packager.notice,
+        selectedCatalogId: packager.selectedCatalogId,
+        localCount: Array.isArray(packager.localPackages) ? packager.localPackages.length : 0,
+        catalogError: packager.catalogError,
+      },
+    }));
+  }
+
+  function updatePackagerDraftField(field, value) {
+    const packager = getPackager();
+    if (!packager?.draft) return;
+    const draft = packager.draft;
+    draft.config = { ...(draft.config || {}), [field]: value };
+
+    if (field === "family") {
+      const family = FAMILY_OPTIONS.includes(value) ? value : "various";
+      draft.config.family = family;
+      draft.config.kind = KIND_BY_FAMILY[family] || draft.config.kind || "bundle";
+      if (family !== "cartridges") {
+        draft.config.runtime = null;
+        draft.config.saveSlots = 0;
+        draft.config.mountable = false;
+      } else if (!draft.config.runtime) {
+        draft.config.runtime = "text-adventure.v1";
+        draft.config.saveSlots = draft.config.saveSlots ?? 3;
+        draft.config.mountable = true;
+      }
+    }
+
+    if (field === "slug") {
+      draft.config.slug = slugify(value);
+    }
+
+    if (field === "title") {
+      const currentSlug = String(draft.config.slug || "");
+      if (!currentSlug || currentSlug === slugify(currentSlug)) {
+        draft.config.slug = draft.config.slug || slugify(value);
+      }
+    }
+
+    if (field === "runtime" && String(value || "").trim() === "") {
+      draft.config.runtime = null;
+    }
+
+    if (field === "saveSlots") {
+      const numeric = Number(value);
+      draft.config.saveSlots = Number.isFinite(numeric) ? Math.max(0, Math.min(3, numeric)) : 0;
+    }
+
+    draft.updatedAt = new Date().toISOString();
+    emitPackagerUpdate();
+  }
+
+  function isImportBayFieldId(id) {
+    return /^(importBayFamily|importBayKind|importBayTitle|importBaySlug|importBayRuntime|importBaySaveSlots)$/.test(String(id || ""));
+  }
+
+  function fieldForImportBayId(id) {
+    return {
+      importBayFamily: "family",
+      importBayKind: "kind",
+      importBayTitle: "title",
+      importBaySlug: "slug",
+      importBayRuntime: "runtime",
+      importBaySaveSlots: "saveSlots",
+    }[id] || null;
+  }
+
+  function installImportBayCaretPatch() {
+    if (window.__TARS_IMPORT_BAY_CARET_PATCHED__) {
+      return;
+    }
+    window.__TARS_IMPORT_BAY_CARET_PATCHED__ = true;
+
+    document.addEventListener("input", (event) => {
+      const { target } = event;
+      if (!isImportBayFieldId(target?.id)) return;
+      const field = fieldForImportBayId(target.id);
+      if (!field) return;
+      updatePackagerDraftField(field, target.value);
+      event.stopImmediatePropagation();
+    }, true);
+
+    document.addEventListener("change", (event) => {
+      const { target } = event;
+      if (!isImportBayFieldId(target?.id)) return;
+      const field = fieldForImportBayId(target.id);
+      if (!field) return;
+      updatePackagerDraftField(field, target.value);
+      setTimeout(() => emitPackagerUpdate(), 0);
+      event.stopImmediatePropagation();
+    }, true);
+
+    document.addEventListener("focusout", (event) => {
+      if (!isImportBayFieldId(event.target?.id)) return;
+      setTimeout(() => emitPackagerUpdate(), 0);
+    }, true);
+  }
+
   function refresh() {
     applyShellFinish();
+    installImportBayCaretPatch();
     const container = document.getElementById("repoVerifiedSummary");
     if (!container) return;
     const panelState = readPanelState();
@@ -198,7 +330,7 @@
     const surface = deriveSurface({
       status: rawState.status || "none",
       trusted: rawState.trusted === true,
-      pathsCount: Array.isArray(rawState.pathsVerified) ? rawState.pathsVerified.length : 0
+      pathsCount: Array.isArray(rawState.pathsVerified) ? rawState.pathsVerified.length : 0,
     });
     render(surface, panelState, container);
   }
