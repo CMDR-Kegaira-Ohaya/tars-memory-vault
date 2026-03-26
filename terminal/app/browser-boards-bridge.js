@@ -81,6 +81,18 @@
     };
   }
 
+  function emitDebugUpdate() {
+    window.dispatchEvent(
+      new CustomEvent("tars:debug-intake-updated", {
+        detail: {
+          payloadKind: debugIntake.payloadKind,
+          sourceLabel: debugIntake.sourceLabel,
+          updatedAt: debugIntake.updatedAt,
+        },
+      })
+    );
+  }
+
   function updatePayload(text, sourceLabel, notice = "") {
     const summary = summarizePayload(text);
     debugIntake.payloadText = String(text || "");
@@ -88,6 +100,7 @@
     debugIntake.sourceLabel = sourceLabel || "manual";
     debugIntake.updatedAt = new Date().toISOString();
     debugIntake.notice = notice;
+    emitDebugUpdate();
   }
 
   function getActiveScreen() {
@@ -97,7 +110,20 @@
   }
 
   function setScreen(screen) {
+    const previousMounted = devtools.mountedCartridge;
+    if (screen === "request-history" || screen === "repo-verified") {
+      devtools.mountedCartridge = screen;
+    } else {
+      devtools.mountedCartridge = null;
+    }
     screenUi.activeScreen = screen;
+    if (previousMounted !== devtools.mountedCartridge) {
+      window.dispatchEvent(
+        new CustomEvent("tars:devtools-changed", {
+          detail: { mountedCartridge: devtools.mountedCartridge },
+        })
+      );
+    }
     window.dispatchEvent(
       new CustomEvent("tars:screen-changed", {
         detail: {
@@ -176,6 +202,7 @@
     const text = debugIntake.payloadText || "";
     if (!text) {
       debugIntake.notice = "nothing to copy";
+      emitDebugUpdate();
       renderDebugIntakeIfActive(true);
       return;
     }
@@ -189,6 +216,7 @@
     } catch {
       debugIntake.notice = "clipboard copy failed";
     }
+    emitDebugUpdate();
     renderDebugIntakeIfActive(true);
   }
 
@@ -317,14 +345,12 @@
   window.fetch = async (...args) => {
     const response = await originalFetch(...args);
     const path = normalizeInput(args[0]);
-
     if (path.endsWith("app/board-enumeration.v1.json")) {
       return wrapJsonResponse(response, (data) => {
         shared.boardEnumeration = data;
         return data;
       });
     }
-
     return response;
   };
 
@@ -348,7 +374,6 @@
     }
     if (action === "back") {
       closeDebugIntake();
-      renderDebugIntakeIfActive(true);
     }
   });
 
@@ -384,18 +409,6 @@
   window.addEventListener("DOMContentLoaded", () => {
     ensureChrome();
     renderDebugIntakeIfActive(true);
-    const shellHost = document.querySelector(".shell");
-    if (shellHost) {
-      const observer = new MutationObserver(() => {
-        ensureChrome();
-        renderDebugIntakeIfActive();
-      });
-      observer.observe(shellHost, { childList: true, subtree: true });
-    }
-    window.setInterval(() => {
-      ensureChrome();
-      renderDebugIntakeIfActive();
-    }, 250);
   }, { once: true });
 
   [
@@ -403,8 +416,9 @@
     "tars:debug-intake-updated",
     "tars:request-history-updated",
     "tars:repo-verified-updated",
+    "tars:devtools-changed",
   ].forEach((eventName) => window.addEventListener(eventName, () => {
     ensureChrome();
-    renderDebugIntakeIfActive(true);
+    renderDebugIntakeIfActive(false);
   }));
 })();

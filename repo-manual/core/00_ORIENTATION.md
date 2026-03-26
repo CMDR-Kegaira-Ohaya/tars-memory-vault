@@ -1,17 +1,16 @@
-# 00_ORIENTATION.md
-
 ## Purpose
 Primary human and system entry point for the repo-side layer.
 
 ## What this repo is
 This repository is the private repo-side support layer for TARS.
-It holds canonical repo guidance, active work areas, content collections, and operational history.
+It holds canonical repo guidance, active work areas, content collections, the terminal runtime, and operational history.
 
 ## Current state
 - Repo state: Build State
 - Branch model: main only
 - Manual maturity: partial but installed
 - Connector reference home: `repo-manual/refs/connector/`
+- Terminal reference home: `repo-manual/refs/terminal/`
 - Troubleshooting home: `repo-manual/troubleshooting/`
 
 ## Read order
@@ -24,6 +23,7 @@ It holds canonical repo guidance, active work areas, content collections, and op
 Use:
 - `work/` for unstable drafts and in-progress material
 - `repo-manual/` for stable repo guidance
+- `terminal/` for the live terminal shell and browser runtime
 - `collections/` for subject/content holdings
 - `logs/` for decisions and incidents
 - `.github/workflows/` for executable workflow files

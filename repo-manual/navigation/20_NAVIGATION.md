@@ -1,5 +1,3 @@
-# 20_NAVIGATION.md
-
 ## Fast paths
 - Start state: `REPO_BOOTSTRAP.md`
 - Orientation: `repo-manual/core/00_ORIENTATION.md`
@@ -7,6 +5,7 @@
 - Router: `repo-manual/core/10_ROUTER.md`
 - Pipelines: `repo-manual/core/11_PIPELINES.md`
 - Connector reference: `repo-manual/refs/connector/`
+- Terminal reference: `repo-manual/refs/terminal/TARS_TERMINAL_REFERENCE.md`
 - Troubleshooting: `repo-manual/troubleshooting/TROUBLESHOOTING_REPO_TIPS.md`
 
 ## Working rule
