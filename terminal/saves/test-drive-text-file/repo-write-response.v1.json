@@ -1,0 +1,36 @@
+{
+  "requestEnvelopePath": "terminal/saves/test-drive-text-file/save-request-envelope.v1.json",
+  "applyRequestContract": "terminal/app/apply-save-request.v1.json",
+  "handlerContract": "terminal/app/repo-collections-ingest-handler.v1.json",
+  "status": "applied",
+  "writtenPaths": [
+    "collections/books/test-drive-text-file/manifest.json",
+    "collections/books/test-drive-text-file/content/index.md",
+    "collections/books/index.v1.json",
+    "collections/index.v1.json",
+    "terminal/manifests/test-drive-text-file.manifest.v1.json",
+    "terminal/manifests/manifest-index.v1.json",
+    "terminal/saves/test-drive-text-file/save-request-envelope.v1.json",
+    "terminal/saves/test-drive-text-file/request-history-index.v1.json",
+    "terminal/saves/test-drive-text-file/repo-write-response.v1.json"
+  ],
+  "updatedIndexes": true,
+  "verification": {
+    "head": "pending-post-commit-head",
+    "pathsVerified": [
+      "collections/books/test-drive-text-file/manifest.json",
+      "collections/books/test-drive-text-file/content/index.md",
+      "collections/books/index.v1.json",
+      "collections/index.v1.json",
+      "terminal/manifests/test-drive-text-file.manifest.v1.json",
+      "terminal/manifests/manifest-index.v1.json",
+      "terminal/saves/test-drive-text-file/save-request-envelope.v1.json",
+      "terminal/saves/test-drive-text-file/request-history-index.v1.json",
+      "terminal/saves/test-drive-text-file/repo-write-response.v1.json"
+    ],
+    "verifiedAt": "2026-03-26T18:23:51Z"
+  },
+  "assumptions": {
+    "saveTag": "derived-from-request-manifest-slug"
+  }
+}

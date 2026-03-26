@@ -1,0 +1,56 @@
+{
+  "id": "terminal-save-request-history-index-v1",
+  "version": "v1",
+  "role": "bounded-collections-ingest-request-history-index",
+  "saveTag": "test-drive-text-file",
+  "root": "terminal/saves/test-drive-text-file/",
+  "enumerationMode": "index-driven-no-path-guessing",
+  "entries": [
+    {
+      "order": 1,
+      "kind": "staged-request",
+      "path": "terminal/saves/test-drive-text-file/save-request-envelope.v1.json",
+      "status": "staged-ready",
+      "recordedAt": "2026-03-26T18:20:22.938Z"
+    },
+    {
+      "order": 2,
+      "kind": "apply-handoff",
+      "path": "terminal/app/apply-save-request.v1.json",
+      "status": "contract-reference",
+      "recordedAt": "2026-03-26T18:23:51Z"
+    },
+    {
+      "order": 3,
+      "kind": "repo-handler",
+      "path": "terminal/app/repo-collections-ingest-handler.v1.json",
+      "status": "contract-reference",
+      "recordedAt": "2026-03-26T18:23:51Z"
+    },
+    {
+      "order": 4,
+      "kind": "handler-response",
+      "path": "terminal/saves/test-drive-text-file/repo-write-response.v1.json",
+      "status": "applied",
+      "recordedAt": "2026-03-26T18:23:51Z"
+    },
+    {
+      "order": 5,
+      "kind": "verified-status-ingest",
+      "path": "terminal/app/repo-verified-save-status.v1.json",
+      "status": "trusted-applied-surface-available",
+      "recordedAt": "2026-03-26T18:23:51Z"
+    }
+  ],
+  "rules": [
+    "History index is descriptive and bounded to the collections-ingest request chain.",
+    "The index may refer to save-slot-local artifacts and governing terminal app contracts.",
+    "The index does not create new write authority or widen path permissions.",
+    "Boards remain outside collections-ingest request history because Boards never use terminal/saves/."
+  ],
+  "guardrails": [
+    "Consumers should enumerate request-chain artifacts from this index instead of guessing paths.",
+    "Trusted applied state still depends on repo-verified response content, not index presence alone.",
+    "The history index must stay read-oriented and bounded to the collections-ingest flow."
+  ]
+}

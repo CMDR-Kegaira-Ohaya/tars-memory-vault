@@ -28,6 +28,14 @@
       "entry": "collections/books/import-bay-sample-001/content/primary.md",
       "type": "markdown",
       "source": "repo"
+    },
+    {
+      "manifestId": "test-drive-text-file",
+      "manifestPath": "terminal/manifests/test-drive-text-file.manifest.v1.json",
+      "category": "books",
+      "entry": "collections/books/test-drive-text-file/content/index.md",
+      "type": "markdown",
+      "source": "repo"
     }
   ],
   "rules": [

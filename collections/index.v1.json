@@ -52,6 +52,18 @@
       "manifestPath": "../collections/books/import-bay-sample-001/manifest.json",
       "entryPath": "../collections/books/import-bay-sample-001/content/primary.md",
       "mountable": false
+    },
+    {
+      "catalogId": "repo:test-drive-text-file",
+      "source": "repo",
+      "family": "books",
+      "kind": "note",
+      "title": "Test Drive Text File",
+      "slug": "test-drive-text-file",
+      "summary": "Imported markdown note staged from terminal Import Bay.",
+      "manifestPath": "../collections/books/test-drive-text-file/manifest.json",
+      "entryPath": "../collections/books/test-drive-text-file/content/index.md",
+      "mountable": false
     }
   ]
 }

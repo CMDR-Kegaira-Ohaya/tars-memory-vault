@@ -1,0 +1,30 @@
+{
+  "schema": "tars-collections-save-request.v1",
+  "generatedAt": "2026-03-26T18:20:22.938Z",
+  "source": "terminal-import-bay",
+  "targetRoot": "collections/books/test-drive-text-file/",
+  "manifest": {
+    "schema": "tars-pack.v1",
+    "kind": "Note",
+    "family": "books",
+    "id": "test-drive-text-file",
+    "title": "Test Drive Text File",
+    "slug": "test-drive-text-file",
+    "entry": "content/index.md",
+    "runtime": null,
+    "encoding": "utf-8",
+    "mountable": false
+  },
+  "files": [
+    {
+      "path": "collections/books/test-drive-text-file/manifest.json",
+      "contentType": "application/json",
+      "content": "{\n  \"schema\": \"tars-pack.v1\",\n  \"kind\": \"Note\",\n  \"family\": \"books\",\n  \"id\": \"test-drive-text-file\",\n  \"title\": \"Test Drive Text File\",\n  \"slug\": \"test-drive-text-file\",\n  \"entry\": \"content/index.md\",\n  \"runtime\": null,\n  \"encoding\": \"utf-8\",\n  \"mountable\": false\n}\n"
+    },
+    {
+      "path": "collections/books/test-drive-text-file/content/index.md",
+      "contentType": "text/plain",
+      "content": "This is a test text, written for testing functions in the TARS Repo Terminal,\r\nand other relevant purposes. Safe to be edited."
+    }
+  ]
+}

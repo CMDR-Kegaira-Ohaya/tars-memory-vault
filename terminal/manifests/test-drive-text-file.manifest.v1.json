@@ -1,0 +1,21 @@
+{
+  "id": "test-drive-text-file",
+  "title": "Test Drive Text File",
+  "type": "markdown",
+  "source": "repo",
+  "entry": "collections/books/test-drive-text-file/content/index.md",
+  "renderer": "markdown-reader",
+  "save": {
+    "enabled": true,
+    "tag": "test-drive-text-file"
+  },
+  "meta": {
+    "description": "Compatibility manifest for a terminal-imported collections note.",
+    "author": "repo",
+    "tags": [
+      "book",
+      "note",
+      "terminal-import-bay"
+    ]
+  }
+}

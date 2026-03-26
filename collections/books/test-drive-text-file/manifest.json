@@ -1,0 +1,12 @@
+{
+  "schema": "tars-pack.v1",
+  "kind": "Note",
+  "family": "books",
+  "id": "test-drive-text-file",
+  "title": "Test Drive Text File",
+  "slug": "test-drive-text-file",
+  "entry": "content/index.md",
+  "runtime": null,
+  "encoding": "utf-8",
+  "mountable": false
+}
