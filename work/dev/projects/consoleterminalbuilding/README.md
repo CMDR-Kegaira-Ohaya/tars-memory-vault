@@ -2,886 +2,266 @@
 
 ## Purpose
 
-This is the single working board for building the terminal system.
+This is the live working board for the terminal project.
 
-It combines:
-- terminal charter
-- corrected shell model
-- structural architecture
-- current build direction
-- current Boards-mode rules
-- current Save / Export model
-- anti-drift handoff guidance for fresh implementation chats
-- Pages runtime strategy
-- GPT-side relationship boundary
-- live interaction boundary for runtime state vs repo behavior
+It records:
+- current repo truth
+- current stable vs unstable state
+- locked architecture rules
+- the agreed naming model
+- the current failure diagnosis
+- the next repair path
 
-This board lives under:
+This board is the implementation truth for fresh repo-side terminal work.
+If chat continuity and this board diverge, this board wins.
 
-`work/dev/projects/consoleterminalbuilding/`
+---
 
-so terminal design-and-build planning stays in project workspace, not inside the runtime-facing `terminal/` layer.
+## Current project state
 
-## Fresh-session implementation note
+### Current repo head
+`a41c851997c3ce756e9078bfafa609ec5a4ee75c`
 
-A fresh chat instance should be able to continue terminal implementation from this file alone.
-That is a design goal.
+Commit:
+`Show Dev surface selector in main screen`
 
-This file is meant to carry enough structure, rationale, and boundary logic that a new instance does not need hidden chat continuity in order to scaffold and implement the terminal safely.
+### Current live condition of that head
+Treat the current head as **unstable**.
 
-If future work depends on a rule, boundary, or rationale, that rule should be written into this file rather than left only in chat memory.
+Observed result:
+- terminal can hang before entry
+- user reported `RESULT_CODE_HUNG`
 
-## Implementation authority for fresh instances
+### Last clearly usable baseline before the Dev-selector pass
+`996763999198d213b96cd27ec229ead37d46ac45`
 
-When implementing terminal work from a fresh chat:
+That baseline included:
+- workflow-doc sync fix
+- systems-check strip pass
+- earlier save-context and request-history/repo-verified fixes
+- terminal stable enough for normal browsing
 
-1. Treat this file as the terminal implementation source of truth.
-2. Do not redesign the architecture unless the user explicitly asks for redesign.
-3. Prefer implementing the locked decisions already written here.
-4. If something is not specified here, choose the smallest non-drifting implementation that preserves the current architecture.
-5. If an implementation choice would weaken a listed boundary, stop and ask.
+Do not describe the current head as stable until the hang is repaired and rechecked.
 
-## Terminal build workflow note
+---
 
-Short-lived branches may be used as implementation scaffolding for terminal work, but they are not part of terminal architecture.
+## Stable truths that remain locked
 
-Workflow rule:
-- `main` remains the single canonical runtime and contract truth
-- use one short-lived branch per bounded terminal build slice when branching is needed
-- verify repo state on the branch before merge
-- merge back quickly after verification
-- do not let long-lived terminal branches drift into parallel design lanes
-- do not make branches part of terminal content structure, mounting logic, or user-facing repo architecture
+These stay true unless explicitly changed by the user or contradicted by the repo.
 
-## Relationship to `terminal/`
+- terminal is meant to stay live, client-side, and device-like
+- Debug Intake works in the stable baseline
+- Import Bay works in the stable baseline
+- Collections Explorer works in the stable baseline
+- Import Bay fields keep cursor and focus while typing
+- `/collections/` is the broad catalogue root
+- `/collections/cartridges/` is the mountable cartridge family
+- other collection families are browseable catalogue families, not cartridges by default
+- browser terminal can stage locally and prepare repo-ready save requests
+- direct authenticated in-browser repo ingestion into `/collections/` is still not the browser path
+- authenticated repo-save handoff from terminal save-request output into `/collections/` has been proven externally through repo-side write flow
+- `collections/books/test-drive-text-file/` exists as a real repo entry from that handoff path
 
-`terminal/` remains the repo layer reserved for the terminal runtime itself.
+---
 
-This working board is intentionally outside `terminal/`:
-- to keep `terminal/` clean as a runtime-facing layer
-- to keep planning and build orchestration in project workspace
-- to let implementation grow later without mixing runtime surfaces and active design planning
+## Current naming rule now locked
 
-## Core identity
+### Cartridge rule
+**Cartridge = mountable**
 
-Terminal is the repo’s user-facing shell and cartridge host.
+That is now the clean naming rule.
 
-It is not just a web page or a link hub.
-It is the contained device-like interface through which the user loads, reads, runs, exports, and saves repo-contained or external cartridges.
+Implications:
+- mountable things are cartridges
+- non-mountable catalogue entries are not cartridges by default
+- Dev cartridges are valid cartridges
+- Books, Entertainment, Various, and similar families stay collection families unless a specific entry gets a real mount path
 
-Terminal should behave like:
-- one persistent shell
-- mode-based navigation
-- mounted cartridges and modules
-- persistent shell state
-- bounded save behavior
-- clear export behavior
-- a clean separation between shell, content, and engines
+### Collections rule
+**Collections = broad catalogue**
 
-The terminal should become its own thing.
-The old “device shell” idea is a functional reference, not a stylistic limit.
+Collections remain the browse root and should not be collapsed into cartridges.
 
-## Pages runtime strategy
+### Dev rule
+**Dev surfaces should become Dev cartridges when they are mountable in-terminal**
 
-The terminal delivered through Pages should be a live client-side runtime shell.
-It must not be implemented as a static mock page.
+Approved examples:
+- Request History
+- Repo Verified
+- Import Bay
+- Collections Explorer
+- Debug Intake
 
-Pages is the runtime delivery surface for the terminal front end.
-It is not the planning layer, and it does not replace GPT-side orchestration.
+This is a UX and architecture rule, not yet a completed runtime implementation.
 
-The intended model is:
-- live browser shell
-- user-clickable runtime interaction
-- client-side mode switching
-- mounted content readout and runtime state
-- terminal-owned save state
-- export controls distinct from save
-- repo behavior preserved unless an allowed terminal save write occurs
+---
 
-## GPT-side relationship boundary
+## Current architecture direction
 
-The Pages terminal does not take the place of the GPT-side.
+### Shell direction
+Keep the shell compact and screen-first.
+Do not redesign the shell wholesale during the repair pass.
 
-Locked relation:
-- GPT-side = planning, repo work, implementation guidance, orchestration
-- Pages terminal = user-facing runtime shell
-- working board = implementation source of truth for terminal build direction
-- Boards mode = live readout only, not a planning surface
-
-Therefore the terminal should be:
-- live
-- interactive
-- runtime-facing
-- bounded
-
-And it should not become:
-- a GPT replacement
-- a second planning brain
-- a hidden repo authoring surface
-- a collapse of runtime and orchestration into one layer
-
-## Live interaction strategy
-
-The user must be able to interact with the terminal without changing repo behavior by default.
-
-Examples of allowed runtime interaction:
-- turn pages in mounted reading content
-- navigate collections and mounted cartridges
-- write notes for terminal save state
-- resume progress from terminal save state
-- later play engine-backed content or games inside the shell
-
-These interactions are runtime-state actions unless an explicit allowed save path is used.
-They do not imply edits to repo source files.
-
-Runtime interaction is allowed to be rich.
-Repo mutation remains narrow.
-
-## Anti-drift implementation rules
-
-These rules exist specifically to prevent redesign drift in future implementation work.
-
-### 1. Do not turn `terminal/` into a planning folder
-`terminal/` is the runtime root, not the project-board root.
-Planning boards live under project workspace.
-
-### 2. Do not turn `work/` into normal content navigation
-`work/` is not a standard user-content domain.
-Boards mode is a special-purpose readout exception, not a license to treat all work paths as normal content surfaces.
-
-### 3. Do not collapse Boards into ordinary save-capable cartridges
-Boards may use the markdown reader technically, but behaviorally they are not normal cartridges.
-Boards are live readout only.
-They do not save through terminal GUI.
-
-### 4. Do not collapse Export into Save
-Save persists state inward.
-Export takes content outward.
-They may sit next to each other in UI, but they must remain distinct actions.
-
-### 5. Do not let convenience break the write boundary
-Terminal may read broadly, but terminal writes stay limited to `terminal/saves/<tag>/`.
-Boards are outside even that save behavior.
-
-### 6. Do not let the shell disappear into page-hopping
-The shell stays present while content changes inside it.
-Implementation should preserve a device-shell feel, not devolve into scattered pages.
-
-### 7. Do not invent parallel names where repo names already work
-Use `Collections` because the repo already has `collections/`.
-Do not invent a fake top-level `Library` abstraction unless explicitly requested later.
-
-### 8. Do not let a live terminal runtime become a GPT substitute
-The runtime shell may be interactive and stateful.
-It must not become the planning authority, implementation authority, or orchestration layer.
-
-### 9. Do not treat runtime interaction as implicit repo authoring
-Page turns, notes, gameplay state, bookmarks, local progress, and similar clicks are terminal-state operations unless an explicit repo-safe write path is introduced later.
-
-## Why these boundaries exist
-
-These boundaries are not arbitrary.
-They exist to preserve:
-- clean runtime vs planning separation
-- one source of truth for working boards
-- low-drift fresh-chat handoff
-- a console-shell feel instead of a website feel
-- safe terminal write behavior
-- live interaction without hidden repo mutation
-- long-horizon project continuity without mixing lanes
+### Navigation direction
+Main navigation should stay human-facing.
+Operator/inspection surfaces should not compete with primary browsing navigation.
 
-If a future implementation feels easier by weakening these boundaries, it is likely a drift move rather than a real improvement.
+### Systems strip direction
+The former shortcut/control row is better treated as a systems check / EWS strip.
+It should read as status, not as the main way to move around.
 
-## Locked decisions vs open decisions
+### Dev direction
+Dev should become a proper destination.
+Inside Dev, the user should select one Dev surface and mount only that one surface into the main screen.
 
-### Locked now
-The following are considered active design truth unless explicitly changed by the user:
-- `terminal/` stays a clean runtime root
-- the working board lives at `work/dev/projects/consoleterminalbuilding/README.md`
-- v1 mode set includes `Boards`
-- `Collections` maps directly to `collections/`
-- first canonical repo cartridge root is `collections/`
-- first approved board root is `work/dev/projects/`
-- Boards mode is live readout only
-- Boards never save through terminal GUI
-- Boards never use `terminal/saves/`
-- Save and Export remain distinct actions
-- Export Source is the first export priority
-- Export Output exists as a greyed-out placeholder initially
-- Pages terminal is a live client-side runtime, not a static mock
-- Pages terminal does not replace GPT-side planning or repo work
-- runtime interaction does not change repo behavior by default
-- notes are terminal save-state data unless explicitly exported later
-- future games or engines may run inside terminal without becoming repo authoring
+### Reader-first direction
+The terminal still needs a true mounted content reader for note-like entries.
+Mounting should eventually lead to reading, not only to state inspection.
 
-### Open later
-The following are still open design space:
-- final visual language
-- exact shell layout details
-- exact renderer implementation details
-- exact manifest location/shape refinements beyond v0
-- final export packaging details beyond v1 source export
-- animation and motion behavior
-- deeper engine architecture after basic shell exists
-- optional remote or API paths beyond bounded terminal save behavior
+---
 
-## Non-negotiable rules
+## Current failure diagnosis
 
-### 1. Persistent shell
-The shell stays present while content changes inside it.
+### What the current hang is most likely caused by
+The current hang is **not** best explained by the root `index.html` redirect.
 
-### 2. Typed cartridges
-Terminal loads intentional, typed cartridges.
-It should not treat arbitrary files as equal to cartridges.
+Confirmed repo structure:
+- root `index.html` refreshes once to `./terminal/index.html`
+- `terminal/index.html` does not redirect back
 
-### 3. Broad read, narrow write
-Terminal may read and load broadly.
-It may write only under:
+So this is not an HTML ping-pong loop.
 
-`terminal/saves/<tag>/`
+### More likely cause
+The likely cause is the current `browser-home-surface.js` Dev-selector wiring.
 
-### 4. Export is outbound, not persistence
-Export is not Save.
-Export lets the user take content out.
-It does not create repo writes and does not imply terminal persistence.
+Most likely failure pattern:
+- mutation observers watch multiple regions
+- one watched region is `runsViewport`
+- Dev-hub rendering prepends/removes DOM inside `runsViewport`
+- the same file then reacts to that mutation and re-renders again
+- the file also keeps a periodic `setInterval(refresh, 1500)`
 
-### 5. Repo-true content roots
-Terminal should mirror real repo domains where those domains already exist.
+Likely result:
+- self-triggering DOM mutation loop
+- repeated refresh pressure
+- browser hang before normal use
 
-### 6. External cartridges stay external
-Disk and drag-drop cartridges do not automatically become repo content.
+### Operational conclusion
+Treat the current problem as:
+**observer + DOM mutation + interval refresh loop risk in `browser-home-surface.js`**
 
-### 7. Boards mode is live readout only
-Working boards are read at source and displayed in terminal.
-They are not saved through terminal GUI and do not use `terminal/saves/`.
+Do not spend time blaming the root redirect unless new evidence appears.
 
-### 8. Live runtime does not equal repo mutation
-Interactive actions may be live and stateful while source files remain untouched.
+---
 
-### 9. Live runtime does not replace GPT-side authority
-Terminal runtime behavior may expand over time, but GPT-side remains the planning and implementation authority unless explicitly changed by the user.
+## Repair direction now locked
 
-## First canonical repo cartridge root
+The preferred repair is **not** to keep stabilizing the current drawer/hub injection model.
 
-The first canonical repo cartridge root is:
+The preferred repair is:
 
-`collections/`
+1. remove drawer/hub-driven Dev injection
+2. stop observing `runsViewport`
+3. remove interval-refresh fallback from `browser-home-surface.js`
+4. treat Dev items as separate mountable units
+5. reuse the cartridge selection/mount pattern if that is the easiest path
+6. mount only one Dev cartridge at a time into the main screen
 
-This is the normal repo-facing content surface for terminal v1.
+This means the safer final direction is:
 
-Within `collections/`, terminal should surface:
-- `collections/books/`
-- `collections/entertainment/`
-- `collections/various/`
+- `Dev` in main nav
+- Dev selector list visible in the normal selector area or main screen
+- one active Dev cartridge at a time
+- no hidden all-at-once Dev drawer dependency
+- no hub DOM repeatedly injected into the same watched viewport
 
-## Non-default repo surfaces
+---
 
-These are real repo surfaces, but they are not normal terminal content roots in v1:
-- `repo-manual/`
-- `logs/`
-- `work/`
+## Current implementation target order
 
-They may be surfaced later through system, admin, or special-purpose views if explicitly desired.
+### Immediate target
+Repair the hang introduced by the Dev-selector pass without blind rollback logic.
 
-## Approved board roots
+### Preferred next sequence
+1. patch out the self-triggering Dev-hub / observer loop
+2. re-express Dev surfaces as separate mountable Dev cartridges
+3. mount one Dev cartridge at a time
+4. verify entry stability
+5. only then continue UX cleanup
 
-Boards mode is the deliberate exception for workspace readout.
+### Do not do next
+- do not attempt another broad shell rewrite in one jump
+- do not load all Dev surfaces at once
+- do not blur Collections and Cartridges
+- do not rename non-mountable collection families as cartridges
+- do not redesign the shell before the hang is fixed
+- do not treat runtime clicks as direct repo mutation
 
-The first approved board root is:
+---
 
-`work/dev/projects/`
+## Repo-save truth
 
-Boards mode may enumerate and mount working boards from approved project paths under that root.
+The repo-save path is now split into two truths and both must be stated clearly.
 
-Example live board:
+### Browser-side truth
+Inside the browser terminal, the user can:
+- import or stage content
+- generate a repo-ready save request
+- inspect save-side status surfaces
+
+### Repo-write truth
+The actual authenticated repo write into `/collections/` is a separate handoff path.
+It is not the same thing as direct authenticated in-browser write.
+
+This distinction must stay explicit in future work.
+
+---
+
+## Files most relevant to the current repair
+
+### Immediate code surface
+- `terminal/app/browser-home-surface.js`
+
+### Related runtime surfaces
+- `terminal/app/browser-runs-surface.js`
+- `terminal/app/browser-request-history-panel.js`
+- `terminal/app/browser-repo-verified-panel.js`
+- `terminal/app/browser-collections-bridge.js`
+- `terminal/app/browser-cartridge-bay.js`
+
+### Runtime shell entry
+- `terminal/index.html`
+- `index.html`
+
+### Project continuity
 - `work/dev/projects/consoleterminalbuilding/README.md`
+- `work/dev/projects/consoleterminalbuilding/NEXT_CHAT_HANDOFF_2026-03-26.md`
 
-This does not turn `work/` into a normal user-content root.
-It only creates a special-purpose readout path for working boards.
+---
 
-## v1 shell modes
+## Fresh-chat operator guidance
 
-### Home
-Shell overview.
-Shows current mount, recent saves, export availability, quick actions, and system context.
+When resuming in a fresh chat:
 
-### Collections
-The main repo-facing content mode.
-Maps directly to `collections/`.
+1. start from this working board
+2. then read the handoff file
+3. then read the terminal reference files if needed
+4. treat the current head as unstable until the hang is repaired
+5. do not rediscover the architecture from scratch
+6. preserve the locked rules above
 
-### Boards
-Special-purpose mode for loading approved working boards from workspace paths.
-
-Boards mode should:
-- enumerate approved working boards
-- let the user choose one
-- mount the selected board
-- display its live contents on the console screen through the markdown reader
-
-Boards mode should not:
-- create terminal save slots for boards
-- write back to boards through terminal GUI
-- duplicate boards into terminal-owned storage
-
-### Cartridges
-The load bay.
-Used for mounting cartridges from:
-- repo
-- disk
-- drag-and-drop
-
-### Runs
-The active viewport.
-Mounted cartridges or boards are rendered or run here.
-
-### Saves
-Save-slot management.
-All terminal persistence routes through this mode except boards, which never use it.
-
-### System
-Diagnostics, cartridge metadata, board metadata, shell state, renderer or engine info, settings.
-
-## Boards mode rule set
-
-Boards mode is live readout only.
-
-The source-of-truth board remains where it actually lives in workspace.
-Terminal only mounts and displays the latest readout.
-
-### Board update rule
-When work progresses and a working board changes, that change happens at the source file.
-The terminal screen updates its readout from the live source.
-
-### Save rule in Boards mode
-Boards never write to `terminal/saves/`.
-
-### Export rule in Boards mode
-Boards may be exported.
-Export is allowed because it does not modify workspace.
-Save remains disabled.
-
-### GUI behavior rule
-In Boards mode:
-- Save should be greyed out or disabled
-- Export Source may stay enabled
-- Export Output should appear as a greyed-out placeholder for later implementation
-- selecting disabled Save may show an explanation popup
-
-Suggested explanation:
-
-> Working boards are source files in workspace.
-> Update them at their live path, not through terminal GUI.
-
-### Status-strip rule
-Boards mode should visibly identify itself as read-only live board display.
-
-Example indicators:
-- `MODE: BOARDS`
-- `SOURCE: work/dev/projects/...`
-- `STATE: READ-ONLY LIVE BOARD`
-- `SAVE: DISABLED`
-- `EXPORT SOURCE: AVAILABLE`
-- `EXPORT OUTPUT: PLACEHOLDER`
-
-## Terminal actions: Save and Export
-
-Save and Export should sit next to each other in the shell, but they must mean different things.
-
-### Save
-Save = terminal-side persistence of allowed state.
-
-Save:
-- writes only into `terminal/saves/<tag>/`
-- is used for state, progress, notes, bookmarks, or terminal-bounded persistence
-- does not mean “take a file out”
-- does not edit mounted repo source files
-
-### Export
-Export = outbound user grab / download / extract action.
-
-Export:
-- does not create repo writes
-- does not require terminal save state
-- lets the user take content out cleanly
-
-### Export forms
-
-#### Export Source
-Take the mounted source file or declared package.
-
-This is the first-priority export form for v1.
-It supports the “grab a file from library” use case.
-
-#### Export Output
-Take the rendered or transformed output form.
-
-This should exist in the UI as a placeholder, but remain greyed out in early builds until implemented.
-
-## Save / Export behavior by mode
-
-### Collections
-- Save: enabled when a cartridge supports state
-- Export Source: enabled when the mounted item is exportable
-- Export Output: greyed-out placeholder initially
-
-### Boards
-- Save: disabled
-- Export Source: enabled
-- Export Output: greyed-out placeholder
-
-### Cartridges
-- Save: depends on mounted cartridge
-- Export Source: usually available when a source exists
-- Export Output: placeholder initially
-
-### Runs
-- Save: depends on mounted cartridge or engine
-- Export Source: depends on mounted item
-- Export Output: placeholder initially
-
-### Saves
-- Save: not the action focus here; this is the management mode
-- Export Source: export save package or slot data later
-- Export Output: not primary
-
-## Live interaction model
-
-Terminal interaction should be live, but bounded.
-
-### Allowed live interactions in v1 and later
-- page turns in documents
-- scroll and navigation state
-- bookmarks and reading position
-- notes attached to terminal save state
-- shell navigation and mode switching
-- mounted runtime resume state
-- later engine-backed interactions such as games or tools
-
-### Interaction rule
-The default interpretation of user interaction is runtime state, not repo mutation.
-
-### Notes rule
-Notes are terminal-owned state.
-By default they persist only through terminal save paths.
-They do not edit source documents.
-
-### Page-turn rule
-Changing page or reading position updates runtime state only.
-It does not alter source content.
-
-### Game / engine rule
-Later game or engine-backed runtime behavior is allowed inside terminal.
-Game progress remains terminal state unless a future explicit export or external sync path is defined.
-
-### Repo behavior rule
-Clicks, page turns, notes, play state, and resume state do not change repo behavior unless they go through the allowed terminal save path.
-
-## Cartridge source classes
-
-### Repo cartridge
-Canonical and repo-curated.
-
-### Disk cartridge
-Loaded from local disk.
-
-### Drag-and-drop cartridge
-Loaded from drop input.
-
-### Board cartridge
-A special approved repo-readout class for working boards.
-
-A board may technically route through the markdown reader, but it is not a normal save-capable cartridge.
-It has a different behavioral contract.
-
-External cartridges are external input.
-They are not automatically installed into repo content.
-
-## Early cartridge types
-
-Supported first:
-- markdown
-- text
-- json
-
-Later:
-- book
-- interactive module
-- tool
-- game
-- engine-backed application
-
-Board readout can use the markdown reader, but boards remain a separate terminal role from ordinary content cartridges.
-
-## Manifest v0 direction
-
-Terminal should prefer manifest-driven loading over scattered path hardcoding.
-
-Each canonical cartridge should eventually be selectable through a small descriptor.
-
-Example:
-
-```json
-{
-  "id": "books-example-001",
-  "title": "Example Cartridge",
-  "type": "markdown",
-  "source": "repo",
-  "entry": "collections/books/example.md",
-  "renderer": "markdown-reader",
-  "save": {
-    "enabled": true,
-    "tag": "books-example-001"
-  },
-  "meta": {
-    "description": "Optional short description",
-    "author": "Optional",
-    "tags": ["book", "reader"]
-  }
-}
-```
-
-### Required v0 fields
-- `id`
-- `title`
-- `type`
-- `source`
-- `entry`
-- `renderer`
-- `save.enabled`
-- `save.tag`
-
-### Optional v0 fields
-- `meta.description`
-- `meta.author`
-- `meta.tags`
-
-### Board descriptor note
-Boards may later use a lighter descriptor or approved-root enumeration instead of ordinary save-capable cartridge manifests.
-
-## Cartridge and board lifecycle
-
-### Normal cartridge lifecycle
-1. detect
-2. classify
-3. resolve
-4. mount
-5. render or run
-6. save if applicable
-7. export if requested
-8. resume or eject
-
-### Board lifecycle
-1. enumerate
-2. select
-3. mount
-4. display live readout
-5. export source if requested
-6. refresh on source change
-7. unmount or switch board
-
-Boards do not have a save step in terminal.
-
-## Renderer and engine model
-
-Renderers display content.
-Engines run behavior.
-
-### Early renderers
-- `markdown-reader`
-- `text-reader`
-- `json-player`
-
-### Later engines
-- `book-engine`
-- `tool-engine`
-- `game-engine`
-- `module-runtime`
-
-The renderer or engine decision should come from cartridge type plus manifest routing, not from scattered special cases.
-
-Boards can use `markdown-reader` initially, but their mode behavior stays distinct from ordinary content cartridges.
-
-## Save boundary
-
-This is a hard rule.
-
-Terminal may read and load broadly.
-It may write only under:
-
-`terminal/saves/<tag>/`
-
-No cartridge may write directly into:
-- `collections/`
-- `repo-manual/`
-- `logs/`
-- `work/`
-- `.github/`
-- any other repo surface
-
-Boards are explicitly outside terminal save behavior and never write through the GUI.
-
-## Save model
-
-Recommended structure:
-
-```text
-terminal/
-  saves/
-    books-example-001/
-      state.json
-      session.json
-      notes.json
-    local-drop-a1b2c3/
-      state.json
-      session.json
-```
-
-### Save slot rule
-Save slots must be tag-based and disciplined, not random.
-
-### Repo cartridge saves
-Use stable manifest-derived tags.
-
-### External cartridge saves
-Use runtime-generated or safely declared tags, but still remain external cartridges.
-
-External cartridges do not become repo content merely because they are loaded or saved.
-
-## Shell state model
-
-The shell should always know:
-- current mode
-- mounted cartridge id or mounted board id
-- source path
-- source class
-- cartridge or board type
-- active renderer or engine
-- active save tag if applicable
-- save availability
-- export-source availability
-- export-output availability
-- dirty or saved state if applicable
-- read-only live-board state when in Boards mode
-- current runtime position or interaction state when applicable
-
-Conceptually:
-
-```json
-{
-  "mode": "Collections",
-  "mountedCartridgeId": "books-example-001",
-  "source": "repo",
-  "type": "markdown",
-  "renderer": "markdown-reader",
-  "saveTag": "books-example-001",
-  "save": "enabled",
-  "exportSource": "available",
-  "exportOutput": "placeholder",
-  "dirty": false,
-  "interaction": {
-    "page": 12,
-    "scroll": 0.42,
-    "notes": true
-  }
-}
-```
-
-Boards-mode conceptually:
-
-```json
-{
-  "mode": "Boards",
-  "mountedBoardId": "consoleterminalbuilding",
-  "source": "work/dev/projects/consoleterminalbuilding/README.md",
-  "sourceClass": "repo-board",
-  "type": "markdown-board-readout",
-  "renderer": "markdown-reader",
-  "saveTag": null,
-  "save": "disabled",
-  "exportSource": "available",
-  "exportOutput": "placeholder",
-  "dirty": null,
-  "state": "read-only-live-board"
-}
-```
-
-## UI behavior rules
-
-Terminal should follow these behavioral rules:
-- the shell stays present while content changes
-- mode switching is explicit
-- cartridges are mounted, not merely opened
-- boards are mounted as live readouts, not copied into terminal state
-- active state is always visible somewhere in the shell
-- save behavior is visible and bounded
-- export behavior is visible and distinct from save
-- Export Output may appear before implementation, but should be visibly placeholder / disabled
-- eject and resume are first-class operations where applicable
-- board readout visibly communicates read-only status
-- live user interaction should feel real, not like a static mock page
-- runtime interaction must not blur into repo authoring
-
-## Preliminary terminal directory direction
-
-This is not a fixed build map yet, but the likely direction is:
-
-```text
-terminal/
-  .gitkeep
-  saves/
-  app/
-  loaders/
-  renderers/
-  engines/
-  manifests/
-  assets/
-```
-
-### Likely roles
-- `.gitkeep` — preserve the root while the runtime layer is still being built
-- `saves/` — the only terminal write root
-- `app/` — shell / page runtime contracts and implementation
-- `loaders/` — repo / disk / drag-drop loading logic
-- `renderers/` — markdown / text / json display layer
-- `engines/` — terminal-specific runtimes later
-- `manifests/` — canonical cartridge descriptors
-- `assets/` — shell assets
-
-## Phase model
-
-### Phase 1
-- persistent shell
-- v1 modes
-- repo / disk / drag-drop loading
-- markdown / text / json cartridge handling
-- bounded save model
-- Export Source for basic supported items
-- Export Output visible as placeholder
-- Boards mode live readout
-- Pages terminal live runtime shell
-- notes and reading state treated as terminal save data, not repo edits
-
-### Phase 2
-- collections-driven reading
-- richer structured modules
-- stronger save / resume behavior
-- better board enumeration and board status UX
-- broader export support
-- more explicit runtime interaction state handling
-
-### Phase 3
-- engine-backed modules
-- game cartridges
-- deeper identity and visual system
-- richer runtime coordination
-- real Export Output flows where useful
-
-## Immediate build board
-
-### Build target A — shell spine
-Create the persistent shell frame and mode-switching model.
-
-### Build target B — collections browser
-Surface `collections/` cleanly inside terminal.
-
-### Collections browser v1 interaction contract
-
-Selection and mounting are two distinct steps.
-When a user selects a manifest entry in the Collections browser, the terminal should enter a resolved state before mounting:
-
-- read the manifest descriptor
-- pre-populate and display the shell state preview (title, type, renderer, save tag, save availability)
-- wait for explicit mount confirmation
-
-Mounting happens only after explicit user action.
-This keeps the interaction consistent with the system's broader principle: reading is cheap and reversible, mounting has state consequences. A user selecting a cartridge should be able to see what they're choosing before the shell commits to it.
-
-The resolved-but-not-mounted state is not a new mode. It is a transitional display state within Collections mode before mount completes.
-
-### Build target C — boards browser
-Surface approved working boards from `work/dev/projects/` and mount them as live readouts.
-
-### Boards browser v1 interaction contract
-
-Selection and mounting are two distinct steps.
-When a user selects an approved board entry in the Boards browser, the terminal should enter a resolved state before mounting:
-
-- read the board enumeration entry
-- pre-populate and display the shell state preview (title, source path, source class, read-only state, save disabled, export source availability)
-- wait for explicit mount confirmation
-
-Mounting happens only after explicit user action.
-This keeps Boards behavior aligned with the broader shell principle: reading is cheap and reversible, mounting has state consequences even when the mounted surface is read-only.
-
-The resolved-but-not-mounted state is not a new mode. It is a transitional display state within Boards mode before mount completes.
-
-### Build target D — cartridge bay
-Support:
-- mount from repo
-- mount from disk
-- mount from drag-and-drop
-
-### Build target E — runs viewport
-Create the main render / run viewport.
-
-### Build target F — save manager
-Route all allowed writes only into `terminal/saves/<tag>/`.
-
-### Build target G — export controls
-Implement:
-- Export Source for supported mounted items
-- greyed-out Export Output placeholder in the shell action set
-- clear visual distinction between Save and Export
-
-### Build target H — manifest system
-Introduce manifest-driven cartridge selection for canonical repo cartridges.
-
-### Build target I — boards-mode guardrails
-Implement:
-- greyed-out Save in Boards mode
-- explanation popup for disabled Save
-- read-only live-board status indicators
-- Export Source enabled in Boards mode
-- Export Output placeholder disabled in Boards mode
-
-### Build target J — Pages live runtime contract
-Implement the terminal as a live client-side shell on the Pages surface, not a static mock.
-
-### Build target K — runtime interaction boundary
-Implement interaction contracts for:
-- page turns
-- notes
-- reading progress
-- later engine state
-
-without changing repo behavior except through allowed terminal save paths.
-
-### Build target L — GPT-side boundary clarity
-Keep runtime implementation explicitly separate from GPT-side planning, repo work, and orchestration.
-
-## Fresh-chat bootstrap for implementation
-
-Use this file as the implementation source of truth.
-Do not redesign the architecture unless explicitly asked.
-Build the smallest implementation that preserves the listed boundaries.
-Do not move the working board back into `terminal/`.
-Do not make Boards save-capable.
-Do not blur Save and Export.
-Do not let a live Pages terminal be mistaken for GPT-side authority.
-If a build choice threatens those rules, stop and ask.
+---
 
 ## Working rule
 
-Terminal architecture must remain clear and bounded:
-- broad read / load
-- narrow write
-- explicit cartridge model
-- persistent shell
-- repo-true content surfaces
-- special-purpose board readout from approved work paths
-- distinct Save vs Export behavior
-- live runtime interaction without implicit repo mutation
-- runtime shell separate from GPT-side planning and repo work
-- its own visual and behavioral identity
+Keep the terminal coherent by preserving these distinctions:
 
-The terminal should become more coherent as it grows, not merely larger.
+- Collections = browseable catalogue
+- Cartridges = mountable things only
+- Dev cartridges = valid mountable cartridges
+- Systems strip = status, not primary navigation
+- Runtime interaction = not implicit repo mutation
+- Browser staging = not the same as authenticated repo write
+- One mounted surface at a time is safer than all-surface injection
+
+The terminal should get more coherent as it grows, not merely more layered.
