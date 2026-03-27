@@ -3,8 +3,36 @@
   const runtime = {
     contract: null,
     manifestIndex: null,
-    selectedManifestId: null
+    manifestCache: new Map(),
+    selectedManifestId: null,
   };
+
+  const DEV_ENTRIES = [
+    {
+      manifestId: "dev/request-history",
+      category: "dev cartridges",
+      kind: "dev-cartridge",
+      title: "Request History",
+      type: "dev-cartridge",
+      source: "terminal",
+      entry: "surface://request-history",
+      screen: "request-history",
+      save: { enabled: false },
+      mountable: true,
+    },
+    {
+      manifestId: "dev/repo-verified",
+      category: "dev cartridges",
+      kind: "dev-cartridge",
+      title: "Repo Verified",
+      type: "dev-cartridge",
+      source: "terminal",
+      entry: "surface://repo-verified",
+      screen: "repo-verified",
+      save: { enabled: false },
+      mountable: true,
+    },
+  ];
 
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
@@ -12,9 +40,7 @@
 
   async function loadJson(path) {
     const response = await fetch(normalizePath(path));
-    if (!response.ok) {
-      throw new Error(`failed to load ${path}`);
-    }
+    if (!response.ok) throw new Error(`failed to load ${path}`);
     return response.json();
   }
 
@@ -41,7 +67,7 @@
       title: "Cartridge bay",
       statusChip: "idle",
       detail: "Manifest-backed repo cartridge selector.",
-      selectionAction: "select"
+      selectionAction: "select",
     };
   }
 
@@ -59,6 +85,14 @@
     }
   }
 
+  function allRepoEntries() {
+    return runtime.manifestIndex?.entries || [];
+  }
+
+  function allEntries() {
+    return [...DEV_ENTRIES, ...allRepoEntries()];
+  }
+
   function groupEntries(entries) {
     const groups = new Map();
     for (const entry of entries || []) {
@@ -69,25 +103,66 @@
     return Array.from(groups.entries());
   }
 
-  async function selectManifest(manifestId) {
+  function isDevEntry(entryOrId) {
+    const manifestId = typeof entryOrId === "string" ? entryOrId : entryOrId?.manifestId;
+    return DEV_ENTRIES.some((entry) => entry.manifestId === manifestId);
+  }
+
+  function getEntryById(manifestId) {
+    return allEntries().find((entry) => entry.manifestId === manifestId) || null;
+  }
+
+  async function getManifestMeta(entry) {
+    if (!entry || isDevEntry(entry)) return entry;
+    if (!entry.manifestPath) return entry;
+    if (!runtime.manifestCache.has(entry.manifestPath)) {
+      const manifest = await loadJson(entry.manifestPath).catch(() => null);
+      runtime.manifestCache.set(entry.manifestPath, manifest);
+    }
+    return runtime.manifestCache.get(entry.manifestPath) || entry;
+  }
+
+  function getSelectedEntry() {
+    return getEntryById(runtime.selectedManifestId);
+  }
+
+  function getSelectedDevEntry() {
+    const selected = getSelectedEntry();
+    return isDevEntry(selected) ? selected : null;
+  }
+
+  function getActiveScreen() {
+    return window.__TARS_SCREEN_UI__?.activeScreen || "home";
+  }
+
+  async function selectManifest(manifestId, { syncCollections = true } = {}) {
     runtime.selectedManifestId = manifestId || null;
     const runtimeApi = getCollectionsRuntimeApi();
-    if (runtimeApi?.selectManifestById && manifestId) {
+    if (syncCollections && runtimeApi?.selectManifestById && manifestId && !isDevEntry(manifestId)) {
       await runtimeApi.selectManifestById(manifestId);
     }
     render();
   }
 
-  function renderEntryButton(entry, manifest) {
+  function openSelectedDevCartridge() {
+    const entry = getSelectedDevEntry();
+    if (!entry?.screen) return false;
+    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: entry.screen } }));
+    return true;
+  }
+
+  function renderEntryButton(entry, meta) {
     const button = document.createElement("button");
     button.className = "manifest-entry";
     if (runtime.selectedManifestId === entry.manifestId) {
       button.dataset.selected = "true";
     }
-    const title = manifest?.title || entry.manifestId;
-    const type = manifest?.type || entry.type || "unknown";
-    const source = manifest?.source || entry.source || "repo";
-    const saveLabel = manifest?.save?.enabled ? "save" : "read-only";
+
+    const title = meta?.title || entry.title || entry.manifestId;
+    const type = meta?.type || entry.type || "unknown";
+    const source = meta?.source || entry.source || "repo";
+    const saveLabel = meta?.save?.enabled ? "save" : (entry.mountable ? "mountable" : "read-only");
+
     button.innerHTML = `
       <div class="surface-header">
         <div class="surface-title">${title}</div>
@@ -98,11 +173,13 @@
         <span>${source}</span>
         <span>${saveLabel}</span>
       </div>
-      <div class="surface-foot muted">${manifest?.entry || entry.entry}</div>
+      <div class="surface-foot muted">${meta?.entry || entry.entry || "none"}</div>
     `;
+
     button.addEventListener("click", () => {
       selectManifest(entry.manifestId).catch(showError);
     });
+
     return button;
   }
 
@@ -110,9 +187,10 @@
     const container = document.getElementById("cartridgeBayList");
     if (!container) return;
     container.innerHTML = "";
-    const entries = runtime.manifestIndex?.entries || [];
+
+    const entries = allEntries();
     if (!entries.length) {
-      container.innerHTML = `<div class="surface-foot muted">No manifest-backed repo cartridges are indexed.</div>`;
+      container.innerHTML = `<div class="surface-foot muted">No mountable cartridges are indexed.</div>`;
       return;
     }
 
@@ -125,13 +203,8 @@
       group.appendChild(title);
 
       for (const entry of items) {
-        let manifest = null;
-        try {
-          manifest = await loadJson(entry.manifestPath);
-        } catch {
-          manifest = null;
-        }
-        group.appendChild(renderEntryButton(entry, manifest));
+        const meta = await getManifestMeta(entry);
+        group.appendChild(renderEntryButton(entry, meta));
       }
 
       container.appendChild(group);
@@ -141,14 +214,15 @@
   function renderSummary() {
     const container = document.getElementById("cartridgeBaySummary");
     if (!container) return;
-    const resolved = getResolvedSelection();
-    const input = {
-      selectedManifestId: runtime.selectedManifestId,
-      resolvedManifestId: resolved?.manifestId || null
-    };
-    const surface = deriveSurface(input);
 
-    if (!runtime.selectedManifestId) {
+    const selected = getSelectedEntry();
+    const resolved = getResolvedSelection();
+
+    if (!selected) {
+      const surface = deriveSurface({
+        selectedManifestId: null,
+        resolvedManifestId: resolved?.manifestId || null,
+      });
       container.innerHTML = `
         <div class="surface-stack">
           <div class="surface-header">
@@ -161,9 +235,29 @@
       return;
     }
 
-    const manifestEntry = (runtime.manifestIndex?.entries || []).find(
-      (entry) => entry.manifestId === runtime.selectedManifestId
-    ) || null;
+    if (isDevEntry(selected)) {
+      container.innerHTML = `
+        <div class="surface-stack">
+          <div class="surface-header">
+            <div class="surface-title">${selected.title}</div>
+            <span class="surface-chip">dev cartridge</span>
+          </div>
+          <div class="surface-meta-grid">
+            <div><span class="muted">selected</span> ${selected.manifestId}</div>
+            <div><span class="muted">screen</span> ${selected.screen}</div>
+            <div><span class="muted">entry</span> ${selected.entry}</div>
+            <div><span class="muted">mount</span> direct in-terminal</div>
+          </div>
+          <div class="surface-detail">A opens the selected Dev cartridge directly into the main screen.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const surface = deriveSurface({
+      selectedManifestId: runtime.selectedManifestId,
+      resolvedManifestId: resolved?.manifestId || null,
+    });
 
     container.innerHTML = `
       <div class="surface-stack">
@@ -174,7 +268,7 @@
         <div class="surface-meta-grid">
           <div><span class="muted">selected</span> ${runtime.selectedManifestId}</div>
           <div><span class="muted">resolved</span> ${resolved?.manifestId || "none"}</div>
-          <div><span class="muted">entry</span> ${manifestEntry?.entry || "none"}</div>
+          <div><span class="muted">entry</span> ${selected.entry || "none"}</div>
           <div><span class="muted">handoff</span> collections resolve flow</div>
         </div>
         <div class="surface-detail">${surface.detail}</div>
@@ -194,15 +288,91 @@
     }
   }
 
+  function injectLegacyDevStyles() {
+    if (document.getElementById("terminal-dev-cartridge-style")) return;
+    const style = document.createElement("style");
+    style.id = "terminal-dev-cartridge-style";
+    style.textContent = `
+      .terminal-legacy-dev-button {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function looksLegacyDevButton(button) {
+    const text = String(button?.textContent || "").trim().toLowerCase();
+    const actionKey = String(button?.dataset?.actionKey || "").trim().toLowerCase();
+    return ["request history", "repo verified"].includes(text) || ["request-history", "repo-verified"].includes(actionKey);
+  }
+
+  function hideLegacyDevButtons() {
+    injectLegacyDevStyles();
+    ["nav", "terminalScreenTabs", "actions"].forEach((id) => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      host.querySelectorAll("button").forEach((button) => {
+        if (looksLegacyDevButton(button)) {
+          button.classList.add("terminal-legacy-dev-button");
+          button.tabIndex = -1;
+          button.setAttribute("aria-hidden", "true");
+        }
+      });
+    });
+  }
+
+  function interceptPrimaryControl(event) {
+    const button = event.target?.closest?.("#terminalControlPad .control-pad-button");
+    if (!button) return;
+    if (String(button.textContent || "").trim() !== "A") return;
+    if (getActiveScreen() !== "cartridge-bay") return;
+    if (!getSelectedDevEntry()) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openSelectedDevCartridge();
+  }
+
+  function installDomHooks() {
+    hideLegacyDevButtons();
+    document.addEventListener("click", interceptPrimaryControl, true);
+
+    ["nav", "terminalScreenTabs", "actions"].forEach((id) => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      const observer = new MutationObserver(() => hideLegacyDevButtons());
+      observer.observe(host, { childList: true, subtree: true, attributes: true, characterData: true });
+    });
+
+    [
+      "tars:screen-changed",
+      "tars:devtools-changed",
+      "tars:request-history-updated",
+      "tars:repo-verified-updated",
+    ].forEach((eventName) => window.addEventListener(eventName, hideLegacyDevButtons));
+  }
+
   async function boot() {
     runtime.contract = await loadJson("app/cartridge-bay.v1.json");
     runtime.manifestIndex = await loadJson("manifests/manifest-index.v1.json");
     const resolved = getResolvedSelection();
     runtime.selectedManifestId = resolved?.manifestId || null;
+
     shared.contract = runtime.contract;
     shared.manifestIndex = runtime.manifestIndex;
+    shared.runtimeApi = {
+      getSelectedEntry,
+      isDevEntry,
+      openSelectedDevCartridge,
+      selectManifestById: (manifestId) => selectManifest(manifestId, { syncCollections: !isDevEntry(manifestId) }),
+    };
+
     render();
+    installDomHooks();
   }
 
-  boot().catch(showError);
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", () => boot().catch(showError), { once: true });
+  } else {
+    boot().catch(showError);
+  }
 })();
