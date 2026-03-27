@@ -11,6 +11,80 @@
     return String(value || "").trim().replace(/\s+/g, " ");
   }
 
+  function injectSystemsCheckStyles() {
+    if (document.getElementById("terminal-systems-check-style")) return;
+    const style = document.createElement("style");
+    style.id = "terminal-systems-check-style";
+    style.textContent = `
+      #actions.terminal-systems-check {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+      }
+      #actions.terminal-systems-check button {
+        pointer-events: none;
+        cursor: default;
+      }
+      #actions.terminal-systems-check .terminal-systems-pill {
+        border-radius: 14px;
+        border: 1px solid rgba(186, 156, 255, 0.2);
+        background: rgba(255, 255, 255, 0.02);
+        color: #e6ebf2;
+        padding: 10px 12px;
+        text-align: left;
+        box-shadow: none;
+      }
+      #actions.terminal-systems-check .terminal-systems-pill-label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #b38cff;
+        margin-bottom: 6px;
+      }
+      #actions.terminal-systems-check .terminal-systems-pill-value {
+        display: block;
+        color: #aab4c5;
+        line-height: 1.35;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function splitActionText(value) {
+    const raw = normalizeLabelText(value);
+    const match = raw.match(/^(.*?)(?:\s*:\s*(.*))?$/);
+    const label = normalizeLabelText(match?.[1] || raw || "system");
+    const status = normalizeLabelText(match?.[2] || "") || "available";
+    return { label, status };
+  }
+
+  function formatSystemsCheck() {
+    injectSystemsCheckStyles();
+    const actions = document.getElementById("actions");
+    const actionsPanel = actions?.closest(".panel");
+    const actionsLabel = actionsPanel?.querySelector(".label");
+    if (actionsLabel) actionsLabel.textContent = "systems check";
+    if (!actions) return;
+    actions.classList.add("terminal-systems-check");
+
+    Array.from(actions.querySelectorAll("button")).forEach((button) => {
+      const parsed = splitActionText(button.dataset.rawText || button.textContent || "");
+      const renderState = JSON.stringify(parsed);
+      if (button.dataset.systemsCheckRenderState !== renderState) {
+        button.dataset.systemsCheckRenderState = renderState;
+        button.innerHTML = `
+          <span class="terminal-systems-pill-label">${parsed.label}</span>
+          <span class="terminal-systems-pill-value">${parsed.status}</span>
+        `;
+      }
+      button.disabled = true;
+      button.tabIndex = -1;
+      button.setAttribute("aria-disabled", "true");
+      button.classList.add("terminal-systems-pill");
+    });
+  }
+
   function stabilizeShellLabels() {
     const activeChip = document.querySelector(".terminal-active-screen");
     const pathLine = document.querySelector(".terminal-path-line");
@@ -57,7 +131,7 @@
       if (expected === null) return actual == null;
       if (expected === "non-null") return actual != null;
       if (typeof expected === "string" && expected.includes("|")) {
-        return expected.split("|").fincludes(String(actual));
+        return expected.split("|").includes(String(actual));
       }
       return String(actual) === String(expected);
     });
@@ -154,6 +228,7 @@
     const surface = deriveSurface(rawState);
     render(surface, rawState, container);
     stabilizeShellLabels();
+    formatSystemsCheck();
   }
 
   async function boot() {
@@ -167,15 +242,27 @@
 
     const headerBar = document.getElementById("terminalHeaderBar");
     if (headerBar) {
-      const headerObserver = new MutationObserver(() => stabilizeShellLabels());
+      const headerObserver = new MutationObserver(() => {
+        stabilizeShellLabels();
+        formatSystemsCheck();
+      });
       headerObserver.observe(headerBar, { childList: true, subtree: true, characterData: true });
+    }
+
+    const actions = document.getElementById("actions");
+    if (actions) {
+      const actionsObserver = new MutationObserver(() => formatSystemsCheck());
+      actionsObserver.observe(actions, { childList: true, subtree: true, characterData: true, attributes: true });
     }
 
     [
       "tars:screen-changed",
       "tars:collections-updated",
       "tars:devtools-changed",
-    ].forEach((eventName) => window.addEventListener(eventName, stabilizeShellLabels));
+    ].forEach((eventName) => window.addEventListener(eventName, () => {
+      stabilizeShellLabels();
+      formatSystemsCheck();
+    }));
 
     window.setInterval(refresh, 1500);
   }
