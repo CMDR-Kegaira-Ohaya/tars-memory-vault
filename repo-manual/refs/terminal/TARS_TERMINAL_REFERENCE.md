@@ -9,6 +9,20 @@ Use this file first when the task is about terminal behavior, terminal UX, termi
 - Working board: `work/dev/projects/consoleterminalbuilding/README.md`
 - Short handoff: `work/dev/projects/consoleterminalbuilding/NEXT_CHAT_HANDOFF_2026-03-26.md`
 
+## Canonical operator anchors
+- Operator note: `tools/terminal_ops/OPERATOR_NOTE.md`
+- Terminal ops tool home: `tools/terminal_ops/`
+- Repo patch tool home: `tools/repo_patch/`
+- Safe patch utility: `tools/repo_patch/safe_repo_patch.py`
+- Terminal validation chain: `tools/terminal_ops/terminal_validate_chain.py`
+- Terminal live verify workflow: `.github/workflows/terminal-live-verify.yml`
+
+## Current live-model truth
+- `/` is a redirect shim only
+- `/terminal/index.html` is the real app surface
+- terminal work should treat the live shell as a browser runtime, not as a generic static page
+- do not treat Pages deploy success alone as terminal success when operator verification tools exist
+
 ## Current terminal model
 The terminal is a screen-first browser runtime.
 It is not a loose dashboard.
@@ -137,9 +151,9 @@ The terminal now supports a local-first import/stage flow.
 
 ### Current Import Bay flow
 1. open `Import Bay`
-2. drop local `.json`, `.md`, or `.txt` files, or use file picker
+2. drop local `.json`, `.md`, `.txt` files, or use file picker
 3. terminal creates a local draft
-4. operator may adjust family/title/slug/kind/runtime/save slots
+4 . operator may adjust family/title/slug/kind/runtime/save slots
 5. terminal shows a canonical package preview and repo-ready save request envelope
 6. operator may stage locally into `Collections Explorer`
 7. operator may copy/download the save request envelope
@@ -178,6 +192,29 @@ See also:
 - `terminal/app/browser-cartridge-bay.js`
 - `terminal/index.html`
 
+## Terminal surgery and validation defaults
+For future terminal work, prefer this order:
+1. inspect the relevant surface, symbol, or reference path
+2. use `tools/repo_patch/safe_repo_patch.py` for small anchored edits when possible
+3. run `python tools/terminal_ops/terminal_validate_chain.py`
+4. use live smoke / deploy verification only when needed
+
+Current terminal ops tools worth remembering:
+- `tools/terminal_ops/terminal_entry_audit.py`
+- `tools/terminal_ops/terminal_cut_check.py`
+- `tools/terminal_ops/terminal_slice.py`
+- `tools/terminal_ops/terminal_rewrite.py`
+- `tools/terminal_ops/terminal_live_smoke.py`
+- `tools/terminal_ops/terminal_validate_chain.py`
+- `tools/terminal_ops/terminal_pages_artifact_verify.py`
+- `tools/terminal_ops/terminal_repo_diff.py`
+- `tools/terminal_ops/terminal_force_redeploy.py`
+
+Practical rule:
+- prefer anchored/surgical edits over blunt whole-file rewrites
+- prefer audit/check/validate modes before mutation when possible
+- when terminal and workflow signals disagree, treat terminal-specific verification output as the stronger source of truth
+
 ## Performance rules
 Terminal work must prefer explicit event-driven updates.
 Avoid:
@@ -203,5 +240,6 @@ When asked about the terminal, do not rediscover it from scratch.
 Start from:
 1. this file
 2. `repo-manual/refs/terminal/TARS_TERMINAL_OPERATOR_GUIDE.md`
-3. `work/dev/projects/consoleterminalbuilding/NEXT_CHAT_HANDOFF_2026-03-26.md`
-4. live terminal code only for changes or uncertainty
+3. `tools/terminal_ops/OPERATOR_NOTE.md`
+4. `work/dev/projects/consoleterminalbuilding/README.md`
+5. live terminal code only for changes or uncertainty
