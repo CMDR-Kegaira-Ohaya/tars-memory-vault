@@ -49,6 +49,13 @@ Working preference:
 - prefer dry-run/report/audit modes before mutation when the tooling supports them
 - for terminal work, validate before and after meaningful GUI structure changes
 
+## Connector boundary rule
+Use base64 for transport only.
+Decode once at the connector boundary.
+Do reasoning, comparison, summarization, and planning on plain UTF-8 text, Markdown, or JSON.
+Avoid nested encodings or extra transport wrappers unless they are strictly necessary.
+When writing, prefer small surgical patches over large whole-file rewrites whenever the tooling allows it.
+
 ## Important connector note
 The connector is live and useful for normal reads and direct file writes.
 For now, prefer `saveFile` over low-level ref movement for ordinary repo changes.
