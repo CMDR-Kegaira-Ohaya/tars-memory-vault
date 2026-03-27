@@ -6,86 +6,149 @@ This is the live working board for the terminal project.
 
 It records:
 - current repo truth
-- current stable vs unstable state
+- stable baseline vs current integration head
 - locked architecture rules
-- the agreed naming model
-- the resolved failure path
-- the next implementation path
+- the agreed machine model
+- known regressions
+- next implementation priority
 
 This board is the implementation truth for fresh repo-side terminal work.
 If chat continuity and this board diverge, this board wins.
 
 ---
 
-## Current project state
+## Current repo state
 
-### Current stable repo head
+### Stable baseline
 `e67dd6a79d1364c311b5ecdaa594c818e43e51c9`
 
 Commit:
 `Replace shell polling with event-driven chrome updates`
 
-### Current live condition of that head
-Treat the current head as **stable and usable** for continued terminal work.
+Why it still matters:
+- terminal was smooth
+- terminal was usable
+- Firefox no longer hung globally
+- event-driven shell updates proved safer than polling-driven shell churn
 
-Observed user result:
-- terminal is smooth
-- terminal works
-- Firefox no longer hangs or drags globally
+### Current integration head
+`8c456b01ebe170ebca8e453013c1fb08158354b2`
 
-### Stability notes
-This stable point includes the full lag cleanup pass after the failed Dev-selector experiment.
-It is the new reference point for further terminal work.
+Commit:
+`Make Repo Load click directly load into Home`
 
-### Previous unstable head that caused the hang
+Current verification state:
+- partly verified
+- Repo Load now directly loads into Home
+- Home content becomes visible for repo text entries
+- user confirmed steps 1 to 6 of the direct-load flow
+- `Eject` still does not render after a successful load
+
+Operational truth:
+- do **not** treat the current head as the new fully stable baseline yet
+- use it as the active integration head with one known runtime/UI regression: missing `Eject`
+
+### Previous known unstable head`
 `a41c851997c3ce756e9078bfafa609ec5a4ee75c`
 
 Commit:
 `Show Dev surface selector in main screen`
 
-That head should remain documented as the failed Dev-selector pass that introduced hang risk.
+Why it stays documented:
+- it introduced hang risk
+- it produced `RESULT_CODE_HUNG`
+- it increased live DOM churn in Firefox
 
 ---
 
-## Stable truths that remain locked
+## Locked machine model
 
-These stay true unless explicitly changed by the user or contradicted by the repo.
+### Main screen rule
+**Main screen = the monitor**
 
-- terminal is meant to stay live, client-side, and device-like
-- Debug Intake works in the stable terminal lineage
-- Import Bay works in the stable terminal lineage
-- Collections Explorer works in the stable terminal lineage
-- Import Bay fields keep cursor and focus while typing
-- `/collections/` is the broad catalogue root
-- `/collections/cartridges/` is the mountable cartridge family
-- other collection families are browseable catalogue families, not cartridges by default
-- browser terminal can stage locally and prepare repo-ready save requests
-- direct authenticated in-browser repo ingestion into `/collections/` is still not the browser path
-- authenticated repo-save handoff from terminal save-request output into `/collections/` has been proven externally through repo-side write flow
-- `collections/books/test-drive-text-file/` exists as a real repo entry from that handoff path
+There is one main display surface.
+The system should be understood like an old computer, not like a modern multi-page app.
 
----
+### Home rule
+**Home = the Main screen's default payload**
 
-## Locked naming rule
+Home is not a separate place to navigate to.
+Home is what the Main screen shows when no alternate payload is active.
 
 ### Cartridge rule
-**Cartridge = mountable**
+**Cartridges = mountable media**
 
-That remains the clean naming rule.
+Best mental model:
+- diskettes in an old 286
+- or media on an Amstrad CPC 6128
 
-Implications:
-- mountable things are cartridges
-- non-mountable catalogue entries are not cartridges by default
-- Dev cartridges are valid cartridges
-- Books, Entertainment, Various, and similar families stay collection families unless a specific entry gets a real mount path
+Cartridges are media candidates, not rooms.
+They are selected from a bay and then loaded into the machine.
 
 ### Collections rule
 **Collections = broad catalogue**
 
-Collections remain the browse root and should not be collapsed into cartridges.
+Collections stay the broad repo catalogue.
+Collections are not the same thing as cartridges.
+Non-mountable catalogue families should not be renamed as cartridges by default.
 
-### Dev rule
-**Dev surfaces become Dev cartridges when they are mountable in-terminal**
+### Load rule
+**Load = ingress**
+
+User-facing load options:
+- `Repo Load` = browse repo-backed Collections files, excluding cartridges
+- `Import Files` = bring in external or local files
+
+`Repo Load` is task-oriented entry into repo file browsing.
+It is not a cartridge path.
+
+### Boards rule
+**Boards = selectable sources**
+
+Boards are also source-side selectors.
+They should not become their own runtime room.
+
+### Runtime rule
+**Select elsewhere, experience in the Main screen**
+
+Source surfaces select.
+The Main screen displays the active payload.
+
+This means:
+- load a book -> read it in the Main screen
+- mount a cartridge -> use it in the Main screen
+- open a board -> view it in the Main screen
+
+### Eject rule
+**Eject = action, not screen**
+
+Frontend meaning:
+- one visible action
+- clear the active thing
+
+Backend may still distinguish:
+- unmount mounted item
+- clear imported transient state
+- clear staged transient import state
+
+Frontend should not expose that distinction.
+`Eject` returns the Main screen to default Home state.
+
+---
+
+## Locked UI rules
+
+### Systems check / EWS strip
+The former shortcut/control row is status only.
+It should read as systems check / EWS, not as the main way to move around.
+
+### Primary navigation
+Primary navigation should stay human-facing and compact.
+Avoid reintroducing control-board overload.
+
+### Dev surfaces
+Dev surfaces should continue moving into Dev cartridge form when they are truly mountable in-terminal.
+Mount one Dev cartridge at a time.
 
 Current live Dev cartridges:
 - Request History
@@ -96,147 +159,82 @@ Approved next Dev cartridges:
 - Collections Explorer
 - Debug Intake
 
----
+### Layout Debug HUD
+Approved concept:
+- dev utility / dev cartridge behavior
+- invoked as an overlay over the **Main screen's current payload**
+- not a separate routed destination
 
-## Current architecture direction
+\nRequired functions:
+- layout report
+- toggle outlines
+- copy layout report
 
-### Shell direction
-Keep the shell compact and screen-first.
-Do not redesign the shell wholesale unless there is a strong reason.
-
-### Navigation direction
-Main navigation should stay human-facing.
-Operator and inspection surfaces should not compete with primary browsing navigation.
-
-### Systems strip direction
-The former shortcut/control row is better treated as a systems check / EWS strip.
-It should read as status, not as the main way to move around.
-
-### Dev direction
-Dev surfaces should continue moving into the cartridge model.
-Mount only one Dev cartridge at a time into the main screen.
-Do not return to drawer or hub injection patterns.
-
-### Reader-first direction
-The terminal still needs a true mounted content reader for note-like entries.
-Mounting should eventually lead to reading, not only to state inspection.
+\nImportant framing:
+- it inspects the live composed page
+- it overlays whatever the Main screen is currently showing
+- it is not "opened from Home"; Home is just one possible current payload
 
 ---
 
-## Resolved failure path
+## Stable truths that remain locked
 
-### What failed
-The failed Dev-selector pass in `browser-home-surface.js` introduced a high-risk pattern:
-- mutation observers watching multiple regions
-- self-triggering DOM mutation loops
-- interval-based refresh pressure
-- large shell churn under Firefox
-
-That path produced:
-- `RESULT_CODE_HUNG`
-- laggy entry
-- global Firefox slowdown
-
-### What was confirmed not to be the cause
-The root redirect was not the cause.
-
-Confirmed repo structure:
-- root `index.html` refreshes once to `./terminal/index.html`
-- `terminal/index.html` does not redirect back
-
-So this was not an HTML ping-pong loop.
-
-### What fixed it
-The stable fix came from reducing live refresh pressure and shell churn.
-
-Key repair outcomes:
-- removed unstable Dev-hub / drawer injection from the hot path
-- made `browser-home-surface.js` event-driven instead of observer/poll driven
-- moved Dev surfaces into cartridge flow instead of all-at-once Dev injection
-- trimmed Dev-cartridge DOM hooks
-- replaced shell polling with event-driven shell chrome updates in `browser-collections-bridge.js`
-- removed shell-wide `setInterval(renderShellChrome, 1500)`
-- removed bridge mutation-observer churn
-
-Operational conclusion:
-**event-driven shell updates are the safe baseline**
+- terminal should stay live, client-side, and device-like
+- event-driven shell updates are safer than polling-driven shell churn
+- `/collections/` is the broad catalogue root
+- `/collections/cartridges/` is the mountable cartridge family
+- browser-side staging is not the same thing as authenticated repo write
+- runtime clicks are not implicit repo mutation
+- one mounted surface at a time is safer than all-surface injection
+- `collections/books/test-drive-text-file/` exists as a real repo entry
+- direct Repo Load now goes to Home content instead of remaining selection-only
 
 ---
 
-## Current live runtime shape
+## Known current regression
 
-### Shell
-- shell chrome is event-driven
-- shell no longer relies on global polling for chrome refresh
-- shell no longer relies on the earlier high-churn Dev selector experiment
+### Missing Eject after successful direct load
+Current observed behavior at `8c456b01ebe170ebca8e453013c1fb08158354b2`:
+- clicking `Test Drive Text File` from Repo Load now loads it
+- Home content is shown
+- pathing behaves correctly
+- `Eject` still is nowhere to be found
 
-### Cartridge flow
-- cartridge bay is still the main mountable selector path
-- Dev cartridges now appear inside the cartridge flow
-- current live Dev cartridges are:
-  - Request History
-  - Repo Verified
-
-### Collections truth
-- Collections remain the broad browse catalogue
-- Cartridges remain mountable things only
-- Dev cartridges are valid cartridges under that rule
+This is the immediate next repair target.
 
 ---
 
-## Current implementation target order
+## Immediate next implementation order
 
-### Immediate next target
-Expand the Dev-cartridge path cleanly from the current stable baseline.
+1. fix `Eject` visibility/state binding after successful load
+2. verify `Eject` returns the Main screen to default Home state
+3. add Layout Debug HUD as Main-screen overlay tooling
+4. continue Dev-cartridge conversion path
+5. continue improving real mounted reader/runtime behavior
 
-### Preferred next sequence
-1. convert Import Bay into a Dev cartridge path
-2. convert Collections Explorer into a Dev cartridge path
-3. convert Debug Intake into a Dev cartridge path
-4. verify one-at-a-time mount behavior stays smooth
-5. then continue the mounted reader path for note-like entries
+---
 
-### Do not do next
+## Do not do next
+
 - do not reintroduce shell-wide polling
 - do not reintroduce drawer/hub-driven Dev injection
-- do not load all Dev surfaces at once
+- do not treat Home as a routed room separate from Main screen
+- do not treat cartridges as rooms
 - do not blur Collections and Cartridges
-- do not rename non-mountable collection families as cartridges
-- do not treat runtime clicks as direct repo mutation
-
----
-
-## Repo-save truth
-
-The repo-save path is split into two truths and both must stay explicit.
-
-### Browser-side truth
-Inside the browser terminal, the user can:
-- import or stage content
-- generate a repo-ready save request
-- inspect save-side status surfaces
-
-### Repo-write truth
-The actual authenticated repo write into `/collections/` is a separate handoff path.
-It is not the same thing as direct authenticated in-browser write.
-
-This distinction must stay explicit in future work.
+- do not expose staging jargon in frontend UX
+- do not claim a head is stable when a core control is still missing
 
 ---
 
 ## Files most relevant now
 
-### Core runtime files
+### Core runtime
+- `terminal/app/browser-runtime.js`
+- `terminal/app/browser-collections-browser.js`
 - `terminal/app/browser-collections-bridge.js`
-- `terminal/app/browser-cartridge-bay.js`
 - `terminal/app/browser-home-surface.js`
 - `terminal/app/browser-runs-surface.js`
-- `terminal/app/browser-request-history-panel.js`
-- `terminal/app/browser-repo-verified-panel.js`
-
-### Runtime shell entry
-- `terminal/index.html`
-- `index.html`
+- `terminal/app/browser-cartridge-bay.js`
 
 ### Project continuity
 - `work/dev/projects/consoleterminalbuilding/README.md`
@@ -247,27 +245,8 @@ This distinction must stay explicit in future work.
 ## Fresh-chat operator guidance
 
 When resuming in a fresh chat:
-
 1. start from this working board
-2. then read the handoff file
-3. then read the terminal reference files if needed
-4. treat `e67dd6a79d1364c311b5ecdaa594c818e43e51c9` as the current stable reference point
-5. do not rediscover the architecture from scratch
-6. preserve the locked rules above
-
----
-
-## Working rule
-
-Keep the terminal coherent by preserving these distinctions:
-
-- Collections = browseable catalogue
-- Cartridges = mountable things only
-- Dev cartridges = valid mountable cartridges
-- Systems strip = status, not primary navigation
-- Runtime interaction = not implicit repo mutation
-- Browser staging = not the same as authenticated repo write
-- One mounted surface at a time is safer than all-surface injection
-- Event-driven updates are safer than polling-driven shell churn
-
-The terminal should get more coherent as it grows, not merely more layered.
+2. treat `e67dd6a79d1364c311b5ecdaa594c818e43e51c9` as the last clearly stable baseline
+3. treat `8c456b01ebe170ebca8e453013c1fb08158354b2` as the current integration head
+4. preserve the DOS-style machine model above
+5. repair `Eject` before claiming the current line fully stable
