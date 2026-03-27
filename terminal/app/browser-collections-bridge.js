@@ -1,3 +1,4 @@
+
 (() => {
   const collectionsKey = "__TARS_COLLECTIONS__";
   const shared = window[collectionsKey] || (window[collectionsKey] = {});
@@ -10,593 +11,770 @@
   const screenUiKey = "__TARS_SCREEN_UI__";
   const screenUi = window[screenUiKey] || (window[screenUiKey] = {
     activeScreen: "home",
-    mainNav: "home",
-    activeDevSurface: "request-history",
+    lastBaseScreen: "cartridge-bay",
     shellBuilt: false,
   });
 
-  const MAIN_NAV = [
-    { key: "home", label: "Home", surface: "home" },
-    { key: "cartridges", label: "Cartridges", surface: "cartridge-bay" },
-    { key: "collections", label: "Collections", surface: "collections" },
-    { key: "boards", label: "Boards", surface: "boards" },
-    { key: "dev", label: "Dev", surface: "dev" },
-  ];
+  if (shared.fetchBridgeInstalled) return;
 
-  const DEV_SURFACES = [
-    {
-      key: "request-history",
-      label: "Request History",
-      surface: "request-history",
-      mode: "runs",
-      summary: "Inspect the mounted save/apply chain.",
-    },
-    {
-      key: "repo-verified",
-      label: "Repo Verified",
-      surface: "repo-verified",
-      mode: "runs",
-      summary: "Inspect authenticated repo verification.",
-    },
-    {
-      key: "import-bay",
-      label: "Import Bay",
-      surface: "import-bay",
-      mode: "panels",
-      summary: "Stage, package, and inspect import-side state.",
-      panelLabels: ["NOTE EDITOR", "NOTE LIST", "SAVE WRITE BRIDGE", "DELTA SUMMARY"],
-    },
-    {
-      key: "collections-explorer",
-      label: "Collections Explorer",
-      surface: "collections-explorer",
-      mode: "panels",
-      summary: "Operator-facing catalogue and selection controls.",
-      panelLabels: ["COLLECTIONS BROWSER", "COLLECTIONS SELECTION PREVIEW"],
-    },
-    {
-      key: "debug-intake",
-      label: "Debug Intake",
-      surface: "debug-intake",
-      mode: "panels",
-      summary: "Low-level runtime inspection surfaces.",
-      panelPatterns: [/INTAKE/i, /SAVE SLOTS/i, /HOME SUMMARY/i],
-    },
-  ];
+  const screenOrder = ["home", "cartridge-bay", "collections", "boards", "request-history", "repo-verified"];
+  const baseScreens = ["cartridge-bay", "collections", "boards"];
 
-  const DEV_SURFACE_BY_KEY = Object.fromEntries(DEV_SURFACES.map((surface) => [surface.key, surface]));
-  const NAV_BY_KEY = Object.fromEntries(MAIN_NAV.map((item) => [item.key, item]));
-  const SURFACE_TO_NAV = Object.fromEntries(
-    MAIN_NAV.filter((item) => item.key !== "dev").map((item) => [item.surface, item.key]),
-  );
-  const SURFACE_TO_DEV = Object.fromEntries(DEV_SURFACES.map((item) => [item.surface, item.key]));
-
-  if (SURFACE_TO_DEV[screenUi.activeScreen]) {
-    screenUi.mainNav = "dev";
-    screenUi.activeDevSurface = SURFACE_TO_DEV[screenUi.activeScreen];
-  } else if (SURFACE_TO_NAV[screenUi.activeScreen]) {
-    screenUi.mainNav = SURFACE_TO_NAV[screenUi.activeScreen];
+  function displayName(screen) {
+    switch (screen) {
+      case "home": return "Home";
+      case "cartridge-bay": return "Cartridges";
+      case "collections": return "Collections";
+      case "boards": return "Boards";
+      case "request-history": return "Request History";
+      case "repo-verified": return "Repo Verified";
+      default: return "Screen";
+    }
   }
 
-  let renderScheduled = false;
-
-  function scheduleRender() {
-    if (renderScheduled || !screenUi.shellBuilt) return;
-    renderScheduled = true;
-    queueMicrotask(() => {
-      renderScheduled = false;
-      renderShellChrome();
-    });
+  function railSourceScreen() {
+    const active = getActiveScreen();
+    if (baseScreens.includes(active)) return active;
+    if (baseScreens.includes(screenUi.lastBaseScreen)) return screenUi.lastBaseScreen;
+    return "cartridge-bay";
   }
 
   function emit(name, detail) {
     window.dispatchEvent(new CustomEvent(name, { detail }));
   }
 
-  function getMainNavKey() {
-    if (screenUi.mainNav === "dev") return "dev";
-    return SURFACE_TO_NAV[screenUi.activeScreen] || "home";
-  }
-
-  function getActiveSurface() {
-    if (getMainNavKey() === "dev") {
-      return DEV_SURFACE_BY_KEY[screenUi.activeDevSurface]?.surface || "request-history";
-    }
+  function getActiveScreen() {
+    if (devtools.mountedCartridge === "request-history") return "request-history";
+    if (devtools.mountedCartridge === "repo-verified") return "repo-verified";
     return screenUi.activeScreen || "home";
   }
 
-  function displayNameForSurface(surface) {
-    if (surface === "cartridge-bay") return "Cartridges";
-    if (surface === "request-history") return "Request History";
-    if (surface === "repo-verified") return "Repo Verified";
-    if (surface === "import-bay") return "Import Bay";
-    if (surface === "collections-explorer") return "Collections Explorer";
-    if (surface === "debug-intake") return "Debug Intake";
-    if (surface === "collections") return "Collections";
-    if (surface === "boards") return "Boards";
-    return "Home";
-  }
-
-  function setInternalSurface(surface) {
-    const previousSurface = screenUi.activeScreen;
+  function setActiveScreen(screen, { syncDevtools = true } = {}) {
+    const nextScreen = screen || "home";
     const previousMounted = devtools.mountedCartridge;
+    const previousActive = getActiveScreen();
 
-    screenUi.activeScreen = surface;
-    devtools.mountedCartridge =
-      surface === "request-history" || surface === "repo-verified" ? surface : null;
+    if (syncDevtools) {
+      if (nextScreen === "request-history" || nextScreen === "repo-verified") {
+        devtools.mountedCartridge = nextScreen;
+      } else {
+        devtools.mountedCartridge = null;
+      }
+    }
+
+    screenUi.activeScreen = nextScreen;
+    if (baseScreens.includes(nextScreen)) {
+      screenUi.lastBaseScreen = nextScreen;
+    }
 
     if (previousMounted !== devtools.mountedCartridge) {
       emit("tars:devtools-changed", { mountedCartridge: devtools.mountedCartridge });
     }
-    if (previousSurface !== screenUi.activeScreen) {
+    if (previousActive !== getActiveScreen()) {
       emit("tars:screen-changed", {
         activeScreen: screenUi.activeScreen,
-        mainNav: getMainNavKey(),
+        lastBaseScreen: screenUi.lastBaseScreen,
       });
     }
-  }
-
-  function setMainNav(key) {
-    const next = NAV_BY_KEY[key];
-    if (!next) return;
-    screenUi.mainNav = key;
-    if (key === "dev") {
-      setDevSurface(screenUi.activeDevSurface || "request-history");
-      return;
-    }
-    setInternalSurface(next.surface);
     renderShellChrome();
   }
 
-  function setDevSurface(key) {
-    const next = DEV_SURFACE_BY_KEY[key] || DEV_SURFACE_BY_KEY["request-history"];
-    screenUi.mainNav = "dev";
-    screenUi.activeDevSurface = next.key;
-    setInternalSurface(next.surface);
-    renderShellChrome();
+  function normalizeInput(input) {
+    const raw = typeof input === "string" ? input : input?.url || "";
+    return String(raw).replace(/^terminal\//, "");
   }
 
-  function resolveScreenRequest(requestedSurface) {
-    if (SURFACE_TO_DEV[requestedSurface]) {
-      setDevSurface(SURFACE_TO_DEV[requestedSurface]);
-      return;
+  function wrapJsonResponse(response, onJson) {
+    return new Proxy(response, {
+      get(target, prop) {
+        if (prop === "json") {
+          return async () => {
+            const data = await target.clone().json();
+            return onJson(data);
+          };
+        }
+        const value = target[prop];
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+  }
+
+  function parseStatusStrip() {
+    const text = document.getElementById("statusStrip")?.textContent || "";
+    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+    const state = {};
+    for (const line of lines) {
+      const idx = line.indexOf(":");
+      if (idx === -1) continue;
+      state[line.slice(0, idx).trim().toLowerCase()] = line.slice(idx + 1).trim();
     }
-    const navKey = SURFACE_TO_NAV[requestedSurface] || "home";
-    setMainNav(navKey);
+    return { text, lines, state };
   }
 
-  function normalizeLabel(value) {
-    return String(value || "").trim().replace(/\s+/g, " ");
+  function parseHomeRawState() {
+    const home = document.getElementById("homeSummary");
+    try {
+      return JSON.parse(home?.dataset?.rawSummary || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function screenToListId(screen) {
+    switch (screen) {
+      case "cartridge-bay": return "cartridgeBayList";
+      case "collections": return "collectionsBrowserList";
+      case "boards": return "boardsBrowserList";
+      default: return "";
+    }
+  }
+
+  function selectedLabelFor(screen) {
+    const selected = document.querySelector(`#${screenToListId(screen)} button[data-selected="true"] .surface-title`);
+    return selected?.textContent?.trim() || "none";
   }
 
   function currentSelectionLabel() {
-    const activeSurface = getActiveSurface();
-    const collectionButton =
-      document.querySelector("#collectionsBrowserList button[data-selected='true'] .surface-title") ||
-      document.querySelector("#cartridgeBayList button[data-selected='true'] .surface-title") ||
-      document.querySelector("#boardsBrowserList button[data-selected='true'] .surface-title");
-    if (getMainNavKey() === "dev") {
-      return DEV_SURFACE_BY_KEY[screenUi.activeDevSurface]?.label || "Dev Surface";
-    }
-    return normalizeLabel(collectionButton?.textContent) || displayNameForSurface(activeSurface);
+    const active = getActiveScreen();
+    if (baseScreens.includes(active)) return selectedLabelFor(active);
+    if (active === "request-history" || active === "repo-verified") return displayName(active);
+    return selectedLabelFor(railSourceScreen());
   }
 
-  function panelById(id) {
-    return document.getElementById(id)?.closest(".panel") || null;
+  function getListButtonsForScreen(screen) {
+    const container = document.getElementById(screenToListId(screen));
+    return container ? Array.from(container.querySelectorAll("button.manifest-entry")) : [];
   }
 
-  function allPanels() {
-    return Array.from(document.querySelectorAll(".shell .panel"));
+  function selectRelative(delta) {
+    const buttons = getListButtonsForScreen(railSourceScreen());
+    if (!buttons.length) return false;
+    let index = buttons.findIndex((button) => button.dataset.selected === "true");
+    index = index === -1 ? 0 : (index + delta + buttons.length) % buttons.length;
+    buttons[index]?.click();
+    return true;
   }
 
-  function panelLabel(panel) {
-    return normalizeLabel(panel?.querySelector(".label")?.textContent || "");
+  function cycleScreen(delta) {
+    const active = getActiveScreen();
+    const index = screenOrder.indexOf(active);
+    const nextIndex = (index + delta + screenOrder.length) % screenOrder.length;
+    setActiveScreen(screenOrder[nextIndex]);
   }
 
-  function moveNode(stash, node) {
-    if (!stash || !node) return;
-    if (node.parentElement !== stash) {
-      stash.appendChild(node);
-    }
-    node.classList.add("terminal-stashed-panel");
-  }
-
-  function mountNode(host, node) {
-    if (!host || !node) return;
-    if (node.parentElement !== host) {
-      host.appendChild(node);
-    }
-    node.classList.remove("terminal-stashed-panel");
-  }
-
-  function panelsBySpec(spec) {
-    const labelSet = new Set(spec.panelLabels || []);
-    const patterns = spec.panelPatterns || [];
-    return allPanels().filter((panel) => {
-      const label = panelLabel(panel);
-      if (!label) return false;
-      if (labelSet.has(label)) return true;
-      return patterns.some((pattern) => pattern.test(label));
-    });
-  }
-
-  function buildSystemsPills() {
-    const actions = Array.from(document.querySelectorAll("#actions button"));
-    const topPills = actions.map((button) => {
-      const text = normalizeLabel(button.textContent);
-      const status = normalizeLabel(button.dataset.actionState || button.dataset.rawActionState || "available");
-      return { label: text || "Action", status };
-    });
-
-    const healthPills = [
-      {
-        label: "Request History",
-        status: normalizeLabel(devtools.requestHistorySurface?.surface?.status || "available"),
-      },
-      {
-        label: "Repo Verified",
-        status: normalizeLabel(devtools.repoVerifiedSurface?.repoVerifiedStatus?.status || "available"),
-      },
-      { label: "Debug Intake", status: "available" },
-      { label: "Import Bay", status: "available" },
-      { label: "Collections Explorer", status: "available" },
-    ];
-
-    return [...topPills, ...healthPills];
-  }
-
-  function renderSystemsStrip() {
-    const host = document.getElementById("terminalSystemsStrip");
-    if (!host) return;
-    const statusLines = normalizeLabel(document.getElementById("statusStrip")?.textContent || "booting");
-    const pills = buildSystemsPills();
-    host.innerHTML = `
-      <div class="terminal-brand-row">
-        <div class="terminal-brand">TARS TERMINAL</div>
-        <div class="terminal-active-screen">${displayNameForSurface(getActiveSurface())}</div>
-      </div>
-      <div class="terminal-path-line">Home / ${displayNameForSurface(getActiveSurface())} / ${currentSelectionLabel()}</div>
-      <div class="terminal-systems-grid">
-        ${pills
-          .map(
-            (pill) => `
-          <div class="terminal-pill" data-state="${pill.status.toLowerCase()}">
-            <span class="terminal-pill-label">${pill.label}</span>
-            <span class="terminal-pill-value">${pill.status}</span>
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-      <div class="terminal-status-line">${statusLines || "Status signal unavailable."}</div>
-    `;
-  }
-
-  function renderMainNav() {
-    const host = document.getElementById("terminalMainNav");
-    if (!host) return;
-    const activeNav = getMainNavKey();
-    host.innerHTML = "";
-    MAIN_NAV.forEach((item) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "terminal-main-nav-button";
-      button.dataset.active = String(activeNav === item.key);
-      button.textContent = item.label;
-      button.addEventListener("click", () => setMainNav(item.key));
-      host.appendChild(button);
-    });
-  }
-
-  function renderDevSelector(host) {
-    const selected = DEV_SURFACE_BY_KEY[screenUi.activeDevSurface] || DEV_SURFACE_BY_KEY["request-history"];
-    host.innerHTML = `
-      <div class="terminal-dev-selector-list">
-        ${DEV_SURFACES.map(
-          (surface) => `
-            <button
-              type="button"
-              class="terminal-dev-surface-button"
-              data-active="${String(surface.key === selected.key)}"
-              data-dev-surface="${surface.key}"
-            >
-              <span class="surface-title">${surface.label}</span>
-              <span class="muted">${surface.summary}</span>
-            </button>
-          `,
-        ).join("")}
-      </div>
-    `;
-    host.querySelectorAll("[data-dev-surface]").forEach((button) => {
-      button.addEventListener("click", () => setDevSurface(button.dataset.devSurface));
-    });
-  }
-
-  function renderRail() {
-    const shell = document.querySelector(".terminal-rail-shell");
-    const title = document.getElementById("terminalRailTitle");
-    const host = document.getElementById("terminalRailHost");
-    if (!shell || !title || !host) return;
-
-    const mainNav = getMainNavKey();
-    host.innerHTML = "";
-
-    if (mainNav === "dev") {
-      title.textContent = "Dev Surfaces";
-      renderDevSelector(host);
-      shell.hidden = false;
+  function primaryAction() {
+    const active = getActiveScreen();
+    if (active === "home") {
+      setActiveScreen(screenUi.lastBaseScreen || "cartridge-bay");
       return;
     }
-
-    const sourcePanel = {
-      cartridges: panelById("cartridgeBayList"),
-      collections: panelById("collectionsBrowserList"),
-      boards: panelById("boardsBrowserList"),
-    }[mainNav] || null;
-
-    if (!sourcePanel) {
-      shell.hidden = true;
-      return;
-    }
-
-    title.textContent = `${NAV_BY_KEY[mainNav]?.label || "Selector"} Rail`;
-    mountNode(host, sourcePanel);
-    shell.hidden = false;
-  }
-
-  function curatedDevPanels() {
-    const key = screenUi.activeDevSurface;
-    const spec = DEV_SURFACE_BY_KEY[key];
-    if (!spec || spec.mode !== "panels") return [];
-    return panelsBySpec(spec);
-  }
-
-  function renderFallbackMessage(host, title, detail) {
-    const panel = document.createElement("div");
-    panel.className = "panel terminal-inline-panel";
-    panel.innerHTML = `
-      <div class="surface-stack">
-        <div class="surface-header">
-          <div class="surface-title">${title}</div>
-          <span class="surface-chip">pending</span>
-        </div>
-        <div class="surface-detail">${detail}</div>
-      </div>
-    `;
-    host.appendChild(panel);
-  }
-
-  function renderContent() {
-    const host = document.getElementById("terminalContentHost");
-    const hiddenStash = document.getElementById("terminalHiddenStash");
-    const runsPanel = panelById("runsViewport");
-    const mainNav = getMainNavKey();
-    if (!host || !hiddenStash || !runsPanel) return;
-
-    const stashedPanels = allPanels().filter((panel) => panel !== runsPanel);
-    stashedPanels.forEach((panel) => {
-      if (!document.getElementById("terminalRailHost")?.contains(panel) && !host.contains(panel)) {
-        moveNode(hiddenStash, panel);
-      }
-    });
-
-    host.innerHTML = "";
-
-    if (mainNav !== "dev" || ["request-history", "repo-verified"].includes(getActiveSurface())) {
-      mountNode(host, runsPanel);
-      return;
-    }
-
-    if (screenUi.activeDevSurface === "collections-explorer") {
-      const panels = [panelById("collectionsBrowserList"), panelById("collectionsResolvedSummary")].filter(Boolean);
-      panels.forEach((panel) => mountNode(host, panel));
-      if (!panels.length) {
-        renderFallbackMessage(host, "Collections Explorer", "Explorer summary is not available yet.");
+    if (active === "cartridge-bay") {
+      if (document.querySelector('#cartridgeBayList button[data-selected="true"]')) {
+        setActiveScreen("collections");
+      } else {
+        selectRelative(1);
       }
       return;
     }
-
-    const panels = curatedDevPanels();
-    if (panels.length) {
-      panels.forEach((panel) => mountNode(host, panel));
+    if (active === "collections") {
+      const button = document.getElementById("collectionsMountConfirm");
+      if (button && !button.disabled) button.click();
+      else selectRelative(1);
       return;
     }
-
-    renderFallbackMessage(
-      host,
-      DEV_SURFACE_BY_KEY[screenUi.activeDevSurface]?.label || "Dev Surface",
-      "This surface is still available in the hidden dev drawer while its panel routing is normalized.",
-    );
+    if (active === "boards") {
+      const button = document.getElementById("boardsMountConfirm");
+      if (button && !button.disabled) button.click();
+      else selectRelative(1);
+    }
   }
 
-  function renderDevDrawer() {
-    const host = document.getElementById("terminalDevDrawerContent");
-    const hiddenStash = document.getElementById("terminalHiddenStash");
-    if (!host || !hiddenStash) return;
-
-    host.innerHTML = "";
-    const rawPreviewLabels = [
-      "NOTES JSON RAW PREVIEW",
-      "SAVE WRITE REQUEST RAW PREVIEW",
-      "DELTA RAW PREVIEW",
-      "MOUNTED SOURCE CONTEXT RAW PREVIEW",
-      "EXPORT SOURCE RAW PREVIEW",
-      "APPLY SAVE STATUS RAW PREVIEW",
-      "MOUNTED SAVE CONTEXT RAW PREVIEW",
-      "REQUEST HISTORY RAW PREVIEW",
-      "REPO VERIFIED RAW PREVIEW",
-    ];
-
-    allPanels()
-      .filter((panel) => rawPreviewLabels.includes(panelLabel(panel)))
-      .forEach((panel) => mountNode(host, panel));
+  function secondaryAction() {
+    const active = getActiveScreen();
+    if (active === "request-history" || active === "repo-verified") {
+      setActiveScreen(screenUi.lastBaseScreen || "home");
+      return;
+    }
+    if (active !== "home") setActiveScreen("home");
   }
 
-  function applyChassisTrim() {
-    document.querySelectorAll("#terminalContentHost .panel > .label").forEach((label) => {
-      label.style.display = "none";
-    });
+  function getControlMap() {
+    const active = getActiveScreen();
+    const railScreen = railSourceScreen();
+    const railButtons = getListButtonsForScreen(railScreen);
+    const mountCollectionsDisabled = document.getElementById("collectionsMountConfirm")?.disabled ?? true;
+    const mountBoardsDisabled = document.getElementById("boardsMountConfirm")?.disabled ?? true;
+
+    const map = {
+      up: {
+        enabled: railButtons.length > 0,
+        label: railButtons.length > 0 ? `prev ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        action: () => selectRelative(-1),
+      },
+      down: {
+        enabled: railButtons.length > 0,
+        label: railButtons.length > 0 ? `next ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        action: () => selectRelative(1),
+      },
+      left: {
+        enabled: true,
+        label: "prev tab",
+        action: () => cycleScreen(-1),
+      },
+      right: {
+        enabled: true,
+        label: "next tab",
+        action: () => cycleScreen(1),
+      },
+      a: {
+        enabled: active !== "request-history" && active !== "repo-verified",
+        label:
+          active === "home" ? "open" :
+          active === "cartridge-bay" ? "handoff" :
+          active === "collections" ? (mountCollectionsDisabled ? "select" : "mount") :
+          active === "boards" ? (mountBoardsDisabled ? "select" : "mount") :
+          "none",
+        action: primaryAction,
+      },
+      b: {
+        enabled: active !== "home",
+        label: (active === "request-history" || active === "repo-verified") ? "back" : "home",
+        action: secondaryAction,
+      },
+    };
+
+    if (active === "request-history" || active === "repo-verified") {
+      map.up.enabled = false;
+      map.up.label = "none";
+      map.down.enabled = false;
+      map.down.label = "none";
+      map.a.enabled = false;
+      map.a.label = "none";
+    }
+
+    return map;
   }
 
-  function renderShellChrome() {
-    renderSystemsStrip();
-    renderMainNav();
-    renderRail();
-    renderContent();
-    renderDevDrawer();
-    applyChassisTrim();
+  function upsertLauncher(actions, id, key, label) {
+    let button = document.getElementById(id);
+    if (!button || button.parentElement !== actions) {
+      button = document.createElement("button");
+      button.id = id;
+      button.addEventListener("click", () => {
+        if (getActiveScreen() === key) {
+          setActiveScreen(screenUi.lastBaseScreen || "home");
+        } else {
+          setActiveScreen(key);
+        }
+      });
+      actions.appendChild(button);
+    }
+
+    const state = getActiveScreen() === key ? "active" : "available";
+    button.disabled = false;
+    button.removeAttribute("aria-disabled");
+    button.dataset.actionKey = key;
+    button.dataset.actionState = state;
+    button.dataset.rawActionState = state;
+    button.dataset.rawText = `${label} : ${state}`;
+    button.textContent = button.dataset.rawText;
+  }
+
+  function ensureDevtoolsLaunchers() {
+    const actions = document.getElementById("actions");
+    if (!actions) return;
+    upsertLauncher(actions, "action-request-history", "request-history", "request-history");
+    upsertLauncher(actions, "action-repo-verified", "repo-verified", "repo-verified");
   }
 
   function injectStyles() {
-    if (document.getElementById("terminal-shell-v5-style")) return;
+    if (document.getElementById("terminal-shell-v4-style")) return;
     const style = document.createElement("style");
-    style.id = "terminal-shell-v5-style";
+    style.id = "terminal-shell-v4-style";
     style.textContent = `
-      .terminal-shell-v5 {
-        display: grid;
-        gap: 14px;
+      :root {
+        --bg: #090b12;
+        --panel: #10131c;
+        --screen: #0b0f16;
+        --line: rgba(179, 140, 255, 0.22);
+        --line-strong: rgba(88, 231, 243, 0.28);
+        --text: #c8ced7;
+        --text-soft: #a8afbc;
+        --muted: #8f96ab;
+        --accent: #58e7f3;
+        --accent-2: #b38cff;
+        --warn: #ffbe86;
+        --glow-soft: 0 0 14px rgba(88, 231, 243, 0.08);
       }
-      .terminal-systems-shell,
-      .terminal-nav-shell,
-      .terminal-content-shell,
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(179, 140, 255, 0.08), transparent 42%),
+          radial-gradient(circle at top right, rgba(88, 231, 243, 0.06), transparent 36%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .shell {
+        display: block;
+        min-height: 100vh;
+        padding: 16px;
+      }
+
+      .terminal-shell-v4 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto;
+        gap: 14px;
+        min-height: calc(100vh - 32px);
+      }
+
+      .terminal-header-shell,
+      .terminal-main-shell,
       .terminal-rail-shell,
+      .terminal-footer-shell,
       .terminal-dev-drawer {
-        border: 1px solid rgba(186, 156, 255, 0.24);
+        border: 1px solid var(--line);
         border-radius: 18px;
-        background: linear-gradient(180deg, rgba(18, 22, 34, 0.96), rgba(8, 10, 16, 0.98));
+        background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(9, 11, 18, 0.98));
         overflow: hidden;
       }
-      .terminal-systems-shell,
-      .terminal-nav-shell,
-      .terminal-content-shell,
-      .terminal-rail-shell,
-      .terminal-dev-drawer > summary,
-      .terminal-dev-drawer-content {
+
+      .terminal-header-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
+      }
+
+      .terminal-header-bar,
+      .terminal-header-controls {
         padding: 14px 16px;
       }
+
+      .terminal-header-bar {
+        border-right: 1px solid var(--line);
+        display: grid;
+        gap: 10px;
+      }
+
       .terminal-brand-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 12px;
-        margin-bottom: 8px;
       }
+
       .terminal-brand {
         font-size: 12px;
-        text-transform: uppercase;
         letter-spacing: 0.18em;
-        color: #b38cff;
+        text-transform: uppercase;
+        color: var(--accent-2);
       }
+
       .terminal-active-screen {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         padding: 6px 10px;
-        border: 1px solid rgba(104, 236, 247, 0.28);
+        border: 1px solid var(--line-strong);
         border-radius: 999px;
-        color: #58e7f3;
+        color: var(--accent);
+        box-shadow: var(--glow-soft);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         font-size: 11px;
       }
-      .terminal-path-line,
-      .terminal-status-line,
-      .terminal-dev-surface-button .muted {
-        color: #aab4c5;
+
+      .terminal-path-line {
+        color: var(--muted);
+        letter-spacing: 0.04em;
       }
-      .terminal-systems-grid {
+
+      .terminal-header-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 10px;
-        margin: 12px 0;
       }
-      .terminal-pill {
-        border: 1px solid rgba(186, 156, 255, 0.2);
+
+      .header-chip {
+        border: 1px solid var(--line);
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.02);
         padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.01);
       }
-      .terminal-pill-label {
+
+      .chip-label {
         display: block;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #b38cff;
+        color: var(--accent-2);
         margin-bottom: 6px;
       }
-      .terminal-pill-value {
-        color: #e6ebf2;
+
+      .chip-value {
+        color: var(--text-soft);
+        line-height: 1.4;
       }
-      .terminal-nav-shell {
-        display: grid;
-        gap: 10px;
+
+      .terminal-status-line {
+        color: var(--muted);
+        line-height: 1.6;
       }
-      .terminal-main-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      #terminalMainNav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .terminal-main-nav-button,
-      .terminal-dev-surface-button {
-        border: 1px solid rgba(186, 156, 255, 0.24);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.02);
-        color: #e6ebf2;
-        padding: 10px 14px;
-      }
-      .terminal-main-nav-button[data-active="true"],
-      .terminal-dev-surface-button[data-active="true"] {
-        border-color: rgba(104, 236, 247, 0.32);
-        color: #58e7f3;
-        box-shadow: 0 0 14px rgba(88, 231, 243, 0.08);
-      }
-      .terminal-content-shell .panel {
-        margin: 0;
-        padding: 0;
-        border: none;
-        background: transparent;
-      }
-      .terminal-content-shell #runsViewport {
-        min-height: 420px;
-        max-height: 68vh;
-        overflow: auto;
-      }
-      .terminal-rail-shell[hidden] {
-        display: none;
-      }
-      .terminal-dev-selector-list {
-        display: grid;
-        gap: 10px;
-      }
-      .terminal-dev-surface-button {
-        text-align: left;
-        display: grid;
-        gap: 4px;
-        border-radius: 16px;
-      }
-      .terminal-dev-drawer-content {
+
+      .terminal-header-controls {
         display: grid;
         gap: 12px;
       }
-      .terminal-hidden-stash,
-      .terminal-stashed-panel {
-        display: none !important;
+
+      .terminal-header-controls .panel {
+        border: none;
+        background: transparent;
+        padding: 0;
       }
-      .terminal-inline-panel {
+
+      .terminal-header-controls .label,
+      .terminal-main-title,
+      .terminal-rail-title,
+      .terminal-footer-label {
+        color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 11px;
+      }
+
+      .terminal-header-controls #nav,
+      .terminal-header-controls #actions,
+      .terminal-screen-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .terminal-header-controls button,
+      .terminal-screen-tabs button,
+      .control-pad-button,
+      .terminal-rail-shell .manifest-entry {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        transition: border-color 120ms ease, color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      }
+
+      .terminal-header-controls button[data-action-state="active"],
+      .terminal-screen-tabs button[data-active="true"],
+      .control-pad-button[data-active="true"] {
+        border-color: var(--line-strong);
+        color: var(--accent);
+        box-shadow: var(--glow-soft);
+      }
+
+      .terminal-header-controls button:hover,
+      .terminal-screen-tabs button:hover,
+      .control-pad-button:hover:not([disabled]),
+      .terminal-rail-shell .manifest-entry:hover {
+        border-color: rgba(88, 231, 243, 0.4);
+      }
+
+      .terminal-main-shell {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-height: clamp(560px, 68vh, 860px);
+        max-height: clamp(560px, 68vh, 860px);
+      }
+
+      .terminal-main-topbar {
+        display: grid;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .terminal-main-shell .panel {
+        border: none;
+        background: transparent;
         padding: 16px;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
       }
-      .terminal-content-shell .label {
-        display: none !important;
+
+      .terminal-main-shell .label {
+        color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      #runsViewport {
+        height: 100%;
+        min-height: 0;
+        overflow: auto;
+        border: 1px solid rgba(179, 140, 255, 0.18);
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent),
+          var(--screen);
+        color: var(--text);
+        padding: 18px;
+        box-shadow: inset 0 0 0 1px rgba(179, 140, 255, 0.05);
+      }
+
+      #runsViewport .surface-title,
+      #runsViewport .manifest-group-title { color: var(--accent-2); }
+      #runsViewport .surface-chip {
+        border-radius: 999px;
+        border-color: rgba(88, 231, 243, 0.26);
+        color: var(--accent);
+      }
+      #runsViewport .surface-detail,
+      #runsViewport .surface-foot,
+      #runsViewport .surface-list-item,
+      #runsViewport pre,
+      #runsViewport .screen-copy { color: var(--text); }
+      #runsViewport .muted { color: var(--muted); }
+      #runsViewport .warn { color: var(--warn); }
+      #runsViewport .surface-list-item {
+        background: rgba(255, 255, 255, 0.018);
+        border-radius: 14px;
+        border-color: rgba(179, 140, 255, 0.16);
+      }
+
+      .terminal-rail-shell {
+        padding: 14px 16px 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .terminal-rail-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .terminal-rail-context { color: var(--muted); }
+
+      .terminal-rail-host { min-height: 0; }
+
+      .terminal-rail-shell .panel {
+        margin: 0;
+        padding: 12px;
+        border-radius: 16px;
+        border-color: var(--line);
+        background: rgba(8, 10, 16, 0.56);
+      }
+
+      .terminal-rail-shell .label {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .terminal-rail-shell .surface-list,
+      .terminal-rail-shell .manifest-group {
+        display: grid;
+        gap: 10px;
+      }
+
+      .terminal-rail-shell .manifest-group-title {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .terminal-rail-shell .manifest-entry {
+        width: 100%;
+        text-align: left;
+        padding: 10px 14px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        display: block;
+      }
+
+      .terminal-rail-shell .manifest-entry[data-selected="true"] {
+        border-color: var(--line-strong);
+        color: var(--accent);
+        box-shadow: var(--glow-soft);
+      }
+
+      .terminal-rail-shell .manifest-entry .surface-header {
+        justify-content: flex-start;
+        gap: 0;
+      }
+
+      .terminal-rail-shell .manifest-entry .surface-title {
+        font-size: 13px;
+        line-height: 1.35;
+        color: var(--text-soft);
+      }
+
+      .terminal-rail-shell .manifest-entry[data-selected="true"] .surface-title { color: var(--accent); }
+
+      .terminal-rail-shell .manifest-entry .surface-chip,
+      .terminal-rail-shell .manifest-entry .manifest-entry-meta,
+      .terminal-rail-shell .manifest-entry .surface-foot { display: none; }
+
+      .terminal-footer-shell {
+        padding: 12px 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .control-pad-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .control-slot { display: grid; gap: 6px; }
+      .control-pad-button { padding: 10px 12px; font-size: 14px; font-weight: 600; }
+      .control-pad-button[disabled] { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+      .control-legend { color: var(--muted); line-height: 1.4; min-height: 2.8em; }
+
+      .terminal-dev-drawer { margin-top: 14px; }
+      .terminal-dev-drawer > summary {
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+        padding: 14px 16px;
+        color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+      .terminal-dev-drawer-content { padding: 0 16px 16px; display: grid; gap: 12px; }
+      .terminal-hidden-sources, .source-panel-hidden { display: none !important; }
+
+      @media (max-width: 1080px) {
+        .terminal-header-shell { grid-template-columns: 1fr; }
+        .terminal-header-bar { border-right: none; border-bottom: 1px solid var(--line); }
+        .terminal-header-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .control-pad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .terminal-main-shell {
+          min-height: clamp(480px, 62vh, 720px);
+          max-height: clamp(480px, 62vh, 720px);
+        }
       }
     `;
     document.head.appendChild(style);
   }
 
+  function renderHeaderBar() {
+    const headerBar = document.getElementById("terminalHeaderBar");
+    if (!headerBar) return;
+
+    const activeScreen = getActiveScreen();
+    const status = parseStatusStrip();
+    const home = parseHomeRawState();
+    const chips = [
+      { label: "mode", value: home.mode || status.state.mode || "home" },
+      { label: "mount", value: home.currentMount || status.state.mount || "none" },
+      { label: "selection", value: currentSelectionLabel() },
+      { label: "export", value: home.exportSource || "disabled" },
+    ];
+
+    headerBar.innerHTML = `
+      <div class="terminal-brand-row">
+        <div class="terminal-brand">TARS TERMINAL</div>
+        <div class="terminal-active-screen">${displayName(activeScreen)}</div>
+      </div>
+      <div class="terminal-path-line">Home / ${displayName(railSourceScreen())} / ${currentSelectionLabel()}</div>
+      <div class="terminal-header-grid">
+        ${chips.map((chip) => `
+          <div class="header-chip">
+            <span class="chip-label">${chip.label}</span>
+            <span class="chip-value">${chip.value}</span>
+          </div>
+        `).join("")}
+      </div>
+      <div class="terminal-status-line">${status.lines.slice(0, 3).join(" · ") || "Status signal unavailable."}</div>
+    `;
+  }
+
+  function renderScreenTabs() {
+    const tabs = document.getElementById("terminalScreenTabs");
+    if (!tabs) return;
+    const activeScreen = getActiveScreen();
+    tabs.innerHTML = "";
+    for (const screen of screenOrder) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.active = String(activeScreen === screen);
+      button.textContent = displayName(screen);
+      button.addEventListener("click", () => setActiveScreen(screen));
+      tabs.appendChild(button);
+    }
+  }
+
+  function renderRail() {
+    const host = document.getElementById("terminalRailHost");
+    const title = document.getElementById("terminalRailTitle");
+    const context = document.getElementById("terminalRailContext");
+    if (!host || !title || !context) return;
+
+    const sourceScreen = railSourceScreen();
+    title.textContent = `${displayName(sourceScreen)} Rail`;
+    context.textContent = `${displayName(sourceScreen)} selectors`;
+
+    const sourcePanel = {
+      "cartridge-bay": document.getElementById("cartridgeBayList")?.closest(".panel"),
+      "collections": document.getElementById("collectionsBrowserList")?.closest(".panel"),
+      "boards": document.getElementById("boardsBrowserList")?.closest(".panel"),
+    }[sourceScreen] || null;
+
+    host.innerHTML = "";
+    if (sourcePanel) {
+      sourcePanel.classList.remove("source-panel-hidden");
+      host.appendChild(sourcePanel);
+    }
+  }
+
+  function renderFooter() {
+    const footer = document.getElementById("terminalControlPad");
+    if (!footer) return;
+    const map = getControlMap();
+    const order = [["up", "↑"], ["down", "↓"], ["left", "←"], ["right", "→"], ["a", "A"], ["b", "B"]];
+
+    footer.innerHTML = "";
+    for (const [key, symbol] of order) {
+      const slot = document.createElement("div");
+      slot.className = "control-slot";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "control-pad-button";
+      button.dataset.active = String(map[key].enabled);
+      button.disabled = !map[key].enabled;
+      button.textContent = symbol;
+      button.addEventListener("click", () => {
+        if (!map[key].enabled) return;
+        map[key].action();
+      });
+      const legend = document.createElement("div");
+      legend.className = "control-legend";
+      legend.textContent = map[key].label;
+      slot.appendChild(button);
+      slot.appendChild(legend);
+      footer.appendChild(slot);
+    }
+  }
+
+  function renderShellChrome() {
+    renderHeaderBar();
+    renderScreenTabs();
+    renderRail();
+    renderFooter();
+    ensureDevtoolsLaunchers();
+  }
+
+  function moveToStash(stash, node) {
+    if (!node) return;
+    node.classList.add("source-panel-hidden");
+    stash.appendChild(node);
+  }
+
   function buildShell() {
     if (screenUi.shellBuilt) {
-      scheduleRender();
+      renderShellChrome();
       return;
     }
 
@@ -608,89 +786,196 @@
     const statusSection = document.getElementById("statusStrip")?.closest("section");
     const navSection = document.getElementById("nav")?.closest("section");
     const actionsSection = document.getElementById("actions")?.closest("section");
-    const runsPanel = panelById("runsViewport");
+    const homePanel = document.getElementById("homeSummary")?.closest(".panel");
+    const runsPanel = document.getElementById("runsViewport")?.closest(".panel");
+    const cartridgeListPanel = document.getElementById("cartridgeBayList")?.closest(".panel");
+    const cartridgeSummaryPanel = document.getElementById("cartridgeBaySummary")?.closest(".panel");
+    const collectionsListPanel = document.getElementById("collectionsBrowserList")?.closest(".panel");
+    const collectionsSummaryPanel = document.getElementById("collectionsResolvedSummary")?.closest(".panel");
+    const boardsListPanel = document.getElementById("boardsBrowserList")?.closest(".panel");
+    const boardsSummaryPanel = document.getElementById("boardsResolvedSummary")?.closest(".panel");
+
+    const shellV4 = document.createElement("div");
+    shellV4.className = "terminal-shell-v4";
+
+    const header = document.createElement("section");
+    header.className = "terminal-header-shell";
+    header.innerHTML = `
+      <div class="terminal-header-bar" id="terminalHeaderBar"></div>
+      <div class="terminal-header-controls">
+        <div class="panel">
+          <div class="label">navigation</div>
+          <div class="row" id="terminalHeaderNav"></div>
+        </div>
+        <div class="panel">
+          <div class="label">command deck</div>
+          <div class="row" id="terminalHeaderActions"></div>
+        </div>
+      </div>
+    `;
+
+    const main = document.createElement("section");
+    main.className = "terminal-main-shell";
+    main.innerHTML = `
+      <div class="terminal-main-topbar">
+        <div class="terminal-main-title">main screen</div>
+        <div class="terminal-screen-tabs" id="terminalScreenTabs"></div>
+      </div>
+    `;
+
+    const rail = document.createElement("section");
+    rail.className = "terminal-rail-shell";
+    rail.innerHTML = `
+      <div class="terminal-rail-head">
+        <div class="terminal-rail-title" id="terminalRailTitle">selector rail</div>
+        <div class="terminal-rail-context" id="terminalRailContext"></div>
+      </div>
+      <div class="terminal-rail-host" id="terminalRailHost"></div>
+    `;
+
+    const footer = document.createElement("section");
+    footer.className = "terminal-footer-shell";
+    footer.innerHTML = `
+      <div class="terminal-footer-label">control legend</div>
+      <div class="control-pad-grid" id="terminalControlPad"></div>
+    `;
+
     const hiddenStash = document.createElement("div");
-    hiddenStash.id = "terminalHiddenStash";
-    hiddenStash.className = "terminal-hidden-stash";
+    hiddenStash.className = "terminal-hidden-sources";
+    hiddenStash.id = "terminalHiddenSources";
 
     const devDrawer = document.createElement("details");
     devDrawer.className = "terminal-dev-drawer";
-    devDrawer.innerHTML = `
-      <summary>Dev Drawer</summary>
-      <div class="terminal-dev-drawer-content" id="terminalDevDrawerContent"></div>
-    `;
+    devDrawer.innerHTML = `<summary>Dev Surfaces</summary><div class="terminal-dev-drawer-content" id="terminalDevDrawerContent"></div>`;
 
-    const shellV5 = document.createElement("div");
-    shellV5.className = "terminal-shell-v5";
-    shellV5.innerHTML = `
-      <section class="terminal-systems-shell">
-        <div id="terminalHeaderBar"></div>
-        <div id="terminalSystemsStrip"></div>
-      </section>
-      <section class="terminal-nav-shell">
-        <div class="terminal-main-nav" id="terminalMainNav"></div>
-      </section>
-      <section class="terminal-content-shell">
-        <div id="terminalContentHost"></div>
-      </section>
-      <section class="terminal-rail-shell">
-        <div class="terminal-brand-row">
-          <div class="terminal-brand" id="terminalRailTitle">Rail</div>
-          <div class="terminal-path-line">${currentSelectionLabel()}</div>
-        </div>
-        <div id="terminalRailHost"></div>
-      </section>
-    `;
+    const mainPanel = runsPanel || document.createElement("div");
+    mainPanel.classList.add("panel");
+    const runsLabel = mainPanel.querySelector(".label");
+    if (runsLabel) runsLabel.textContent = "MAIN SCREEN";
+    main.appendChild(mainPanel);
 
-    const existingChildren = Array.from(shell.children);
-    existingChildren.forEach((child) => moveNode(hiddenStash, child));
+    const navHost = header.querySelector("#terminalHeaderNav");
+    const navNode = document.getElementById("nav");
+    if (navHost && navNode) navHost.appendChild(navNode);
+
+    const actionsHost = header.querySelector("#terminalHeaderActions");
+    const actionsNode = document.getElementById("actions");
+    if (actionsHost && actionsNode) actionsHost.appendChild(actionsNode);
+
+    [cartridgeListPanel, collectionsListPanel, boardsListPanel].forEach((panel) => {
+      if (panel) hiddenStash.appendChild(panel);
+    });
+
+    [
+      statusSection,
+      homePanel,
+      cartridgeSummaryPanel,
+      collectionsSummaryPanel,
+      boardsSummaryPanel,
+      navSection,
+      actionsSection,
+    ].forEach((node) => moveToStash(hiddenStash, node));
+
+    const preservedNodes = Array.from(shell.children).filter((child) => {
+      if ([
+        statusSection,
+        navSection,
+        actionsSection,
+        homePanel,
+        runsPanel,
+        cartridgeListPanel,
+        cartridgeSummaryPanel,
+        collectionsListPanel,
+        collectionsSummaryPanel,
+        boardsListPanel,
+        boardsSummaryPanel,
+      ].includes(child)) return false;
+      return child.childElementCount > 0;
+    });
+
+    const devContent = devDrawer.querySelector("#terminalDevDrawerContent");
+    preservedNodes.forEach((node) => devContent.appendChild(node));
 
     shell.innerHTML = "";
-    shell.appendChild(shellV5);
+    shell.appendChild(shellV4);
     shell.appendChild(devDrawer);
     shell.appendChild(hiddenStash);
 
-    [statusSection, navSection, actionsSection].forEach((node) => moveNode(hiddenStash, node));
+    shellV4.appendChild(header);
+    shellV4.appendChild(main);
+    shellV4.appendChild(rail);
+    shellV4.appendChild(footer);
 
-    if (runsPanel) {
-      moveNode(hiddenStash, runsPanel);
+    ["cartridgeBayList", "collectionsBrowserList", "boardsBrowserList"].forEach((id) => {
+      const container = document.getElementById(id);
+      if (!container) return;
+      container.addEventListener("click", (event) => {
+        if (!event.target.closest("button")) return;
+        const screen = id === "cartridgeBayList" ? "cartridge-bay" : id === "collectionsBrowserList" ? "collections" : "boards";
+        setActiveScreen(screen);
+      });
+    });
+
+    const statusTarget = document.getElementById("statusStrip");
+    if (statusTarget) {
+      new MutationObserver(() => renderHeaderBar()).observe(statusTarget, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
     }
 
-    ["statusStrip", "actions", "homeSummary", "cartridgeBayList", "collectionsBrowserList", "boardsBrowserList"].forEach((id) => {
-      const target = document.getElementById(id);
-      if (!target) return;
-      const observer = new MutationObserver(() => {
-        scheduleRender();
+    const homeTarget = document.getElementById("homeSummary");
+    if (homeTarget) {
+      new MutationObserver(() => {
+        renderHeaderBar();
+        renderFooter();
+      }).observe(homeTarget, {
+        childList: true,
+        subtree: true,
+        characterData: true,
       });
-      observer.observe(target, { childList: true, subtree: true, characterData: true, attributes: true });
+    }
+
+    window.addEventListener("tars:screen-request", (event) => {
+      const requested = event?.detail?.screen;
+      if (requested) setActiveScreen(requested);
     });
 
     screenUi.shellBuilt = true;
     renderShellChrome();
   }
 
-  window.addEventListener("tars:screen-request", (event) => {
-    const requestedSurface = event?.detail?.screen;
-    if (requestedSurface) {
-      resolveScreenRequest(requestedSurface);
-    }
-  });
+  shared.fetchBridgeInstalled = true;
+  const originalFetch = window.fetch.bind(window);
+  shared.originalFetch = originalFetch;
 
-  [
-    "tars:request-history-updated",
-    "tars:repo-verified-updated",
-    "tars:collections-updated",
-    "tars:devtools-changed",
-    "tars:screen-changed",
-  ].forEach((eventName) => {
-    window.addEventListener(eventName, () => {
-      if (screenUi.shellBuilt) {
-        scheduleRender();
-      }
-    });
-  });
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    const path = normalizeInput(args[0]);
+    if (path.endsWith("manifests/manifest-index.v1.json")) {
+      return wrapJsonResponse(response, (data) => {
+        shared.manifestIndex = data;
+        return data;
+      });
+    }
+    return response;
+  };
 
   window.addEventListener("DOMContentLoaded", () => {
     buildShell();
+    renderShellChrome();
+    window.setInterval(renderShellChrome, 1500);
   }, { once: true });
+
+  [
+    "tars:home-updated",
+    "tars:cartridge-bay-updated",
+    "tars:collections-updated",
+    "tars:boards-updated",
+    "tars:request-history-updated",
+    "tars:repo-verified-updated",
+    "tars:screen-changed",
+    "tars:devtools-changed",
+  ].forEach((eventName) => window.addEventListener(eventName, renderShellChrome));
 })();
