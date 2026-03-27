@@ -78,9 +78,11 @@
           <span class="terminal-systems-pill-value">${parsed.status}</span>
         `;
       }
-      button.disabled = true;
-      button.tabIndex = -1;
-      button.setAttribute("aria-disabled", "true");
+      if (!button.disabled) button.disabled = true;
+      if (button.tabIndex !== -1) button.tabIndex = -1;
+      if (button.getAttribute("aria-disabled") !== "true") {
+        button.setAttribute("aria-disabled", "true");
+      }
       button.classList.add("terminal-systems-pill");
     });
   }
@@ -158,17 +160,17 @@
       mountChip: input.currentMount || "none",
       availabilityChip: input.exportSource || "disabled",
       detail: "Home surface presentation fallback.",
-      recentSaveLabel: input.recentSave || "none"
+      recentSaveLabel: input.recentSave || "none",
     };
   }
 
   function extractRawState(container) {
-    const rows = Array.from(container.querySelectorAll(':scope > div'));
+    const rows = Array.from(container.querySelectorAll(":scope > div"));
     const state = {};
     let found = false;
 
     rows.forEach((row) => {
-      const label = row.querySelector('.muted')?.textContent?.trim()?.replace(/:$/, "");
+      const label = row.querySelector(".muted")?.textContent?.trim()?.replace(/:$/, "");
       if (!label) return;
       const value = row.textContent.replace(label, "").trim();
       found = true;
@@ -234,37 +236,14 @@
   async function boot() {
     runtime.contract = await loadJson("app/home-surface.v1.json");
     refresh();
-    const container = document.getElementById("homeSummary");
-    if (container) {
-      const observer = new MutationObserver(() => refresh());
-      observer.observe(container, { childList: true, subtree: true, characterData: true });
-    }
-
-    const headerBar = document.getElementById("terminalHeaderBar");
-    if (headerBar) {
-      const headerObserver = new MutationObserver(() => {
-        stabilizeShellLabels();
-        formatSystemsCheck();
-      });
-      headerObserver.observe(headerBar, { childList: true, subtree: true, characterData: true });
-    }
-
-    const actions = document.getElementById("actions");
-    if (actions) {
-      const actionsObserver = new MutationObserver(() => formatSystemsCheck());
-      actionsObserver.observe(actions, { childList: true, subtree: true, characterData: true, attributes: true });
-    }
 
     [
       "tars:screen-changed",
       "tars:collections-updated",
       "tars:devtools-changed",
-    ].forEach((eventName) => window.addEventListener(eventName, () => {
-      stabilizeShellLabels();
-      formatSystemsCheck();
-    }));
-
-    window.setInterval(refresh, 1500);
+      "tars:request-history-updated",
+      "tars:repo-verified-updated",
+    ].forEach((eventName) => window.addEventListener(eventName, refresh));
   }
 
   boot().catch(() => {});
