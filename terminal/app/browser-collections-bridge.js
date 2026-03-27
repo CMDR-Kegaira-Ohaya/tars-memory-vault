@@ -35,6 +35,17 @@
     }
   }
 
+  function normalizeLabelText(value) {
+    return String(value || "").trim().replace(/\s+/g, " ");
+  }
+
+  function hasActiveRuntimeState(rawState) {
+    const currentMount = normalizeLabelText(rawState?.currentMount || "").toLowerCase();
+    if (currentMount && !["none", "idle", "unmounted"].includes(currentMount)) return true;
+    const mode = normalizeLabelText(rawState?.mode || "").toLowerCase();
+    return ["runs", "mounted", "import-bay"].includes(mode);
+  }
+
   function isBaseScreen(screen) {
     return baseScreenOrder.includes(screen);
   }
@@ -714,7 +725,40 @@
       nav.appendChild(loadButton);
     }
 
+    const homeState = parseHomeRawState();
+    const ejectEnabled = hasActiveRuntimeState(homeState);
+    let ejectButton = nav.querySelector('button[data-shell-eject-nav="true"]');
+    if (!ejectButton) {
+      ejectButton = document.createElement("button");
+      ejectButton.type = "button";
+      ejectButton.dataset.shellEjectNav = "true";
+      ejectButton.textContent = "Eject";
+      ejectButton.addEventListener("click", () => {
+        if (ejectButton.disabled) return;
+        const clearButton = document.getElementById("clearMount");
+        if (clearButton) clearButton.click();
+        setActiveScreen("home");
+        window.setTimeout(renderShellChrome, 60);
+        window.setTimeout(renderShellChrome, 220);
+      });
+    }
+
+    if (loadButton.nextSibling !== ejectButton) {
+      nav.insertBefore(ejectButton, loadButton.nextSibling);
+    }
+
     loadButton.dataset.actionState = getTabScreen(getActiveScreen()) === "load" ? "active" : "idle";
+
+    ejectButton.dataset.actionState = "idle";
+    ejectButton.disabled = !ejectEnabled;
+    ejectButton.style.display = ejectEnabled ? "" : "none";
+    if (ejectEnabled) {
+      ejectButton.removeAttribute("aria-hidden");
+      ejectButton.removeAttribute("aria-disabled");
+    } else {
+      ejectButton.setAttribute("aria-hidden", "true");
+      ejectButton.setAttribute("aria-disabled", "true");
+    }
   }
 
   function renderHeaderBar() {

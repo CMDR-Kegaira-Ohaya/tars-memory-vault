@@ -51,14 +51,6 @@
         color: #aab4c5;
         line-height: 1.35;
       }
-      #actions .terminal-runtime-action {
-        pointer-events: auto !important;
-        cursor: pointer !important;
-      }
-      #actions .terminal-runtime-action[disabled] {
-        opacity: 0.45;
-        cursor: not-allowed !important;
-      }
     `;
     document.head.appendChild(style);
   }
@@ -80,10 +72,9 @@
     if (!actions) return;
     actions.classList.add("terminal-systems-check");
 
+    actions.querySelectorAll("button.terminal-runtime-action").forEach((button) => button.remove());
+
     Array.from(actions.querySelectorAll("button")).forEach((button) => {
-      if (button.classList.contains("terminal-runtime-action")) {
-        return;
-      }
       const parsed = splitActionText(button.dataset.rawText || button.textContent || "");
       const renderState = JSON.stringify(parsed);
       if (button.dataset.systemsCheckRenderState !== renderState) {
@@ -256,46 +247,6 @@
     window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: "home" } }));
   }
 
-  function refreshEjectControl(rawState) {
-    const actions = document.getElementById("actions");
-    if (!actions) return;
-
-    let button = actions.querySelector("button[data-runtime-action='eject']");
-    if (!button) {
-      button = document.createElement("button");
-      button.type = "button";
-      button.dataset.runtimeAction = "eject";
-      button.dataset.actionKey = "eject";
-      button.className = "terminal-runtime-action";
-      button.addEventListener("click", () => {
-        if (button.disabled) return;
-        const clearButton = document.getElementById("clearMount");
-        if (clearButton) {
-          clearButton.click();
-        }
-        requestHomeScreen();
-        window.setTimeout(refresh, 60);
-      });
-      actions.appendChild(button);
-    }
-
-    const enabled = hasActiveRuntimeState(rawState);
-    button.disabled = !enabled;
-    button.tabIndex = enabled ? 0 : -1;
-    button.dataset.actionState = enabled ? "enabled" : "disabled";
-    button.dataset.rawActionState = enabled ? "enabled" : "disabled";
-    button.dataset.rawText = `eject: ${enabled ? "enabled" : "disabled"}`;
-    button.textContent = button.dataset.rawText;
-    button.title = enabled
-      ? "Clear the active mounted or imported item and return Home to idle."
-      : "No active mounted or imported item to clear.";
-    if (enabled) {
-      button.removeAttribute("aria-disabled");
-    } else {
-      button.setAttribute("aria-disabled", "true");
-    }
-  }
-
   function syncMountedRuntimeToHome(rawState) {
     const nextToken = getRuntimeToken(rawState);
     if (runtime.lastRuntimeToken === nextToken) return;
@@ -317,6 +268,7 @@
           requestHomeScreen();
         }
         refresh();
+        window.dispatchEvent(new CustomEvent("tars:home-updated"));
       }, delay);
     });
   }
@@ -345,7 +297,6 @@
     render(surface, rawState, container);
     stabilizeShellLabels();
     formatSystemsCheck();
-    refreshEjectControl(rawState);
     syncMountedRuntimeToHome(rawState);
   }
 
