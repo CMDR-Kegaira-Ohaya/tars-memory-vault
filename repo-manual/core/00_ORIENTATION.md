@@ -56,6 +56,17 @@ Do reasoning, comparison, summarization, and planning on plain UTF-8 text, Markd
 Avoid nested encodings or extra transport wrappers unless they are strictly necessary.
 When writing, prefer small surgical patches over large whole-file rewrites whenever the tooling allows it.
 
+## Cross-session red flags
+Treat these as standing cautions for future sessions:
+- huge GitHub write streams can cause lag, derail the conversation, and obscure whether a write actually landed
+- blunt whole-file rewrites are a poor default when a smaller anchored patch would do
+- connector base64 is a boundary concern, not a repo-format problem
+- do not repeat repo truth in temporary carryover artifacts when the repo already holds it canonically
+- do not let the right monitor turn into a second full app when working on the TARS shell
+- do not let diagnostic/dev density colonize the Main CRT by default
+- do not drift back into polishing the old shell as if it were the destination
+- do not reintroduce shell-wide polling or broad observer churn that risks lag
+
 ## Important connector note
 The connector is live and useful for normal reads and direct file writes.
 For now, prefer `saveFile` over low-level ref movement for ordinary repo changes.
