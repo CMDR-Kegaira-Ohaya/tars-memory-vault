@@ -9,8 +9,8 @@
     selectedManifest: null,
     lastMountRequest: {
       status: "idle",
-      detail: "no-mount-request-yet"
-    }
+      detail: "no-mount-request-yet",
+    },
   };
 
   function normalizePath(path) {
@@ -19,9 +19,7 @@
 
   async function loadJson(path) {
     const response = await fetch(normalizePath(path));
-    if (!response.ok) {
-      throw new Error(`failed to load ${path}`);
-    }
+    if (!response.ok) throw new Error(`failed to load ${path}`);
     return response.json();
   }
 
@@ -55,12 +53,45 @@
       title: "Collections browser",
       statusChip: input.selectedManifestId ? "resolved" : "idle",
       detail: "Collections browser presentation fallback.",
-      mountAction: input.selectedManifestId ? "confirm" : "disabled"
+      mountAction: input.selectedManifestId ? "confirm" : "disabled",
     };
+  }
+
+  function getShellScreen() {
+    return String(window.__TARS_SCREEN_UI__?.activeScreen || "home");
+  }
+
+  function isRepoLoadScreen() {
+    return getShellScreen() === "repo-load";
   }
 
   function getRuntimeApi() {
     return shared.runtimeApi || null;
+  }
+
+  function requestScreen(screen) {
+    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen } }));
+  }
+
+  function emitCollectionsUpdated() {
+    window.dispatchEvent(new CustomEvent("tars:collections-updated"));
+  }
+
+  function readCurrentMode() {
+    const home = document.getElementById("homeSummary");
+    try {
+      const raw = JSON.parse(home?.dataset?.rawSummary || "{}");
+      return raw.mode || "home";
+    } catch {
+      return "home";
+    }
+  }
+
+  function readMountedSourcePath() {
+    const viewport = document.getElementById("runsViewport");
+    const rawText = viewport?.dataset?.rawText || viewport?.textContent || "";
+    const line = rawText.split("\n").find((entry) => entry.startsWith("source: "));
+    return line ? line.slice(8) : null;
   }
 
   function getResolvedSelection() {
@@ -78,14 +109,10 @@
     const resolved = getResolvedSelection();
     if (!resolved?.manifestId) return;
     const entry = (runtime.manifestIndex?.entries || []).find((item) => item.manifestId === resolved.manifestId) || null;
-    if (entry) {
-      runtime.selectedEntry = entry;
-    }
+    if (entry) runtime.selectedEntry = entry;
     if (resolved.manifest) {
       runtime.selectedManifest = resolved.manifest;
-      if (entry?.manifestPath) {
-        runtime.manifestCache.set(entry.manifestPath, resolved.manifest);
-      }
+      if (entry?.manifestPath) runtime.manifestCache.set(entry.manifestPath, resolved.manifest);
     }
   }
 
@@ -99,7 +126,39 @@
     return manifest;
   }
 
-  async function selectEntry(manifestId) {
+  function validateSelectedManifest(entry, manifest) {
+    const required = runtime.selectionContract?.manifestShape?.required || [];
+    const missing = required.filter((path) => getByPath(manifest, path) == null);
+    const selectionRoot = runtime.selectionContract?.selectionRoot || "collections/";
+    const allowedSurfaces = runtime.selectionContract?.selectionSurfaces || [];
+    const entryPath = String(manifest?.entry || "");
+    const manifestSource = String(manifest?.source || "");
+    const entryAllowed = entryPath.startsWith(selectionRoot)
+      && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
+    const sourceAllowed = manifestSource === "repo";
+    return {
+      valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
+      missing,
+      sourceAllowed,
+      entryAllowed,
+    };
+  }
+
+  function groupEntries(entries) {
+    const groups = new Map();
+    for (const entry of entries || []) {
+      const category = entry.category || "uncategorized";
+      if (!groups.has(category)) groups.set(category, []);
+      groups.get(category).push(entry);
+    }
+    return Array.from(groups.entries());
+  }
+
+  function autoLoadFromRepoLoad() {
+    return isRepoLoadScreen();
+  }
+
+  async function selectEntry(manifestId, { autoLoad = false } = {}) {
     const entry = (runtime.manifestIndex?.entries || []).find((item) => item.manifestId === manifestId) || null;
     runtime.selectedEntry = entry;
     runtime.selectedManifest = entry ? await ensureManifest(entry) : null;
@@ -113,22 +172,16 @@
           runtime.manifestCache.set(entry.manifestPath, resolved.manifest);
         }
       } catch {
-        // fall back to local resolved preview only
+        // local preview still works even if runtime selection bridge is unavailable
       }
     }
 
     syncLocalSelectionWithRuntime();
     render();
-  }
 
-  function groupEntries(entries) {
-    const groups = new Map();
-    for (const entry of entries || []) {
-      const category = entry.category || "uncategorized";
-      if (!groups.has(category)) groups.set(category, []);
-      groups.get(category).push(entry);
+    if (autoLoad && entry) {
+      await requestMountSelected({ returnHome: true, trigger: "repo-load-click" });
     }
-    return Array.from(groups.entries());
   }
 
   function renderEntryButton(entry, manifest) {
@@ -137,6 +190,7 @@
     if (runtime.selectedEntry?.manifestId === entry.manifestId) {
       button.dataset.selected = "true";
     }
+
     const title = manifest?.title || entry.manifestId;
     const type = manifest?.type || entry.type || "unknown";
     button.innerHTML = `
@@ -152,7 +206,7 @@
       <div class="surface-foot muted">${manifest?.entry || entry.entry}</div>
     `;
     button.addEventListener("click", () => {
-      selectEntry(entry.manifestId).catch(showError);
+      selectEntry(entry.manifestId, { autoLoad: autoLoadFromRepoLoad() }).catch(showError);
     });
     return button;
   }
@@ -183,40 +237,6 @@
     }
   }
 
-  function readMountedSourcePath() {
-    const viewport = document.getElementById("runsViewport");
-    const rawText = viewport?.dataset?.rawText || viewport?.textContent || "";
-    const line = rawText.split("\n").find((entry) => entry.startsWith("source: "));
-    return line ? line.slice(8) : null;
-  }
-
-  function readCurrentMode() {
-    const home = document.getElementById("homeSummary");
-    try {
-      const raw = JSON.parse(home?.dataset?.rawSummary || "{}");
-      return raw.mode || "home";
-    } catch {
-      return "home";
-    }
-  }
-
-  function validateSelectedManifest(entry, manifest) {
-    const required = runtime.selectionContract?.manifestShape?.required || [];
-    const missing = required.filter((path) => getByPath(manifest, path) == null);
-    const selectionRoot = runtime.selectionContract?.selectionRoot || "collections/";
-    const allowedSurfaces = runtime.selectionContract?.selectionSurfaces || [];
-    const entryPath = String(manifest?.entry || "");
-    const manifestSource = String(manifest?.source || "");
-    const entryAllowed = entryPath.startsWith(selectionRoot) && (allowedSurfaces.length === 0 || allowedSurfaces.some((surface) => entryPath.startsWith(surface)));
-    const sourceAllowed = manifestSource === "repo";
-    return {
-      valid: missing.length === 0 && sourceAllowed && entryAllowed && entry?.manifestId === manifest?.id,
-      missing,
-      sourceAllowed,
-      entryAllowed
-    };
-  }
-
   function renderResolved() {
     const container = document.getElementById("collectionsResolvedSummary");
     const button = document.getElementById("collectionsMountConfirm");
@@ -231,19 +251,22 @@
       selectedEntryPath: runtime.selectedManifest?.entry || null,
       currentMountedEntryPath: mountedSourcePath,
       manifestValid: validation.valid,
-      selectionMatchesMount: runtime.selectedManifest?.entry === mountedSourcePath
+      selectionMatchesMount: runtime.selectedManifest?.entry === mountedSourcePath,
     };
     const surface = deriveSurface(input);
 
     if (!runtime.selectedEntry || !runtime.selectedManifest) {
       button.disabled = true;
+      button.textContent = isRepoLoadScreen() ? "Load selected" : "Mount selected";
       container.innerHTML = `
         <div class="surface-stack">
           <div class="surface-header">
             <div class="surface-title">${surface.title}</div>
             <span class="surface-chip">${surface.statusChip}</span>
           </div>
-          <div class="surface-detail">${surface.detail}</div>
+          <div class="surface-detail">${isRepoLoadScreen()
+            ? "Choose a repo file from the rail. Clicking a file in Repo Load loads it into Home immediately."
+            : surface.detail}</div>
         </div>
       `;
       return;
@@ -252,43 +275,56 @@
     const manifest = runtime.selectedManifest;
     const saveTag = manifest?.save?.tag || manifest?.id || "none";
     const saveAvailability = manifest?.save?.enabled ? "enabled-or-conditional" : "disabled";
+    const actionLabel = isRepoLoadScreen() ? "Load selected" : (surface.mountAction === "mounted" ? "Mount selected again" : "Mount selected");
     button.disabled = !(surface.mountAction === "confirm" || surface.mountAction === "mounted");
-    button.textContent = surface.mountAction === "mounted" ? "Mount selected again" : "Mount selected";
+    button.textContent = actionLabel;
 
     container.innerHTML = `
       <div class="surface-stack">
         <div class="surface-header">
           <div class="surface-title">${manifest.title}</div>
-          <span class="surface-chip">${surface.statusChip}</span>
+          <span class="surface-chip">${isRepoLoadScreen() ? (validation.valid ? "ready" : "invalid") : surface.statusChip}</span>
         </div>
         <div class="surface-meta-grid">
-          <div><span class="muted">mode</span> ${readCurrentMode()}</div>
+          <div><span class="muted">mode</span> ${isRepoLoadScreen() ? "repo-load" : readCurrentMode()}</div>
           <div><span class="muted">manifest id</span> ${manifest.id}</div>
           <div><span class="muted">title</span> ${manifest.title}</div>
           <div><span class="muted">type</span> ${manifest.type}</div>
           <div><span class="muted">renderer</span> ${manifest.renderer || "none"}</div>
           <div><span class="muted">save tag</span> ${saveTag}</div>
           <div><span class="muted">save</span> ${saveAvailability}</div>
-          <div><span class="muted">export source</span> conditional</div>
-          <div><span class="muted">entry</span> ${manifest.entry}</div>
           <div><span class="muted">source</span> ${manifest.source}</div>
+          <div><span class="muted">entry</span> ${manifest.entry}</div>
+          <div><span class="muted">loaded now</span> ${mountedSourcePath === manifest.entry ? "yes" : "no"}</div>
         </div>
-        <div class="surface-detail">${surface.detail}</div>
+        <div class="surface-detail">${isRepoLoadScreen()
+          ? "Repo Load is now direct: clicking a file loads it into Home."
+          : surface.detail}</div>
         <div class="surface-foot muted">last mount request: ${runtime.lastMountRequest.status} — ${runtime.lastMountRequest.detail}</div>
-        ${validation.valid ? "" : `<div class=\"surface-foot warn\">manifest validation failed${validation.missing.length ? ` (missing: ${validation.missing.join(", ")})` : ""}</div>`}
+        ${validation.valid ? "" : `<div class="surface-foot warn">manifest validation failed${validation.missing.length ? ` (missing: ${validation.missing.join(", ")})` : ""}</div>`}
       </div>
     `;
   }
 
-  async function requestMountSelected() {
+  function scheduleHomeRefresh() {
+    [80, 220].forEach((delay) => {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("tars:home-updated"));
+      }, delay);
+    });
+  }
+
+  async function requestMountSelected({ returnHome = false, trigger = "button" } = {}) {
     if (!runtime.selectedEntry || !runtime.selectedManifest) return;
+
     const validation = validateSelectedManifest(runtime.selectedEntry, runtime.selectedManifest);
     if (!validation.valid) {
       runtime.lastMountRequest = {
         status: "blocked",
-        detail: "manifest-validation-failed"
+        detail: "manifest-validation-failed",
       };
       renderResolved();
+      emitCollectionsUpdated();
       return;
     }
 
@@ -300,19 +336,27 @@
         : { status: "blocked", detail: result?.reason || "mount-not-confirmed" };
       syncLocalSelectionWithRuntime();
       render();
+      if (result?.mounted) {
+        scheduleHomeRefresh();
+        if (returnHome || trigger === "repo-load-click") {
+          requestScreen("home");
+        }
+      }
       return;
     }
 
     runtime.lastMountRequest = {
       status: "blocked",
-      detail: "runtime-api-unavailable"
+      detail: "runtime-api-unavailable",
     };
     renderResolved();
+    emitCollectionsUpdated();
   }
 
   function render() {
     renderList().catch(showError);
     renderResolved();
+    emitCollectionsUpdated();
   }
 
   function showError(error) {
@@ -320,6 +364,7 @@
     if (container) {
       container.innerHTML = `<span class="warn">collections browser failed: ${error.message}</span>`;
     }
+    emitCollectionsUpdated();
   }
 
   async function boot() {
@@ -334,7 +379,7 @@
         const manifest = await ensureManifest(entry);
         runtime.manifestCache.set(entry.manifestPath, manifest);
       } catch {
-        // leave unresolved until selection
+        // unresolved until selected
       }
     }));
 
@@ -343,7 +388,9 @@
 
     const button = document.getElementById("collectionsMountConfirm");
     if (button) {
-      button.addEventListener("click", requestMountSelected);
+      button.addEventListener("click", () => {
+        requestMountSelected({ returnHome: isRepoLoadScreen(), trigger: "button" }).catch(showError);
+      });
     }
 
     const viewport = document.getElementById("runsViewport");
@@ -351,9 +398,19 @@
       const observer = new MutationObserver(() => {
         syncLocalSelectionWithRuntime();
         renderResolved();
+        emitCollectionsUpdated();
       });
       observer.observe(viewport, { childList: true, subtree: true, characterData: true });
     }
+
+    [
+      "tars:screen-changed",
+      "tars:home-updated",
+      "tars:runs-content-updated",
+    ].forEach((eventName) => window.addEventListener(eventName, () => {
+      syncLocalSelectionWithRuntime();
+      render();
+    }));
   }
 
   boot().catch(showError);
