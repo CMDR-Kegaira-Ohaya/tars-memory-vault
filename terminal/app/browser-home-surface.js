@@ -10,6 +10,15 @@
     activeChip: null,
     pathLine: null,
   });
+  const runtimeStateKey = "__TARS_RUNTIME_STATE__";
+  const runtimeState = window[runtimeStateKey] || (window[runtimeStateKey] = {
+    active: false,
+    title: "none",
+    source: "none",
+    state: "idle",
+    mode: "home",
+    currentMount: "none",
+  });
 
   function normalizeLabelText(value) {
     return String(value || "").trim().replace(/\s+/g, " ");
@@ -205,15 +214,73 @@
     }
   }
 
+  function hasActiveRuntimeState(rawState) {
+    const currentMount = normalizeLabelText(rawState?.currentMount || "").toLowerCase();
+    if (currentMount && !["none", "idle", "unmounted"].includes(currentMount)) return true;
+    const mode = normalizeLabelText(rawState?.mode || "").toLowerCase();
+    return ["runs", "mounted", "import-bay"].includes(mode);
+  }
+
+  function deriveRuntimeView(rawState) {
+    const active = hasActiveRuntimeState(rawState);
+    const mountTitle = normalizeLabelText(rawState?.currentMount || "none") || "none";
+    const mode = normalizeLabelText(rawState?.mode || "home") || "home";
+    const lowerMount = mountTitle.toLowerCase();
+    const lowerMode = mode.toLowerCase();
+
+    let source = "none";
+    if (active) {
+      if (lowerMode.includes("import")) source = "imported file";
+      else if (lowerMount.includes("board")) source = "board";
+      else if (lowerMount.includes("cartridge")) source = "cartridge";
+      else if (lowerMount.includes("book") || lowerMount.includes("collections/") || lowerMount.includes("collection")) source = "repo file";
+      else source = "loaded item";
+    }
+
+    return {
+      active,
+      title: active ? mountTitle : "none",
+      source,
+      state: active ? "loaded" : "idle",
+      mode,
+      currentMount: mountTitle,
+    };
+  }
+
+  function publishRuntimeView(rawState) {
+    const view = deriveRuntimeView(rawState);
+    runtimeState.active = view.active;
+    runtimeState.title = view.title;
+    runtimeState.source = view.source;
+    runtimeState.state = view.state;
+    runtimeState.mode = view.mode;
+    runtimeState.currentMount = view.currentMount;
+    return view;
+  }
+
   function render(surface, rawState, container) {
-    const renderState = JSON.stringify({ surface, rawState });
+    const runtimeView = publishRuntimeView(rawState);
+    const renderState = JSON.stringify({ surface, rawState, runtimeView });
     if (container.dataset.renderState === renderState) return;
     container.dataset.renderState = renderState;
     container.innerHTML = `
       <div class="surface-stack">
         <div class="surface-header">
           <div class="surface-title">${surface.title}</div>
-          <span class="surface-chip">${surface.mountChip}</span>
+          <span class="surface-chip">${runtimeView.state}</span>
+        </div>
+        <div class="surface-list-item">
+          <div class="surface-header">
+            <div class="surface-title">Active item</div>
+            <span class="surface-chip">${runtimeView.active ? "loaded" : "idle"}</span>
+          </div>
+          <div class="surface-meta-grid">
+            <div><span class="muted">title</span> ${runtimeView.title}</div>
+            <div><span class="muted">source</span> ${runtimeView.source}</div>
+            <div><span class="muted">state</span> ${runtimeView.state}</div>
+            <div><span class="muted">mode</span> ${runtimeView.mode}</div>
+          </div>
+          <div class="surface-detail">${runtimeView.active ? "This item is currently loaded into Home." : "Nothing is currently loaded into Home."}</div>
         </div>
         <div class="surface-meta-grid">
           <div><span class="muted">availability</span> ${surface.availabilityChip}</div>
@@ -227,13 +294,6 @@
         <div class="surface-foot muted">quick actions: ${rawState.quickActions || "none"}</div>
       </div>
     `;
-  }
-
-  function hasActiveRuntimeState(rawState) {
-    const currentMount = normalizeLabelText(rawState?.currentMount || "").toLowerCase();
-    if (currentMount && !["none", "idle", "unmounted"].includes(currentMount)) return true;
-    const mode = normalizeLabelText(rawState?.mode || "").toLowerCase();
-    return ["runs", "mounted", "import-bay"].includes(mode);
   }
 
   function getRuntimeToken(rawState) {

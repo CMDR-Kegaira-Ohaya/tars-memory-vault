@@ -13,6 +13,15 @@
     lastBaseScreen: "cartridge-bay",
     shellBuilt: false,
   });
+  const runtimeStateKey = "__TARS_RUNTIME_STATE__";
+  const runtimeState = window[runtimeStateKey] || (window[runtimeStateKey] = {
+    active: false,
+    title: "none",
+    source: "none",
+    state: "idle",
+    mode: "home",
+    currentMount: "none",
+  });
 
   if (shared.fetchBridgeInstalled) return;
 
@@ -40,10 +49,10 @@
   }
 
   function hasActiveRuntimeState(rawState) {
-    const currentMount = normalizeLabelText(rawState?.currentMount || "").toLowerCase();
+    const currentMount = normalizeLabelText(rawState?.currentMount || runtimeState.currentMount || "").toLowerCase();
     if (currentMount && !["none", "idle", "unmounted"].includes(currentMount)) return true;
-    const mode = normalizeLabelText(rawState?.mode || "").toLowerCase();
-    return ["runs", "mounted", "import-bay"].includes(mode);
+    const mode = normalizeLabelText(rawState?.mode || runtimeState.mode || "").toLowerCase();
+    return ["runs", "mounted", "import-bay"].includes(mode) || Boolean(runtimeState.active);
   }
 
   function isBaseScreen(screen) {
@@ -168,6 +177,7 @@
     if (active === "repo-load" || active === "collections") return selectedLabelFor("collections");
     if (active === "import-bay") return displayName(active);
     if (devScreens.has(active)) return displayName(active);
+    if (active === "home") return runtimeState.active ? runtimeState.title : "idle";
     if (isBaseScreen(active) && active !== "home") return selectedLabelFor(active);
     return selectedLabelFor(railSourceScreen());
   }
@@ -725,8 +735,6 @@
       nav.appendChild(loadButton);
     }
 
-    const homeState = parseHomeRawState();
-    const ejectEnabled = hasActiveRuntimeState(homeState);
     let ejectButton = nav.querySelector('button[data-shell-eject-nav="true"]');
     if (!ejectButton) {
       ejectButton = document.createElement("button");
@@ -738,8 +746,8 @@
         const clearButton = document.getElementById("clearMount");
         if (clearButton) clearButton.click();
         setActiveScreen("home");
-        window.setTimeout(renderShellChrome, 60);
-        window.setTimeout(renderShellChrome, 220);
+        window.setTimeout(() => window.dispatchEvent(new CustomEvent("tars:home-updated")), 60);
+        window.setTimeout(() => window.dispatchEvent(new CustomEvent("tars:home-updated")), 220);
       });
     }
 
@@ -747,16 +755,22 @@
       nav.insertBefore(ejectButton, loadButton.nextSibling);
     }
 
-    loadButton.dataset.actionState = getTabScreen(getActiveScreen()) === "load" ? "active" : "idle";
+    const homeState = parseHomeRawState();
+    const ejectEnabled = hasActiveRuntimeState(homeState);
 
-    ejectButton.dataset.actionState = "idle";
+    loadButton.dataset.actionState = getTabScreen(getActiveScreen()) === "load" ? "active" : "idle";
+    ejectButton.dataset.actionState = ejectEnabled ? "active" : "idle";
     ejectButton.disabled = !ejectEnabled;
-    ejectButton.style.display = ejectEnabled ? "" : "none";
+    ejectButton.style.display = "";
+    ejectButton.tabIndex = ejectEnabled ? 0 : -1;
+    ejectButton.title = ejectEnabled
+      ? `Clear active item: ${runtimeState.title || homeState.currentMount || "loaded item"}`
+      : "No active item loaded into Home.";
     if (ejectEnabled) {
       ejectButton.removeAttribute("aria-hidden");
       ejectButton.removeAttribute("aria-disabled");
     } else {
-      ejectButton.setAttribute("aria-hidden", "true");
+      ejectButton.removeAttribute("aria-hidden");
       ejectButton.setAttribute("aria-disabled", "true");
     }
   }
@@ -769,10 +783,10 @@
     const status = parseStatusStrip();
     const home = parseHomeRawState();
     const chips = [
-      { label: "mode", value: home.mode || status.state.mode || "home" },
-      { label: "mount", value: home.currentMount || status.state.mount || "none" },
+      { label: "mode", value: home.mode || status.state.mode || runtimeState.mode || "home" },
+      { label: "mount", value: runtimeState.active ? runtimeState.title : (home.currentMount || status.state.mount || "none") },
       { label: "selection", value: currentSelectionLabel() },
-      { label: "export", value: home.exportSource || "disabled" },
+      { label: "state", value: runtimeState.state || "idle" },
     ];
 
     const pathText = `Home / ${displayName(getTabScreen(railSourceScreen()))} / ${currentSelectionLabel()}`;
