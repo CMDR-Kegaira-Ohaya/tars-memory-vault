@@ -288,39 +288,6 @@
     }
   }
 
-  function injectLegacyDevStyles() {
-    if (document.getElementById("terminal-dev-cartridge-style")) return;
-    const style = document.createElement("style");
-    style.id = "terminal-dev-cartridge-style";
-    style.textContent = `
-      .terminal-legacy-dev-button {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function looksLegacyDevButton(button) {
-    const text = String(button?.textContent || "").trim().toLowerCase();
-    const actionKey = String(button?.dataset?.actionKey || "").trim().toLowerCase();
-    return ["request history", "repo verified"].includes(text) || ["request-history", "repo-verified"].includes(actionKey);
-  }
-
-  function hideLegacyDevButtons() {
-    injectLegacyDevStyles();
-    ["nav", "terminalScreenTabs", "actions"].forEach((id) => {
-      const host = document.getElementById(id);
-      if (!host) return;
-      host.querySelectorAll("button").forEach((button) => {
-        if (looksLegacyDevButton(button)) {
-          button.classList.add("terminal-legacy-dev-button");
-          button.tabIndex = -1;
-          button.setAttribute("aria-hidden", "true");
-        }
-      });
-    });
-  }
-
   function interceptPrimaryControl(event) {
     const button = event.target?.closest?.("#terminalControlPad .control-pad-button");
     if (!button) return;
@@ -333,22 +300,7 @@
   }
 
   function installDomHooks() {
-    hideLegacyDevButtons();
     document.addEventListener("click", interceptPrimaryControl, true);
-
-    ["nav", "terminalScreenTabs", "actions"].forEach((id) => {
-      const host = document.getElementById(id);
-      if (!host) return;
-      const observer = new MutationObserver(() => hideLegacyDevButtons());
-      observer.observe(host, { childList: true, subtree: true, attributes: true, characterData: true });
-    });
-
-    [
-      "tars:screen-changed",
-      "tars:devtools-changed",
-      "tars:request-history-updated",
-      "tars:repo-verified-updated",
-    ].forEach((eventName) => window.addEventListener(eventName, hideLegacyDevButtons));
   }
 
   async function boot() {
