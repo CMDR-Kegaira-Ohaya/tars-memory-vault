@@ -1,16 +1,17 @@
-# CONSOLE TERMINAL WORKING BOARD
+## CONSOLE TERMINAL WORKING BOARD
 
 ## Purpose
 
-This is the live working board for the terminal project.
+This is the live working board for the TARS terminal/shell project.
 
 It records:
 - current repo truth
-- stable baseline vs current integration head
-- locked architecture rules
-- the agreed machine model
-- known regressions
-- next implementation priority
+- last clearly stable terminal code baseline
+- the current strategic shift
+- locked machine/body rules
+- control doctrine
+- self-referential tooling defaults
+- next implementation order
 
 This board is the implementation truth for fresh repo-side terminal work.
 If chat continuity and this board diverge, this board wins.
@@ -19,7 +20,7 @@ If chat continuity and this board diverge, this board wins.
 
 ## Current repo state
 
-### Stable baseline
+### Last clearly stable terminal code baseline
 `e67dd6a79d1364c311b5ecdaa594c818e43e51c9`
 
 Commit:
@@ -31,214 +32,281 @@ Why it still matters:
 - Firefox no longer hung globally
 - event-driven shell updates proved safer than polling-driven shell churn
 
-### Current integration head
-`8c456b01ebe170ebca8e453013c1fb08158354b2`
+### Last live terminal integration head
+`a1cb1498245f37c4271393193bc9f2023575af8f`
 
 Commit:
-`Make Repo Load click directly load into Home`
+`Unify Home runtime state with loaded main-screen content`
 
-Current verification state:
-- partly verified
-- Repo Load now directly loads into Home
-- Home content becomes visible for repo text entries
-- user confirmed steps 1 to 6 of the direct-load flow
-- `Eject` still does not render after a successful load
+Observed user result:
+- site works
+- site is not laggy
+- the runtime loop behaves better
+- the ONLY confirmed old-shell remainder is missing `Eject`
 
-Operational truth:
-- do **not** treat the current head as the new fully stable baseline yet
-- use it as the active integration head with one known runtime/UI regression: missing `Eject`
+### Current repo head
+`ab408d68dfeea88a3d08717342a20e4d5913567b`
 
-### Previous known unstable head`
-`a41c851997c3ce756e9078bfafa609ec5a4ee75c`
+What this head mainly reflects:
+- repo-manual self-referential updates
+- terminal ops / surgery defaults documented
+- tooling anchors now present in the manual
 
-Commit:
-`Show Dev surface selector in main screen`
+This is the current repo head, but it is not the same thing as a fully-new TARS shell prototype yet.
 
-Why it stays documented:
-- it introduced hang risk
-- it produced `RESULT_CODE_HUNG`
-- it increased live DOM churn in Firefox
+---
+
+## Strategic shift - current direction
+
+The project is no longer primarily about piecemeal polishing the old web-terminal chrome.
+
+The project is now about:
+- building a real physical-looking TARS body
+- making the shell the face of TARS
+- keeping chat as the voice of TARS
+- keeping the mind distributed across runtime + repo + procedures
+
+The photo-shell is carrying the new authority now.
+The HTML mockup is a bridge artifact, not the final destination.
+
+---
+
+## Locked identity contract
+
+### TARS identity
+This is not a skinned web app.
+It is a machine body for TARS.
+
+Identity here:
+- Body = retro handmade-coding homage
+- Face = shell
+- Voice = chat
+- Mind = distributed across runtime, repo, procedures, and working state
+- Tone = explicit, engineered, legible
+
+### Brand rule
+The badge/plate area under the main screen should become TARS branding, not Amstrad/CPC branding.
 
 ---
 
 ## Locked machine model
 
-### Main screen rule
-**Main screen = the monitor**
+### Zone map
+**1. Main CRT** = the only true primary payload surface.  
+**2. Footer command line** = the authoritative control truth strip for the current state.  
+**3. Right monitor** = machine condition, EWS, service, debug signals.  
+**4. Loader bay** = media ingress/egress locus.  
+**5. Control deck** = operator command grammar.
 
-There is one main display surface.
-The system should be understood like an old computer, not like a modern multi-page app.
+### Main screen rule
+**Main CRT = Main screen**
+
+It shows:
+- Home by default
+- loaded books
+- mounted cartridges
+- boards/readouts
+- overlays, dialogs, and HUDs when active
 
 ### Home rule
-**Home = the Main screen's default payload**
+**Home = the Main CRT's default payload**
 
 Home is not a separate place to navigate to.
-Home is what the Main screen shows when no alternate payload is active.
+Home is what the Main CRT shows when no alternate payload is active.
 
-### Cartridge rule
-**Cartridges = mountable media**
+### Loader rule
+**Loader bay = media ingress/egress**
 
-Best mental model:
-- diskettes in an old 286
-- or media on an Amstrad CPC 6128
+The loader handles:
+- Load
+- Repo Load
+- Import Files
+- media presence
+- Eject
 
-Cartridges are media candidates, not rooms.
-They are selected from a bay and then loaded into the machine.
+It does not become a primary reader.
 
-### Collections rule
-**Collections = broad catalogue**
+### Right monitor rule
+**Right monitor = machine condition, not a second full app**
 
-Collections stay the broad repo catalogue.
-Collections are not the same thing as cartridges.
-Non-mountable catalogue families should not be renamed as cartridges by default.
+It should show:
+- EWS signals
+- machine-condition status
+- service/debug indicators
+- compact telemetry
 
-### Load rule
-**Load = ingress**
-
-User-facing load options:
-- `Repo Load` = browse repo-backed Collections files, excluding cartridges
-- `Import Files` = bring in external or local files
-
-`Repo Load` is task-oriented entry into repo file browsing.
-It is not a cartridge path.
-
-### Boards rule
-**Boards = selectable sources**
-
-Boards are also source-side selectors.
-They should not become their own runtime room.
+It should not be overloaded with full app density.
 
 ### Runtime rule
-**Select elsewhere, experience in the Main screen**
-
-Source surfaces select.
-The Main screen displays the active payload.
+**One primary payload at a time**
 
 This means:
-- load a book -> read it in the Main screen
-- mount a cartridge -> use it in the Main screen
-- open a board -> view it in the Main screen
-
-### Eject rule
-**Eject = action, not screen**
-
-Frontend meaning:
-- one visible action
-- clear the active thing
-
-Backend may still distinguish:
-- unmount mounted item
-- clear imported transient state
-- clear staged transient import state
-
-Frontend should not expose that distinction.
-`Eject` returns the Main screen to default Home state.
+- select elsewhere
+- experience in the Main CRT
+- mount one active thing at a time
+- move old high-density dev subfaces into overlays, service modes, or secondary surfaces
 
 ---
 
-## Locked UI rules
+## Control doctrine
 
-### Systems check / EWS strip
-The former shortcut/control row is status only.
-It should read as systems check / EWS, not as the main way to move around.
+### Hardware set
+In the new shell, the fixed hardware set is:
+- D-pad
+- A
+- B
+- Select
+- Start
+- Alt
+- Esc
 
-### Primary navigation
-Primary navigation should stay human-facing and compact.
-Avoid reintroducing control-board overload.
+### Control truth rule
+**Buttons are fixed; meanings are live; footer command line declares current truth.**
 
-### Dev surfaces
-Dev surfaces should continue moving into Dev cartridge form when they are truly mountable in-terminal.
-Mount one Dev cartridge at a time.
+The footer command line inside the CRT is:
+- persistent when interactive
+- short-verb based
+- authoritative
+- the place the operator looks to know what the buttons do *right now*
 
-Current live Dev cartridges:
-- Request History
-- Repo Verified
+Example style:
+`A Open   B Back   Start Mount   Select System   Alt More   Esc Close`
 
-Approved next Dev cartridges:
-- Import Bay
-- Collections Explorer
-- Debug Intake
-
-### Layout Debug HUD
-Approved concept:
-- dev utility / dev cartridge behavior
-- invoked as an overlay over the **Main screen's current payload**
-- not a separate routed destination
-
-\nRequired functions:
-- layout report
-- toggle outlines
-- copy layout report
-
-\nImportant framing:
-- it inspects the live composed page
-- it overlays whatever the Main screen is currently showing
-- it is not "opened from Home"; Home is just one possible current payload
+### Soft rules
+- D-pad usually navigates focus/selection
+- A/B/Start are highly context-driven
+- Select/Alt/Esc remain semi-systemic but still declared by the footer line
+- no hidden static button lore should override the footer command line
 
 ---
 
-## Stable truths that remain locked
+## Locked design rules
 
-- terminal should stay live, client-side, and device-like
-- event-driven shell updates are safer than polling-driven shell churn
-- `/collections/` is the broad catalogue root
-- `/collections/cartridges/` is the mountable cartridge family
-- browser-side staging is not the same thing as authenticated repo write
-- runtime clicks are not implicit repo mutation
-- one mounted surface at a time is safer than all-surface injection
-- `collections/books/test-drive-text-file/` exists as a real repo entry
-- direct Repo Load now goes to Home content instead of remaining selection-only
+Keep:
+- sparse, legible CRT payload
+- strong hierarchy
+- tactile body identity
+- explicit state/control truth
+- engineered presence, not generic sci-fi chrome
+
+Avoid:
+- cluttering the CRT with old web-panel density
+- treating the photo as a raster to bake behavior into
+- hidden control meanings
+- right monitor as a full second app
+- generic sci-fi dashboard language
+- mystical AI imagery
+
+### Presentation calibration
+The shell should read like:
+- retro-machine homage outside
+- structured cognition architecture inside
+
+This is not cute retro cosplay.
+This is not a generic ai-core/dashboard.
+This is TARS in a device body.
 
 ---
 
-## Known current regression
+## Old shell status - what is now demoted
 
-### Missing Eject after successful direct load
-Current observed behavior at `8c456b01ebe170ebca8e453013c1fb08158354b2`:
-- clicking `Test Drive Text File` from Repo Load now loads it
-- Home content is shown
-- pathing behaves correctly
-- `Eject` still is nowhere to be found
+The old shell is still usable as a bridge and reference base.
 
-This is the immediate next repair target.
+Current observed truth:
+- the site works
+- it is not laggy
+- the main regression still observed there is missing `Eject`
+
+### Decision about `Eject`
+`Eject` remains a real issue in the old shell.
+But it is no longer the primary strategic target unless the old shell must be retained as a longer-term production surface.
+
+### Decision about minor typhos
+Purely cosmetic or low-impact typo fixes in the old shell are deferred unless they block the current bridge use.
+
+---
+
+## Self-referential tooling defaults
+
+For future terminal surgery, do not start with blunt whole-file rewrites when a small anchored change will do.
+
+Preferred order of operation:
+1. inspect the relevant surface, symbol, or path
+2. use `tools/repo_patch/safe_repo_patch.py` for small anchored edits when possible
+3. run `python tools/terminal_ops/terminal_validate_chain.py`
+4. use live smoke / deploy verification only when needed
+
+Canonical anchors that now exist in the repo-manual:
+- `repo-manual/core/00_ORIENTATION.md`
+- `repo-manual/refs/terminal/TARS_TERMINAL_REFERENCE.md`
+- `repo-manual/refs/terminal/TARS_TERMINAL_OPERATOR_GUIDE.md`
+- `tools/terminal_ops/OPERATOR_NOTE.md`
+
+### Tools worth remembering
+- `tools/repo_patch/safe_repo_patch.py`
+- `tools/terminal_ops/terminal_entry_audit.py`
+- `tools/terminal_ops/terminal_cut_check.py`
+- `tools/terminal_ops/terminal_slice.py`
+- `tools/terminal_ops/terminal_rewrite.py`
+- `tools/terminal_ops/terminal_live_smoke.py`
+- `tools/terminal_ops/terminal_validate_chain.py`
+- `tools/terminal_ops/terminal_pages_artifact_verify.py`
+- `tools/terminal_ops/terminal_repo_diff.py`
+- `tools/terminal_ops/terminal_force_redeploy.py`
 
 ---
 
 ## Immediate next implementation order
 
-1. fix `Eject` visibility/state binding after successful load
-2. verify `Eject` returns the Main screen to default Home state
-3. add Layout Debug HUD as Main-screen overlay tooling
-4. continue Dev-cartridge conversion path
-5. continue improving real mounted reader/runtime behavior
+### Next phase = first live TARS shell prototype
+1. write the DOM/zone contract for the photo-based shell
+2. build the first live shell prototype over the shell geometry
+3. bind the Main CRT payload to the existing runtime surface
+4. add the footer command-line renderer
+5. add the right-monitor status renderer
+6. add the loader-bay state renderer
+7. move old dev/rawpanel density into overlays, service modes, or secondary surfaces
+
+### Bridge rule
+Until the new shell prototype exists, the current HTML mockup and the existing terminal logic connections remain the bridge layer.
 
 ---
 
 ## Do not do next
 
+- do not continue piecemeal polish of the old shell as if it were the final destination
+- do not bake functional text or dynamic control truth into a raster image
+- do not treat the right monitor as a second full app
+- do not clutter the CRT with always-visible dev panels
 - do not reintroduce shell-wide polling
-- do not reintroduce drawer/hub-driven Dev injection
-- do not treat Home as a routed room separate from Main screen
-- do not treat cartridges as rooms
-- do not blur Collections and Cartridges
-- do not expose staging jargon in frontend UX
-- do not claim a head is stable when a core control is still missing
+- do not realign button meanings as hidden global lore that overrides the footer command line
+- do not collapse collection families into cartridges by default
 
 ---
 
 ## Files most relevant now
 
-### Core runtime
+### Core runtime / current bridge
+- `terminal/index.html`
 - `terminal/app/browser-runtime.js`
-- `terminal/app/browser-collections-browser.js`
-- `terminal/app/browser-collections-bridge.js`
 - `terminal/app/browser-home-surface.js`
 - `terminal/app/browser-runs-surface.js`
+- `terminal/app/browser-collections-bridge.js`
+- `terminal/app/browser-collections-browser.js`
 - `terminal/app/browser-cartridge-bay.js`
+
+
+### Manual / self-reference
+- `repo-manual/core/00_ORIENTATION.md`
+- `repo-manual/refs/terminal/TARS_TERMINAL_REFERENCE.md`
+- `repo-manual/refs/terminal/TARS_TERMINAL_OPERATOR_GUIDE.md`
+- `tools/terminal_ops/OPERATOR_NOTE.md`
+
 
 ### Project continuity
 - `work/dev/projects/consoleterminalbuilding/README.md`
 - `work/dev/projects/consoleterminalbuilding/NEXT_CHAT_HANDOFF_2026-03-26.md`
+
 
 ---
 
@@ -246,7 +314,8 @@ This is the immediate next repair target.
 
 When resuming in a fresh chat:
 1. start from this working board
-2. treat `e67dd6a79d1364c311b5ecdaa594c818e43e51c9` as the last clearly stable baseline
-3. treat `8c456b01ebe170ebca8e453013c1fb08158354b2` as the current integration head
-4. preserve the DOS-style machine model above
-5. repair `Eject` before claiming the current line fully stable
+2. treat `e67dd6a79d1364c311b5ecdaa594c818e43e51c9` as the last clearly stable terminal code baseline
+3. treat `a1cb1498245f37c4271393193bc9f2023575af8f` as the last live terminal integration head
+4. treat `ab408d68dfeea88a3d08717342a20e4d5913567b` as the current repo head with manual/self-referential updates
+5. do not rediscover the old terminal metaphor from scratch
+6. proceed toward the photo-based TARS shell prototype, not back into minor old-shell polishing
