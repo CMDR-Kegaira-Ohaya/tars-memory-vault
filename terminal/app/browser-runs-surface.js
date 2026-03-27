@@ -1,5 +1,8 @@
 (() => {
-  const runtime = { contract: null };
+  const runtime = {
+    contract: null,
+    contentCache: new Map(),
+  };
   const rawKeys = [
     "surface",
     "displayMode",
@@ -19,6 +22,15 @@
   });
   const screenUiKey = "__TARS_SCREEN_UI__";
   const screenUi = window[screenUiKey] || (window[screenUiKey] = { activeScreen: "home" });
+  const runtimeStateKey = "__TARS_RUNTIME_STATE__";
+  const runtimeState = window[runtimeStateKey] || (window[runtimeStateKey] = {
+    active: false,
+    title: "none",
+    source: "none",
+    state: "idle",
+    mode: "home",
+    currentMount: "none",
+  });
 
   function normalizePath(path) {
     return String(path || "").replace(/^terminal\//, "");
@@ -28,6 +40,12 @@
     const response = await fetch(normalizePath(path));
     if (!response.ok) throw new Error(`failed to load ${path}`);
     return response.json();
+  }
+
+  async function loadText(path) {
+    const response = await fetch(normalizePath(path));
+    if (!response.ok) throw new Error(`failed to load ${path}`);
+    return response.text();
   }
 
   function matches(match, input) {
@@ -66,6 +84,70 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function injectReaderStyles() {
+    if (document.getElementById("terminal-reader-style")) return;
+    const style = document.createElement("style");
+    style.id = "terminal-reader-style";
+    style.textContent = `
+      #runsViewport .terminal-reader-shell {
+        display: grid;
+        gap: 14px;
+      }
+      #runsViewport .terminal-reader-meta {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(179, 140, 255, 0.16);
+        background: rgba(255, 255, 255, 0.015);
+      }
+      #runsViewport .terminal-reader-article {
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(88, 231, 243, 0.14);
+        background: rgba(255, 255, 255, 0.018);
+        line-height: 1.7;
+      }
+      #runsViewport .terminal-reader-article h1,
+      #runsViewport .terminal-reader-article h2,
+      #runsViewport .terminal-reader-article h3,
+      #runsViewport .terminal-reader-article h4 {
+        color: var(--accent-2, #b38cff);
+        margin: 0 0 12px;
+      }
+      #runsViewport .terminal-reader-article p,
+      #runsViewport .terminal-reader-article ul,
+      #runsViewport .terminal-reader-article blockquote,
+      #runsViewport .terminal-reader-article pre {
+        margin: 0 0 14px;
+      }
+      #runsViewport .terminal-reader-article ul {
+        padding-left: 20px;
+      }
+      #runsViewport .terminal-reader-article blockquote {
+        padding-left: 12px;
+        border-left: 2px solid rgba(88, 231, 243, 0.28);
+        color: var(--text-soft, #a8afbc);
+      }
+      #runsViewport .terminal-reader-article code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.95em;
+        color: var(--accent, #58e7f3);
+      }
+      #runsViewport .terminal-reader-loading,
+      #runsViewport .terminal-reader-error {
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(179, 140, 255, 0.16);
+        background: rgba(255, 255, 255, 0.018);
+      }
+      #runsViewport .terminal-reader-error {
+        border-color: rgba(255, 190, 134, 0.3);
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function setRawText(container, text) {
@@ -123,7 +205,181 @@
     );
   }
 
+  function inlineFormat(text) {
+    let formatted = escapeHtml(text);
+    formatted = formatted.replace(/`([^`]+)`/g, "<code>$1</code>");
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    formatted = formatted.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    return formatted;
+  }
+
+  function markdownToHtml(text) {
+    const lines = String(text || "").replace(/\r/g, "").split("\n");
+    const html = [];
+    let paragraph = [];
+    let list = [];
+    let quote = [];
+
+    function flushParagraph() {
+      if (!paragraph.length) return;
+      html.push(`<p>${inlineFormat(paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+
+    function flushList() {
+      if (!list.length) return;
+      html.push(`<ul>${list.map((item) => `<li>${inlineFormat(item)}</li>`).join("")}</ul>`);
+      list = [];
+    }
+
+    function flushQuote() {
+      if (!quote.length) return;
+      html.push(`<blockquote>${quote.map((item) => `<p>${inlineFormat(item)}</p>`).join("")}</blockquote>`);
+      quote = [];
+    }
+
+    function flushAll() {
+      flushParagraph();
+      flushList();
+      flushQuote();
+    }
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flushAll();
+        continue;
+      }
+      if (/^#{1,6}\s/.test(trimmed)) {
+        flushAll();
+        const level = trimmed.match(/^#+/)[0].length;
+        html.push(`<h${level}>${inlineFormat(trimmed.replace(/^#{1,6}\s*/, ""))}</h${level}>`);
+        continue;
+      }
+      if (/^[-*]\s+/.test(trimmed)) {
+        flushParagraph();
+        flushQuote();
+        list.push(trimmed.replace(/^[-*]\s+/, ""));
+        continue;
+      }
+      if (/^>\s?/.test(trimmed)) {
+        flushParagraph();
+        flushList();
+        quote.push(trimmed.replace(/^>\s?/, ""));
+        continue;
+      }
+      paragraph.push(trimmed);
+    }
+
+    flushAll();
+    return html.join("");
+  }
+
+  function basename(path) {
+    const clean = normalizePath(path);
+    if (!clean) return "loaded item";
+    const last = clean.split("/").filter(Boolean).pop() || clean;
+    return last.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+  }
+
+  function getActiveTitle(rawState) {
+    const stateTitle = String(runtimeState.title || "").trim();
+    if (stateTitle && !["none", "mounted cartridge", "mounted-cartridge", "live board", "live-board"].includes(stateTitle.toLowerCase())) {
+      return stateTitle;
+    }
+    return basename(rawState.source);
+  }
+
+  function ensureContent(path) {
+    const key = normalizePath(path);
+    const cached = runtime.contentCache.get(key);
+    if (cached) return cached;
+
+    const record = { status: "loading", text: "", error: "" };
+    runtime.contentCache.set(key, record);
+    loadText(key)
+      .then((text) => {
+        record.status = "ready";
+        record.text = text;
+        window.dispatchEvent(new CustomEvent("tars:runs-content-updated", { detail: { path: key } }));
+      })
+      .catch((error) => {
+        record.status = "error";
+        record.error = error?.message || `failed to load ${key}`;
+        window.dispatchEvent(new CustomEvent("tars:runs-content-updated", { detail: { path: key } }));
+      });
+    return record;
+  }
+
+  function renderActiveHome(container, rawState) {
+    injectReaderStyles();
+    const sourcePath = normalizePath(rawState.source);
+    const content = ensureContent(sourcePath);
+    const title = getActiveTitle(rawState);
+    const renderer = String(rawState.renderer || "none");
+    const sourceLabel = runtimeState.source || (rawState.mountedKind === "board" ? "board" : "repo file");
+
+    let bodyHtml = `<div class="terminal-reader-loading">Loading content from <code>${escapeHtml(sourcePath)}</code>…</div>`;
+    if (content.status === "ready") {
+      const renderedBody = renderer.includes("markdown") || /\.md$/i.test(sourcePath)
+        ? markdownToHtml(content.text)
+        : `<pre>${escapeHtml(content.text)}</pre>`;
+      bodyHtml = `<article class="terminal-reader-article">${renderedBody}</article>`;
+    } else if (content.status === "error") {
+      bodyHtml = `
+        <div class="terminal-reader-error">
+          <div class="surface-title">Content unavailable</div>
+          <div class="surface-detail">The item is loaded into session state, but the source file could not be read from <code>${escapeHtml(sourcePath)}</code>.</div>
+          <div class="surface-foot muted">${escapeHtml(content.error)}</div>
+        </div>
+      `;
+    }
+
+    renderHtml(
+      container,
+      "home-active",
+      {
+        sourcePath,
+        status: content.status,
+        title,
+        renderer,
+        state: rawState.viewState || "loaded",
+      },
+      `
+        <div class="terminal-reader-shell">
+          <div class="terminal-reader-meta">
+            <div class="surface-header">
+              <div class="surface-title">${escapeHtml(title)}</div>
+              <span class="surface-chip">${escapeHtml(rawState.viewState || "loaded")}</span>
+            </div>
+            <div class="surface-meta-grid">
+              <div><span class="muted">source</span> ${escapeHtml(sourceLabel)}</div>
+              <div><span class="muted">path</span> ${escapeHtml(sourcePath)}</div>
+              <div><span class="muted">renderer</span> ${escapeHtml(renderer)}</div>
+              <div><span class="muted">mode</span> ${escapeHtml(rawState.displayMode || "reader")}</div>
+            </div>
+            <div class="surface-detail">Home is now showing the active item itself, not just the mounted-state summary.</div>
+          </div>
+          ${bodyHtml}
+        </div>
+      `,
+      container.dataset.rawText || "",
+    );
+  }
+
   function renderHomeScreen(container) {
+    const rawViewport = parseRawText(container);
+    const activeHome =
+      normalizePath(rawViewport.source) &&
+      normalizePath(rawViewport.source) !== "none" &&
+      rawViewport.displayMode !== "empty-shell-placeholder" &&
+      rawViewport.viewState !== "idle";
+
+    if (activeHome) {
+      renderActiveHome(container, rawViewport);
+      return;
+    }
+
     const raw = parseHomeRawState();
     const rawText = [
       `source: ${raw.currentMount || "none"}`,
@@ -443,6 +699,7 @@
       "tars:cartridge-bay-updated",
       "tars:collections-updated",
       "tars:boards-updated",
+      "tars:runs-content-updated",
     ].forEach((eventName) => window.addEventListener(eventName, refresh));
 
     window.setInterval(() => {
