@@ -16,18 +16,19 @@
 
   if (shared.fetchBridgeInstalled) return;
 
-  const baseScreenOrder = ["home", "cartridge-bay", "collections", "boards", "load"];
+  const baseScreenOrder = ["home", "cartridge-bay", "boards", "load"];
   const devScreens = new Set(["request-history", "repo-verified"]);
-  const loadChildScreens = new Set(["import-bay"]);
+  const loadChildScreens = new Set(["repo-load", "import-bay"]);
 
   function displayName(screen) {
     switch (screen) {
       case "home": return "Home";
       case "cartridge-bay": return "Cartridges";
       case "collections": return "Collections";
+      case "repo-load": return "Repo Load";
       case "boards": return "Boards";
       case "load": return "Load";
-      case "import-bay": return "External Load";
+      case "import-bay": return "Import Files";
       case "request-history": return "Request History";
       case "repo-verified": return "Repo Verified";
       default: return "Screen";
@@ -40,6 +41,12 @@
 
   function getTabScreen(screen) {
     if (loadChildScreens.has(screen)) return "load";
+    if (screen === "collections") return "cartridge-bay";
+    return screen;
+  }
+
+  function getRailListScreen(screen) {
+    if (screen === "repo-load" || screen === "collections") return "collections";
     return screen;
   }
 
@@ -54,6 +61,7 @@
 
   function railSourceScreen() {
     const active = getActiveScreen();
+    if (active === "repo-load" || active === "collections") return active;
     if (isBaseScreen(active) && active !== "home") return active;
     if (isBaseScreen(screenUi.lastBaseScreen) && screenUi.lastBaseScreen !== "home") return screenUi.lastBaseScreen;
     return "cartridge-bay";
@@ -128,7 +136,7 @@
   }
 
   function screenToListId(screen) {
-    switch (screen) {
+    switch (getRailListScreen(screen)) {
       case "cartridge-bay": return "cartridgeBayList";
       case "collections": return "collectionsBrowserList";
       case "boards": return "boardsBrowserList";
@@ -146,7 +154,8 @@
   function currentSelectionLabel() {
     const active = getActiveScreen();
     if (active === "load") return "menu";
-    if (loadChildScreens.has(active)) return displayName(active);
+    if (active === "repo-load" || active === "collections") return selectedLabelFor("collections");
+    if (active === "import-bay") return displayName(active);
     if (devScreens.has(active)) return displayName(active);
     if (isBaseScreen(active) && active !== "home") return selectedLabelFor(active);
     return selectedLabelFor(railSourceScreen());
@@ -201,7 +210,7 @@
       return;
     }
 
-    if (active === "collections") {
+    if (active === "collections" || active === "repo-load") {
       const button = document.getElementById("collectionsMountConfirm");
       if (button && !button.disabled) button.click();
       else selectRelative(1);
@@ -217,7 +226,15 @@
 
   function secondaryAction() {
     const active = getActiveScreen();
-    if (loadChildScreens.has(active)) {
+    if (active === "repo-load") {
+      setActiveScreen("load");
+      return;
+    }
+    if (active === "collections") {
+      setActiveScreen("cartridge-bay");
+      return;
+    }
+    if (active === "import-bay") {
       setActiveScreen("load");
       return;
     }
@@ -241,12 +258,12 @@
     const map = {
       up: {
         enabled: railButtons.length > 0,
-        label: railButtons.length > 0 ? `prev ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        label: railButtons.length > 0 ? `prev ${displayName(getTabScreen(railScreen)).toLowerCase().slice(0, -1) || "item"}` : "none",
         action: () => selectRelative(-1),
       },
       down: {
         enabled: railButtons.length > 0,
-        label: railButtons.length > 0 ? `next ${displayName(railScreen).toLowerCase().slice(0, -1) || "item"}` : "none",
+        label: railButtons.length > 0 ? `next ${displayName(getTabScreen(railScreen)).toLowerCase().slice(0, -1) || "item"}` : "none",
         action: () => selectRelative(1),
       },
       left: {
@@ -260,23 +277,23 @@
         action: () => cycleBaseScreen(1),
       },
       a: {
-        enabled: !devScreens.has(active) && active !== "load" && !loadChildScreens.has(active),
+        enabled: !devScreens.has(active) && active !== "load" && active !== "import-bay",
         label:
           active === "home" ? "open" :
           active === "cartridge-bay" ? (devSelection ? "open" : "handoff") :
-          active === "collections" ? (mountCollectionsDisabled ? "select" : "mount") :
+          (active === "collections" || active === "repo-load") ? (mountCollectionsDisabled ? "select" : "load") :
           active === "boards" ? (mountBoardsDisabled ? "select" : "mount") :
           "none",
         action: primaryAction,
       },
       b: {
         enabled: active !== "home",
-        label: loadChildScreens.has(active) || devScreens.has(active) ? "back" : "home",
+        label: (active === "repo-load" || active === "collections" || active === "import-bay" || devScreens.has(active)) ? "back" : "home",
         action: secondaryAction,
       },
     };
 
-    if (devScreens.has(active) || active === "load" || loadChildScreens.has(active)) {
+    if (devScreens.has(active) || active === "load" || active === "import-bay") {
       map.up.enabled = false;
       map.up.label = "none";
       map.down.enabled = false;
@@ -674,6 +691,32 @@
     document.head.appendChild(style);
   }
 
+  function syncHeaderNav() {
+    const nav = document.getElementById("nav");
+    if (!nav) return;
+
+    nav.querySelectorAll("button").forEach((button) => {
+      const label = String(button.textContent || "").trim().toLowerCase();
+      if (label === "collections") {
+        button.style.display = "none";
+        button.disabled = true;
+        button.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    let loadButton = nav.querySelector('button[data-shell-load-nav="true"]');
+    if (!loadButton) {
+      loadButton = document.createElement("button");
+      loadButton.type = "button";
+      loadButton.dataset.shellLoadNav = "true";
+      loadButton.textContent = "Load";
+      loadButton.addEventListener("click", () => setActiveScreen("load"));
+      nav.appendChild(loadButton);
+    }
+
+    loadButton.dataset.actionState = getTabScreen(getActiveScreen()) === "load" ? "active" : "idle";
+  }
+
   function renderHeaderBar() {
     const headerBar = document.getElementById("terminalHeaderBar");
     if (!headerBar) return;
@@ -745,6 +788,7 @@
     const sourcePanel = {
       "cartridge-bay": document.getElementById("cartridgeBayList")?.closest(".panel"),
       "collections": document.getElementById("collectionsBrowserList")?.closest(".panel"),
+      "repo-load": document.getElementById("collectionsBrowserList")?.closest(".panel"),
       "boards": document.getElementById("boardsBrowserList")?.closest(".panel"),
       "load": null,
     }[sourceScreen] || null;
@@ -795,6 +839,7 @@
   }
 
   function renderShellChrome() {
+    syncHeaderNav();
     renderHeaderBar();
     renderScreenTabs();
     renderRail();
@@ -921,7 +966,7 @@
       if (!container) return;
       container.addEventListener("click", (event) => {
         if (!event.target.closest("button")) return;
-        const screen = id === "cartridgeBayList" ? "cartridge-bay" : id === "collectionsBrowserList" ? "collections" : "boards";
+        const screen = id === "cartridgeBayList" ? "cartridge-bay" : id === "collectionsBrowserList" ? (getActiveScreen() === "repo-load" ? "repo-load" : "collections") : "boards";
         setActiveScreen(screen);
       });
     });

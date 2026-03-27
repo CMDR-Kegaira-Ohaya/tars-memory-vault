@@ -145,7 +145,7 @@
       "cartridge-bay",
       "cartridgeBaySummary",
       rawText,
-      "A hands the selected cartridge into Collections.",
+      "A hands the selected cartridge into cartridge resolve.",
     );
   }
 
@@ -161,7 +161,38 @@
       "collections",
       "collectionsResolvedSummary",
       rawText,
-      mountButton && !mountButton.disabled ? "A mounts the current collection." : "Select a collection in the rail to enable A.",
+      mountButton && !mountButton.disabled ? "A loads the currently selected file." : "Select a file in the rail to enable A.",
+    );
+  }
+
+  function renderRepoLoadScreen(container) {
+    const selected = document.querySelector('#collectionsBrowserList button[data-selected="true"] .surface-title')?.textContent?.trim() || "none";
+    const selectedCategory = document.querySelector('#collectionsBrowserList button[data-selected="true"] .surface-chip')?.textContent?.trim() || "repo file";
+    const count = document.querySelectorAll('#collectionsBrowserList button.manifest-entry').length;
+    const mountButton = document.getElementById("collectionsMountConfirm");
+    renderHtml(
+      container,
+      "repo-load",
+      { selected, count, mountEnabled: Boolean(mountButton && !mountButton.disabled) },
+      `
+        <div class="surface-stack screen-context">
+          <div class="surface-header">
+            <div class="surface-title">Repo Load</div>
+            <span class="surface-chip">collections files</span>
+          </div>
+          <div class="surface-meta-grid">
+            <div><span class="muted">selected</span> ${escapeHtml(selected)}</div>
+            <div><span class="muted">type</span> ${escapeHtml(selectedCategory || "repo file")}</div>
+            <div><span class="muted">available files</span> ${count}</div>
+            <div><span class="muted">cartridges</span> excluded</div>
+          </div>
+          <div class="surface-detail screen-copy">
+            Browse repo-backed files from Collections here. This path is for repo files, not cartridges.
+          </div>
+          <div class="surface-foot muted">${mountButton && !mountButton.disabled ? "A loads the selected repo file." : "Select a repo file in the rail to enable A."}</div>
+        </div>
+      `,
+      `source: ${selected}\nmode: repo-load`
     );
   }
 
@@ -193,7 +224,7 @@
   function renderLoadScreen(container) {
     const payload = {
       mode: "load",
-      options: ["repo-load", "external-load"],
+      options: ["repo-load", "import-files"],
     };
     renderHtml(
       container,
@@ -206,19 +237,18 @@
             <span class="surface-chip">entry menu</span>
           </div>
           <div class="surface-detail screen-copy">
-            Choose how you want to bring material into the terminal. Repo Load opens existing repo-backed entries. External Load opens the import path for local or outside material.
+            Choose how you want to bring material into the terminal.
           </div>
           <div class="load-option-grid">
-            <button type="button" class="load-option-button" data-load-target="collections">
+            <button type="button" class="load-option-button" data-load-target="repo-load">
               <div class="load-option-title">Repo Load</div>
-              <div class="load-option-copy">Browse repo-backed material through the catalogue and mount an existing entry.</div>
+              <div class="load-option-copy">Browse repo-backed files from Collections. Cartridges are not part of this path.</div>
             </button>
             <button type="button" class="load-option-button" data-load-target="import-bay">
-              <div class="load-option-title">External Load</div>
-              <div class="load-option-copy">Open the import path for local files or external material, then stage or prepare a save request.</div>
+              <div class="load-option-title">Import Files</div>
+              <div class="load-option-copy">Choose an external or local file and bring it into the terminal through the import path.</div>
             </button>
           </div>
-          <div class="surface-foot muted">Loading from repo is not the same as authenticated repo write.</div>
         </div>
       `,
       "source: load\nmode: load"
@@ -370,6 +400,9 @@
         return;
       case "collections":
         renderCollectionsScreen(container);
+        return;
+      case "repo-load":
+        renderRepoLoadScreen(container);
         return;
       case "boards":
         renderBoardsScreen(container);
