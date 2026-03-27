@@ -1,5 +1,9 @@
 (() => {
-  const runtime = { contract: null };
+  const runtime = {
+    contract: null,
+    lastRuntimeToken: null,
+    controlsInstalled: false,
+  };
 
   const shellLabelCacheKey = "__TARS_SHELL_LABEL_CACHE__";
   const shellLabelCache = window[shellLabelCacheKey] || (window[shellLabelCacheKey] = {
@@ -47,6 +51,14 @@
         color: #aab4c5;
         line-height: 1.35;
       }
+      #actions .terminal-runtime-action {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+      }
+      #actions .terminal-runtime-action[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -69,6 +81,9 @@
     actions.classList.add("terminal-systems-check");
 
     Array.from(actions.querySelectorAll("button")).forEach((button) => {
+      if (button.classList.contains("terminal-runtime-action")) {
+        return;
+      }
       const parsed = splitActionText(button.dataset.rawText || button.textContent || "");
       const renderState = JSON.stringify(parsed);
       if (button.dataset.systemsCheckRenderState !== renderState) {
@@ -223,6 +238,105 @@
     `;
   }
 
+  function hasActiveRuntimeState(rawState) {
+    const currentMount = normalizeLabelText(rawState?.currentMount || "").toLowerCase();
+    if (currentMount && !["none", "idle", "unmounted"].includes(currentMount)) return true;
+    const mode = normalizeLabelText(rawState?.mode || "").toLowerCase();
+    return ["runs", "mounted", "import-bay"].includes(mode);
+  }
+
+  function getRuntimeToken(rawState) {
+    if (!hasActiveRuntimeState(rawState)) return "none";
+    const currentMount = normalizeLabelText(rawState?.currentMount || "none");
+    const mode = normalizeLabelText(rawState?.mode || "home");
+    return `${mode}::${currentMount}`;
+  }
+
+  function requestHomeScreen() {
+    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: "home" } }));
+  }
+
+  function refreshEjectControl(rawState) {
+    const actions = document.getElementById("actions");
+    if (!actions) return;
+
+    let button = actions.querySelector("button[data-runtime-action='eject']");
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.dataset.runtimeAction = "eject";
+      button.dataset.actionKey = "eject";
+      button.className = "terminal-runtime-action";
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        const clearButton = document.getElementById("clearMount");
+        if (clearButton) {
+          clearButton.click();
+        }
+        requestHomeScreen();
+        window.setTimeout(refresh, 60);
+      });
+      actions.appendChild(button);
+    }
+
+    const enabled = hasActiveRuntimeState(rawState);
+    button.disabled = !enabled;
+    button.tabIndex = enabled ? 0 : -1;
+    button.dataset.actionState = enabled ? "enabled" : "disabled";
+    button.dataset.rawActionState = enabled ? "enabled" : "disabled";
+    button.dataset.rawText = `eject: ${enabled ? "enabled" : "disabled"}`;
+    button.textContent = button.dataset.rawText;
+    button.title = enabled
+      ? "Clear the active mounted or imported item and return Home to idle."
+      : "No active mounted or imported item to clear.";
+    if (enabled) {
+      button.removeAttribute("aria-disabled");
+    } else {
+      button.setAttribute("aria-disabled", "true");
+    }
+  }
+
+  function syncMountedRuntimeToHome(rawState) {
+    const nextToken = getRuntimeToken(rawState);
+    if (runtime.lastRuntimeToken === nextToken) return;
+    const previousToken = runtime.lastRuntimeToken;
+    runtime.lastRuntimeToken = nextToken;
+
+    if (nextToken === "none") return;
+    if (previousToken === nextToken) return;
+
+    const activeScreen = String(window.__TARS_SCREEN_UI__?.activeScreen || "home");
+    if (["home", "request-history", "repo-verified"].includes(activeScreen)) return;
+    requestHomeScreen();
+  }
+
+  function scheduleHomeSync(reason) {
+    [80, 220].forEach((delay) => {
+      window.setTimeout(() => {
+        if (reason === "clear") {
+          requestHomeScreen();
+        }
+        refresh();
+      }, delay);
+    });
+  }
+
+  function installRuntimeControls() {
+    if (runtime.controlsInstalled) return;
+    runtime.controlsInstalled = true;
+
+    document.addEventListener("click", (event) => {
+      const target = event.target?.closest?.("button");
+      if (!target) return;
+      if (target.matches("#collectionsMountConfirm, #boardsMountConfirm, #mountCartridge, #mountBoard")) {
+        scheduleHomeSync("mount");
+      }
+      if (target.matches("#clearMount")) {
+        scheduleHomeSync("clear");
+      }
+    }, true);
+  }
+
   function refresh() {
     const container = document.getElementById("homeSummary");
     if (!container) return;
@@ -231,10 +345,13 @@
     render(surface, rawState, container);
     stabilizeShellLabels();
     formatSystemsCheck();
+    refreshEjectControl(rawState);
+    syncMountedRuntimeToHome(rawState);
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/home-surface.v1.json");
+    installRuntimeControls();
     refresh();
 
     [
@@ -243,6 +360,7 @@
       "tars:devtools-changed",
       "tars:request-history-updated",
       "tars:repo-verified-updated",
+      "tars:home-updated",
     ].forEach((eventName) => window.addEventListener(eventName, refresh));
   }
 
