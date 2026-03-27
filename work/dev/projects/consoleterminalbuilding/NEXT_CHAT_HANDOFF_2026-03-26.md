@@ -11,30 +11,38 @@ The full working board lives here:
 
 ## Current repo state
 
-### Current head
-`a41c851997c3ce756e9078bfafa609ec5a4ee75c`
+### Current stable head
+`e67dd6a79d1364c311b5ecdaa594c818e43e51c9`
 
 Commit:
-`Show Dev surface selector in main screen`
+`Replace shell polling with event-driven chrome updates`
 
 ### Current condition
-Treat the current head as **unstable**.
+Treat the current head as **stable and usable**.
 
 Observed user result:
-- terminal entry can hang
-- reported error: `RESULT_CODE_HUNG`
+- terminal is smooth
+- terminal works
+- Firefox stays normal during navigation
 
-### Last clearly usable baseline
-`996763999198d213b96cd27ec229ead37d46ac45`
+### What this head includes
+- full lag cleanup pass
+- event-driven shell chrome updates
+- removal of shell polling
+- trimmed DOM churn
+- Dev cartridges live in cartridge flow
 
-Use that as the last clearly safe reference point for terminal behavior.
+### Previous unstable reference
+`a41c851997c3ce756e9078bfafa609ec5a4ee75c`
+
+That head should remain remembered as the failed Dev-selector pass that introduced hang risk.
 
 ---
 
 ## What is still true
 
 - terminal is meant to stay live, client-side, and device-like
-- Debug Intake, Import Bay, and Collections Explorer were working on the stable baseline
+- Debug Intake, Import Bay, and Collections Explorer remain part of the stable terminal direction
 - Import Bay fields preserve cursor/focus while typing
 - `/collections/` is the broad catalogue root
 - `/collections/cartridges/` is the mountable cartridge family
@@ -45,71 +53,85 @@ Use that as the last clearly safe reference point for terminal behavior.
 
 ---
 
-## Newly locked naming rule
+## Locked naming rule
 
 **Cartridge = mountable**
 
 Therefore:
 - Dev cartridges are valid cartridges
-- Books / Entertainment / Various stay collection families unless a specific entry becomes mountable
 - Collections remain the broad catalogue root
+- non-mountable collection families do not become cartridges by default
+
+### Current live Dev cartridges
+- Request History
+- Repo Verified
+
+### Next approved Dev cartridges
+- Import Bay
+- Collections Explorer
+- Debug Intake
 
 ---
 
-## Current failure diagnosis
+## Resolved failure diagnosis
 
-Do **not** treat the hang as an HTML redirect loop.
+Do **not** treat the old hang as an HTML redirect loop.
 
 Repo truth:
 - root `index.html` refreshes once to `./terminal/index.html`
 - `terminal/index.html` does not point back
 
-Likely real cause:
-- `browser-home-surface.js` introduced observer + DOM mutation + interval-refresh loop risk
-- especially around `runsViewport`, Dev-hub rendering, and `setInterval(refresh, 1500)`
+The actual problem was shell churn from observer/poll driven Dev-selector wiring.
+
+What fixed it:
+- removed unstable Dev injection path
+- made hot surfaces event-driven
+- moved Dev into cartridge flow
+- removed shell polling
+- reduced DOM policing and shell refresh churn
 
 ---
 
-## Best next repair
+## Best next implementation path
 
-Patch through from the current understanding, not by repeating a broad shell rewrite.
+Continue forward from the current stable point, not from the failed selector experiment.
 
 Preferred next steps:
-1. remove drawer/hub-driven Dev injection
-2. stop observing `runsViewport`
-3. remove interval refresh from `browser-home-surface.js`
-4. treat Dev surfaces as separate mountable Dev cartridges
-5. reuse the cartridge selection/mount pattern if easiest
-6. mount only one Dev cartridge at a time
+1. expand Dev cartridges cleanly
+2. add Import Bay as a Dev cartridge
+3. add Collections Explorer as a Dev cartridge
+4. add Debug Intake as a Dev cartridge
+5. verify one-at-a-time mount behavior stays smooth
+6. then continue the mounted reader path for note-like entries
 
 ---
 
 ## Do not do next
 
-- do not redesign the whole shell again in one pass
+- do not reintroduce shell-wide polling
+- do not reintroduce drawer/hub-driven Dev injection
 - do not load all Dev surfaces together
 - do not collapse Collections into Cartridges
 - do not rename non-mountable collection families as cartridges
-- do not describe the current head as stable
 
 ---
 
 ## Most relevant files next
 
+- `terminal/app/browser-collections-bridge.js`
+- `terminal/app/browser-cartridge-bay.js`
 - `terminal/app/browser-home-surface.js`
 - `terminal/app/browser-runs-surface.js`
 - `terminal/app/browser-request-history-panel.js`
 - `terminal/app/browser-repo-verified-panel.js`
-- `terminal/app/browser-collections-bridge.js`
-- `terminal/app/browser-cartridge-bay.js`
 - `work/dev/projects/consoleterminalbuilding/README.md`
 
 ---
 
 ## Short bootstrap summary
 
-- current head is unstable and can hang
-- stable baseline exists before the Dev-selector pass
-- cartridge now means mountable only
-- Dev cartridges are valid cartridges
-- next repair should reuse one-at-a-time mount logic, not all-at-once Dev injection
+- current stable head is `e67dd6a79d1364c311b5ecdaa594c818e43e51c9`
+- terminal is smooth and usable again
+- cartridge means mountable only
+- Dev cartridges are live and valid
+- next work should expand Dev cartridges from the stable event-driven shell baseline
