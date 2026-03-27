@@ -16,8 +16,9 @@
 
   if (shared.fetchBridgeInstalled) return;
 
-  const baseScreenOrder = ["home", "cartridge-bay", "collections", "boards"];
+  const baseScreenOrder = ["home", "cartridge-bay", "collections", "boards", "load"];
   const devScreens = new Set(["request-history", "repo-verified"]);
+  const loadChildScreens = new Set(["import-bay"]);
 
   function displayName(screen) {
     switch (screen) {
@@ -25,6 +26,8 @@
       case "cartridge-bay": return "Cartridges";
       case "collections": return "Collections";
       case "boards": return "Boards";
+      case "load": return "Load";
+      case "import-bay": return "External Load";
       case "request-history": return "Request History";
       case "repo-verified": return "Repo Verified";
       default: return "Screen";
@@ -33,6 +36,11 @@
 
   function isBaseScreen(screen) {
     return baseScreenOrder.includes(screen);
+  }
+
+  function getTabScreen(screen) {
+    if (loadChildScreens.has(screen)) return "load";
+    return screen;
   }
 
   function emit(name, detail) {
@@ -137,6 +145,8 @@
 
   function currentSelectionLabel() {
     const active = getActiveScreen();
+    if (active === "load") return "menu";
+    if (loadChildScreens.has(active)) return displayName(active);
     if (devScreens.has(active)) return displayName(active);
     if (isBaseScreen(active) && active !== "home") return selectedLabelFor(active);
     return selectedLabelFor(railSourceScreen());
@@ -207,6 +217,10 @@
 
   function secondaryAction() {
     const active = getActiveScreen();
+    if (loadChildScreens.has(active)) {
+      setActiveScreen("load");
+      return;
+    }
     if (devScreens.has(active)) {
       setActiveScreen(screenUi.lastBaseScreen || "home");
       return;
@@ -246,7 +260,7 @@
         action: () => cycleBaseScreen(1),
       },
       a: {
-        enabled: !devScreens.has(active),
+        enabled: !devScreens.has(active) && active !== "load" && !loadChildScreens.has(active),
         label:
           active === "home" ? "open" :
           active === "cartridge-bay" ? (devSelection ? "open" : "handoff") :
@@ -257,12 +271,12 @@
       },
       b: {
         enabled: active !== "home",
-        label: devScreens.has(active) ? "back" : "home",
+        label: loadChildScreens.has(active) || devScreens.has(active) ? "back" : "home",
         action: secondaryAction,
       },
     };
 
-    if (devScreens.has(active)) {
+    if (devScreens.has(active) || active === "load" || loadChildScreens.has(active)) {
       map.up.enabled = false;
       map.up.label = "none";
       map.down.enabled = false;
@@ -439,7 +453,8 @@
       .terminal-header-controls button,
       .terminal-screen-tabs button,
       .control-pad-button,
-      .terminal-rail-shell .manifest-entry {
+      .terminal-rail-shell .manifest-entry,
+      .load-option-button {
         border-radius: 999px;
         border: 1px solid var(--line);
         background: rgba(255, 255, 255, 0.02);
@@ -516,6 +531,37 @@
         background: rgba(255, 255, 255, 0.018);
         border-radius: 14px;
         border-color: rgba(179, 140, 255, 0.16);
+      }
+
+      .load-option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .load-option-button {
+        width: 100%;
+        text-align: left;
+        padding: 16px;
+        border-radius: 18px;
+      }
+
+      .load-option-button:hover {
+        border-color: rgba(88, 231, 243, 0.4);
+        box-shadow: var(--glow-soft);
+      }
+
+      .load-option-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent-2);
+        margin-bottom: 6px;
+      }
+
+      .load-option-copy {
+        color: var(--text-soft);
+        line-height: 1.5;
       }
 
       .terminal-rail-shell {
@@ -642,10 +688,11 @@
       { label: "export", value: home.exportSource || "disabled" },
     ];
 
+    const pathText = `Home / ${displayName(getTabScreen(railSourceScreen()))} / ${currentSelectionLabel()}`;
     const renderState = JSON.stringify({
       activeScreen,
       chips,
-      path: `Home / ${displayName(railSourceScreen())} / ${currentSelectionLabel()}`,
+      path: pathText,
       statusLine: status.lines.slice(0, 3),
     });
     if (headerBar.dataset.renderState === renderState) return;
@@ -656,7 +703,7 @@
         <div class="terminal-brand">TARS TERMINAL</div>
         <div class="terminal-active-screen">${displayName(activeScreen)}</div>
       </div>
-      <div class="terminal-path-line">Home / ${displayName(railSourceScreen())} / ${currentSelectionLabel()}</div>
+      <div class="terminal-path-line">${pathText}</div>
       <div class="terminal-header-grid">
         ${chips.map((chip) => `
           <div class="header-chip">
@@ -672,7 +719,7 @@
   function renderScreenTabs() {
     const tabs = document.getElementById("terminalScreenTabs");
     if (!tabs) return;
-    const activeScreen = getActiveScreen();
+    const activeScreen = getTabScreen(getActiveScreen());
     const renderState = JSON.stringify({ activeScreen, order: baseScreenOrder });
     if (tabs.dataset.renderState === renderState) return;
     tabs.dataset.renderState = renderState;
@@ -699,12 +746,13 @@
       "cartridge-bay": document.getElementById("cartridgeBayList")?.closest(".panel"),
       "collections": document.getElementById("collectionsBrowserList")?.closest(".panel"),
       "boards": document.getElementById("boardsBrowserList")?.closest(".panel"),
+      "load": null,
     }[sourceScreen] || null;
 
     title.textContent = `${displayName(sourceScreen)} Rail`;
-    context.textContent = `${displayName(sourceScreen)} selectors`;
+    context.textContent = sourcePanel ? `${displayName(sourceScreen)} selectors` : `${displayName(sourceScreen)} menu`;
 
-    if (host.dataset.sourceScreen === sourceScreen && sourcePanel?.parentElement === host) return;
+    if (host.dataset.sourceScreen === sourceScreen && (!sourcePanel || sourcePanel?.parentElement === host)) return;
 
     host.innerHTML = "";
     if (sourcePanel) {
