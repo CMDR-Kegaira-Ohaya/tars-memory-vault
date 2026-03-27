@@ -1,5 +1,9 @@
 (() => {
-  const runtime = { contract: null, lastDevScreen: "request-history" };
+  const runtime = {
+    contract: null,
+    lastDevScreen: "request-history",
+    devHubOpen: false,
+  };
 
   const shellLabelCacheKey = "__TARS_SHELL_LABEL_CACHE__";
   const shellLabelCache = window[shellLabelCacheKey] || (window[shellLabelCacheKey] = {
@@ -59,6 +63,9 @@
       .terminal-dev-hidden-tab {
         display: none !important;
       }
+      .terminal-dev-drawer > summary {
+        display: none !important;
+      }
       .terminal-dev-selector-shell {
         display: grid;
         gap: 10px;
@@ -88,6 +95,47 @@
         border-color: rgba(88, 231, 243, 0.32);
         color: #58e7f3;
         box-shadow: 0 0 14px rgba(88, 231, 243, 0.08);
+      }
+      .terminal-dev-hub {
+        display: grid;
+        gap: 12px;
+        border: 1px solid rgba(186, 156, 255, 0.18);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(18, 22, 34, 0.92), rgba(8, 10, 16, 0.96));
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .terminal-dev-hub-title {
+        color: #b38cff;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 11px;
+      }
+      .terminal-dev-hub-detail {
+        color: #aab4c5;
+        line-height: 1.5;
+      }
+      .terminal-dev-hub-list {
+        display: grid;
+        gap: 10px;
+      }
+      .terminal-dev-hub-button {
+        width: 100%;
+        text-align: left;
+        border-radius: 16px;
+        border: 1px solid rgba(186, 156, 255, 0.24);
+        background: rgba(255, 255, 255, 0.02);
+        color: #e6ebf2;
+        padding: 14px 16px;
+      }
+      .terminal-dev-hub-button[data-active="true"] {
+        border-color: rgba(88, 231, 243, 0.32);
+        color: #58e7f3;
+        box-shadow: 0 0 14px rgba(88, 231, 243, 0.08);
+      }
+      .terminal-dev-hub-button .muted {
+        display: block;
+        margin-top: 4px;
       }
     `;
     document.head.appendChild(style);
@@ -138,6 +186,12 @@
     return screen === "repo-verified" ? "Repo Verified" : "Request History";
   }
 
+  function getInspectionSummary(screen) {
+    return screen === "repo-verified"
+      ? "Inspect authenticated repo verification."
+      : "Inspect the mounted save and apply chain.";
+  }
+
   function getCurrentInspectionScreen() {
     const activeChip = normalizeLabelText(document.querySelector(".terminal-active-screen")?.textContent).toLowerCase();
     const fromChip = getInspectionScreenFromText(activeChip);
@@ -150,11 +204,27 @@
   }
 
   function openDevDestination(screen) {
+    runtime.devHubOpen = true;
     const nextScreen = screen || runtime.lastDevScreen || "request-history";
     runtime.lastDevScreen = nextScreen;
-    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: nextScreen } }));
-    const drawer = document.querySelector(".terminal-dev-drawer");
-    if (drawer) drawer.open = true;
+    renderDevHub();
+    const runsViewport = document.getElementById("runsViewport");
+    if (runsViewport) {
+      runsViewport.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  }
+
+  function closeDevHub() {
+    runtime.devHubOpen = false;
+    removeDevHub();
+    syncDevDestinationNavigation();
+  }
+
+  function activateDevScreen(screen) {
+    runtime.lastDevScreen = screen || runtime.lastDevScreen || "request-history";
+    runtime.devHubOpen = false;
+    removeDevHub();
+    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: runtime.lastDevScreen } }));
   }
 
   function markDevButtonActive(button, active) {
@@ -177,12 +247,16 @@
       button.dataset.devDestination = "true";
       button.className = exemplar?.className || "";
       button.addEventListener("click", () => {
+        if (runtime.devHubOpen) {
+          closeDevHub();
+          return;
+        }
         openDevDestination(activeScreen || runtime.lastDevScreen || "request-history");
       });
       host.appendChild(button);
     }
     button.textContent = "Dev";
-    markDevButtonActive(button, Boolean(activeScreen));
+    markDevButtonActive(button, Boolean(activeScreen) || runtime.devHubOpen);
   }
 
   function formatNavHostAsDevDestination(host) {
@@ -204,6 +278,7 @@
       button.setAttribute("aria-hidden", "true");
     });
 
+    if (activeScreen) runtime.devHubOpen = false;
     runtime.lastDevScreen = activeScreen || runtime.lastDevScreen || "request-history";
     upsertDevDestinationButton(host, activeScreen);
   }
@@ -245,18 +320,69 @@
     `;
 
     selector.querySelectorAll("[data-dev-screen]").forEach((button) => {
-      button.addEventListener("click", () => openDevDestination(button.dataset.devScreen));
+      button.addEventListener("click", () => activateDevScreen(button.dataset.devScreen));
     });
+  }
 
-    const drawer = document.querySelector(".terminal-dev-drawer");
-    const summary = drawer?.querySelector("summary");
-    if (summary) summary.textContent = "Dev";
+  function removeDevHub() {
+    document.getElementById("terminalDevHub")?.remove();
+  }
+
+  function renderDevHub() {
+    injectDevDestinationStyles();
+    const runsViewport = document.getElementById("runsViewport");
+    if (!runsViewport) return;
+
+    if (!runtime.devHubOpen) {
+      removeDevHub();
+      return;
+    }
+
+    const currentInspection = getCurrentInspectionScreen();
+    runtime.lastDevScreen = currentInspection || runtime.lastDevScreen || "request-history";
+
+    let hub = document.getElementById("terminalDevHub");
+    if (!hub) {
+      hub = document.createElement("div");
+      hub.id = "terminalDevHub";
+      hub.className = "terminal-dev-hub";
+      runsViewport.prepend(hub);
+    }
+
+    hub.innerHTML = `
+      <div class="terminal-dev-hub-title">Dev</div>
+      <div class="terminal-dev-hub-detail">
+        Choose an inspection surface for the main screen.
+      </div>
+      <div class="terminal-dev-hub-list">
+        ${["request-history", "repo-verified"]
+          .map(
+            (screen) => `
+              <button
+                type="button"
+                class="terminal-dev-hub-button"
+                data-dev-hub-screen="${screen}"
+                data-active="${String(runtime.lastDevScreen === screen)}"
+              >
+                <span class="surface-title">${getInspectionLabel(screen)}</span>
+                <span class="muted">${getInspectionSummary(screen)}</span>
+              </button>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+
+    hub.querySelectorAll("[data-dev-hub-screen]").forEach((button) => {
+      button.addEventListener("click", () => activateDevScreen(button.dataset.devHubScreen));
+    });
   }
 
   function syncDevDestinationNavigation() {
     formatNavHostAsDevDestination(document.getElementById("nav"));
     formatNavHostAsDevDestination(document.getElementById("terminalScreenTabs"));
     renderDevSelector();
+    renderDevHub();
   }
 
   function stabilizeShellLabels() {
@@ -432,7 +558,7 @@
       actionsObserver.observe(actions, { childList: true, subtree: true, characterData: true, attributes: true });
     }
 
-    const navHosts = [document.getElementById("nav"), document.getElementById("terminalScreenTabs"), document.getElementById("terminalDevDrawerContent")].filter(Boolean);
+    const navHosts = [document.getElementById("nav"), document.getElementById("terminalScreenTabs"), document.getElementById("terminalDevDrawerContent"), document.getElementById("runsViewport")].filter(Boolean);
     navHosts.forEach((host) => {
       const navObserver = new MutationObserver(() => syncDevDestinationNavigation());
       navObserver.observe(host, { childList: true, subtree: true, characterData: true, attributes: true });
@@ -443,6 +569,9 @@
       "tars:collections-updated",
       "tars:devtools-changed",
     ].forEach((eventName) => window.addEventListener(eventName, () => {
+      if (getCurrentInspectionScreen()) {
+        runtime.devHubOpen = false;
+      }
       stabilizeShellLabels();
       formatSystemsCheck();
       syncDevDestinationNavigation();
