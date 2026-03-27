@@ -1,4 +1,3 @@
-
 (() => {
   const collectionsKey = "__TARS_COLLECTIONS__";
   const shared = window[collectionsKey] || (window[collectionsKey] = {});
@@ -17,8 +16,8 @@
 
   if (shared.fetchBridgeInstalled) return;
 
-  const screenOrder = ["home", "cartridge-bay", "collections", "boards", "request-history", "repo-verified"];
-  const baseScreens = ["cartridge-bay", "collections", "boards"];
+  const baseScreenOrder = ["home", "cartridge-bay", "collections", "boards"];
+  const devScreens = new Set(["request-history", "repo-verified"]);
 
   function displayName(screen) {
     switch (screen) {
@@ -32,11 +31,8 @@
     }
   }
 
-  function railSourceScreen() {
-    const active = getActiveScreen();
-    if (baseScreens.includes(active)) return active;
-    if (baseScreens.includes(screenUi.lastBaseScreen)) return screenUi.lastBaseScreen;
-    return "cartridge-bay";
+  function isBaseScreen(screen) {
+    return baseScreenOrder.includes(screen);
   }
 
   function emit(name, detail) {
@@ -44,9 +40,15 @@
   }
 
   function getActiveScreen() {
-    if (devtools.mountedCartridge === "request-history") return "request-history";
-    if (devtools.mountedCartridge === "repo-verified") return "repo-verified";
+    if (devScreens.has(devtools.mountedCartridge)) return devtools.mountedCartridge;
     return screenUi.activeScreen || "home";
+  }
+
+  function railSourceScreen() {
+    const active = getActiveScreen();
+    if (isBaseScreen(active) && active !== "home") return active;
+    if (isBaseScreen(screenUi.lastBaseScreen) && screenUi.lastBaseScreen !== "home") return screenUi.lastBaseScreen;
+    return "cartridge-bay";
   }
 
   function setActiveScreen(screen, { syncDevtools = true } = {}) {
@@ -55,15 +57,11 @@
     const previousActive = getActiveScreen();
 
     if (syncDevtools) {
-      if (nextScreen === "request-history" || nextScreen === "repo-verified") {
-        devtools.mountedCartridge = nextScreen;
-      } else {
-        devtools.mountedCartridge = null;
-      }
+      devtools.mountedCartridge = devScreens.has(nextScreen) ? nextScreen : null;
     }
 
     screenUi.activeScreen = nextScreen;
-    if (baseScreens.includes(nextScreen)) {
+    if (isBaseScreen(nextScreen) && nextScreen !== "home") {
       screenUi.lastBaseScreen = nextScreen;
     }
 
@@ -76,6 +74,7 @@
         lastBaseScreen: screenUi.lastBaseScreen,
       });
     }
+
     renderShellChrome();
   }
 
@@ -130,14 +129,16 @@
   }
 
   function selectedLabelFor(screen) {
-    const selected = document.querySelector(`#${screenToListId(screen)} button[data-selected="true"] .surface-title`);
+    const listId = screenToListId(screen);
+    if (!listId) return "none";
+    const selected = document.querySelector(`#${listId} button[data-selected="true"] .surface-title`);
     return selected?.textContent?.trim() || "none";
   }
 
   function currentSelectionLabel() {
     const active = getActiveScreen();
-    if (baseScreens.includes(active)) return selectedLabelFor(active);
-    if (active === "request-history" || active === "repo-verified") return displayName(active);
+    if (devScreens.has(active)) return displayName(active);
+    if (isBaseScreen(active) && active !== "home") return selectedLabelFor(active);
     return selectedLabelFor(railSourceScreen());
   }
 
@@ -155,20 +156,33 @@
     return true;
   }
 
-  function cycleScreen(delta) {
+  function cycleBaseScreen(delta) {
     const active = getActiveScreen();
-    const index = screenOrder.indexOf(active);
-    const nextIndex = (index + delta + screenOrder.length) % screenOrder.length;
-    setActiveScreen(screenOrder[nextIndex]);
+    const current = isBaseScreen(active) ? active : (screenUi.lastBaseScreen || "cartridge-bay");
+    const index = baseScreenOrder.indexOf(current);
+    const nextIndex = (index + delta + baseScreenOrder.length) % baseScreenOrder.length;
+    setActiveScreen(baseScreenOrder[nextIndex]);
+  }
+
+  function getCartridgeBayApi() {
+    return window.__TARS_CARTRIDGE_BAY__?.runtimeApi || null;
   }
 
   function primaryAction() {
     const active = getActiveScreen();
+
     if (active === "home") {
       setActiveScreen(screenUi.lastBaseScreen || "cartridge-bay");
       return;
     }
+
     if (active === "cartridge-bay") {
+      const cartridgeApi = getCartridgeBayApi();
+      const selectedEntry = cartridgeApi?.getSelectedEntry?.();
+      if (selectedEntry && cartridgeApi?.isDevEntry?.(selectedEntry)) {
+        cartridgeApi.openSelectedDevCartridge?.();
+        return;
+      }
       if (document.querySelector('#cartridgeBayList button[data-selected="true"]')) {
         setActiveScreen("collections");
       } else {
@@ -176,12 +190,14 @@
       }
       return;
     }
+
     if (active === "collections") {
       const button = document.getElementById("collectionsMountConfirm");
       if (button && !button.disabled) button.click();
       else selectRelative(1);
       return;
     }
+
     if (active === "boards") {
       const button = document.getElementById("boardsMountConfirm");
       if (button && !button.disabled) button.click();
@@ -191,7 +207,7 @@
 
   function secondaryAction() {
     const active = getActiveScreen();
-    if (active === "request-history" || active === "repo-verified") {
+    if (devScreens.has(active)) {
       setActiveScreen(screenUi.lastBaseScreen || "home");
       return;
     }
@@ -204,6 +220,9 @@
     const railButtons = getListButtonsForScreen(railScreen);
     const mountCollectionsDisabled = document.getElementById("collectionsMountConfirm")?.disabled ?? true;
     const mountBoardsDisabled = document.getElementById("boardsMountConfirm")?.disabled ?? true;
+    const cartridgeApi = getCartridgeBayApi();
+    const selectedEntry = cartridgeApi?.getSelectedEntry?.();
+    const devSelection = active === "cartridge-bay" && selectedEntry && cartridgeApi?.isDevEntry?.(selectedEntry);
 
     const map = {
       up: {
@@ -219,18 +238,18 @@
       left: {
         enabled: true,
         label: "prev tab",
-        action: () => cycleScreen(-1),
+        action: () => cycleBaseScreen(-1),
       },
       right: {
         enabled: true,
         label: "next tab",
-        action: () => cycleScreen(1),
+        action: () => cycleBaseScreen(1),
       },
       a: {
-        enabled: active !== "request-history" && active !== "repo-verified",
+        enabled: !devScreens.has(active),
         label:
           active === "home" ? "open" :
-          active === "cartridge-bay" ? "handoff" :
+          active === "cartridge-bay" ? (devSelection ? "open" : "handoff") :
           active === "collections" ? (mountCollectionsDisabled ? "select" : "mount") :
           active === "boards" ? (mountBoardsDisabled ? "select" : "mount") :
           "none",
@@ -238,12 +257,12 @@
       },
       b: {
         enabled: active !== "home",
-        label: (active === "request-history" || active === "repo-verified") ? "back" : "home",
+        label: devScreens.has(active) ? "back" : "home",
         action: secondaryAction,
       },
     };
 
-    if (active === "request-history" || active === "repo-verified") {
+    if (devScreens.has(active)) {
       map.up.enabled = false;
       map.up.label = "none";
       map.down.enabled = false;
@@ -253,38 +272,6 @@
     }
 
     return map;
-  }
-
-  function upsertLauncher(actions, id, key, label) {
-    let button = document.getElementById(id);
-    if (!button || button.parentElement !== actions) {
-      button = document.createElement("button");
-      button.id = id;
-      button.addEventListener("click", () => {
-        if (getActiveScreen() === key) {
-          setActiveScreen(screenUi.lastBaseScreen || "home");
-        } else {
-          setActiveScreen(key);
-        }
-      });
-      actions.appendChild(button);
-    }
-
-    const state = getActiveScreen() === key ? "active" : "available";
-    button.disabled = false;
-    button.removeAttribute("aria-disabled");
-    button.dataset.actionKey = key;
-    button.dataset.actionState = state;
-    button.dataset.rawActionState = state;
-    button.dataset.rawText = `${label} : ${state}`;
-    button.textContent = button.dataset.rawText;
-  }
-
-  function ensureDevtoolsLaunchers() {
-    const actions = document.getElementById("actions");
-    if (!actions) return;
-    upsertLauncher(actions, "action-request-history", "request-history", "request-history");
-    upsertLauncher(actions, "action-repo-verified", "repo-verified", "repo-verified");
   }
 
   function injectStyles() {
@@ -332,8 +319,7 @@
       .terminal-header-shell,
       .terminal-main-shell,
       .terminal-rail-shell,
-      .terminal-footer-shell,
-      .terminal-dev-drawer {
+      .terminal-footer-shell {
         border: 1px solid var(--line);
         border-radius: 18px;
         background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(9, 11, 18, 0.98));
@@ -469,13 +455,6 @@
         box-shadow: var(--glow-soft);
       }
 
-      .terminal-header-controls button:hover,
-      .terminal-screen-tabs button:hover,
-      .control-pad-button:hover:not([disabled]),
-      .terminal-rail-shell .manifest-entry:hover {
-        border-color: rgba(88, 231, 243, 0.4);
-      }
-
       .terminal-main-shell {
         display: grid;
         grid-template-rows: auto minmax(0, 1fr);
@@ -553,7 +532,6 @@
       }
 
       .terminal-rail-context { color: var(--muted); }
-
       .terminal-rail-host { min-height: 0; }
 
       .terminal-rail-shell .panel {
@@ -610,7 +588,6 @@
       }
 
       .terminal-rail-shell .manifest-entry[data-selected="true"] .surface-title { color: var(--accent); }
-
       .terminal-rail-shell .manifest-entry .surface-chip,
       .terminal-rail-shell .manifest-entry .manifest-entry-meta,
       .terminal-rail-shell .manifest-entry .surface-foot { display: none; }
@@ -632,18 +609,10 @@
       .control-pad-button[disabled] { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
       .control-legend { color: var(--muted); line-height: 1.4; min-height: 2.8em; }
 
-      .terminal-dev-drawer { margin-top: 14px; }
-      .terminal-dev-drawer > summary {
-        cursor: pointer;
-        list-style: none;
-        user-select: none;
-        padding: 14px 16px;
-        color: var(--accent-2);
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
+      .terminal-hidden-sources,
+      .source-panel-hidden {
+        display: none !important;
       }
-      .terminal-dev-drawer-content { padding: 0 16px 16px; display: grid; gap: 12px; }
-      .terminal-hidden-sources, .source-panel-hidden { display: none !important; }
 
       @media (max-width: 1080px) {
         .terminal-header-shell { grid-template-columns: 1fr; }
@@ -673,6 +642,15 @@
       { label: "export", value: home.exportSource || "disabled" },
     ];
 
+    const renderState = JSON.stringify({
+      activeScreen,
+      chips,
+      path: `Home / ${displayName(railSourceScreen())} / ${currentSelectionLabel()}`,
+      statusLine: status.lines.slice(0, 3),
+    });
+    if (headerBar.dataset.renderState === renderState) return;
+    headerBar.dataset.renderState = renderState;
+
     headerBar.innerHTML = `
       <div class="terminal-brand-row">
         <div class="terminal-brand">TARS TERMINAL</div>
@@ -695,8 +673,12 @@
     const tabs = document.getElementById("terminalScreenTabs");
     if (!tabs) return;
     const activeScreen = getActiveScreen();
+    const renderState = JSON.stringify({ activeScreen, order: baseScreenOrder });
+    if (tabs.dataset.renderState === renderState) return;
+    tabs.dataset.renderState = renderState;
     tabs.innerHTML = "";
-    for (const screen of screenOrder) {
+
+    for (const screen of baseScreenOrder) {
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.active = String(activeScreen === screen);
@@ -713,20 +695,23 @@
     if (!host || !title || !context) return;
 
     const sourceScreen = railSourceScreen();
-    title.textContent = `${displayName(sourceScreen)} Rail`;
-    context.textContent = `${displayName(sourceScreen)} selectors`;
-
     const sourcePanel = {
       "cartridge-bay": document.getElementById("cartridgeBayList")?.closest(".panel"),
       "collections": document.getElementById("collectionsBrowserList")?.closest(".panel"),
       "boards": document.getElementById("boardsBrowserList")?.closest(".panel"),
     }[sourceScreen] || null;
 
+    title.textContent = `${displayName(sourceScreen)} Rail`;
+    context.textContent = `${displayName(sourceScreen)} selectors`;
+
+    if (host.dataset.sourceScreen === sourceScreen && sourcePanel?.parentElement === host) return;
+
     host.innerHTML = "";
     if (sourcePanel) {
       sourcePanel.classList.remove("source-panel-hidden");
       host.appendChild(sourcePanel);
     }
+    host.dataset.sourceScreen = sourceScreen;
   }
 
   function renderFooter() {
@@ -734,6 +719,9 @@
     if (!footer) return;
     const map = getControlMap();
     const order = [["up", "↑"], ["down", "↓"], ["left", "←"], ["right", "→"], ["a", "A"], ["b", "B"]];
+    const renderState = JSON.stringify(order.map(([key]) => ({ key, enabled: map[key].enabled, label: map[key].label })));
+    if (footer.dataset.renderState === renderState) return;
+    footer.dataset.renderState = renderState;
 
     footer.innerHTML = "";
     for (const [key, symbol] of order) {
@@ -763,7 +751,6 @@
     renderScreenTabs();
     renderRail();
     renderFooter();
-    ensureDevtoolsLaunchers();
   }
 
   function moveToStash(stash, node) {
@@ -844,10 +831,6 @@
     hiddenStash.className = "terminal-hidden-sources";
     hiddenStash.id = "terminalHiddenSources";
 
-    const devDrawer = document.createElement("details");
-    devDrawer.className = "terminal-dev-drawer";
-    devDrawer.innerHTML = `<summary>Dev Surfaces</summary><div class="terminal-dev-drawer-content" id="terminalDevDrawerContent"></div>`;
-
     const mainPanel = runsPanel || document.createElement("div");
     mainPanel.classList.add("panel");
     const runsLabel = mainPanel.querySelector(".label");
@@ -876,29 +859,8 @@
       actionsSection,
     ].forEach((node) => moveToStash(hiddenStash, node));
 
-    const preservedNodes = Array.from(shell.children).filter((child) => {
-      if ([
-        statusSection,
-        navSection,
-        actionsSection,
-        homePanel,
-        runsPanel,
-        cartridgeListPanel,
-        cartridgeSummaryPanel,
-        collectionsListPanel,
-        collectionsSummaryPanel,
-        boardsListPanel,
-        boardsSummaryPanel,
-      ].includes(child)) return false;
-      return child.childElementCount > 0;
-    });
-
-    const devContent = devDrawer.querySelector("#terminalDevDrawerContent");
-    preservedNodes.forEach((node) => devContent.appendChild(node));
-
     shell.innerHTML = "";
     shell.appendChild(shellV4);
-    shell.appendChild(devDrawer);
     shell.appendChild(hiddenStash);
 
     shellV4.appendChild(header);
@@ -916,33 +878,13 @@
       });
     });
 
-    const statusTarget = document.getElementById("statusStrip");
-    if (statusTarget) {
-      new MutationObserver(() => renderHeaderBar()).observe(statusTarget, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      });
-    }
-
-    const homeTarget = document.getElementById("homeSummary");
-    if (homeTarget) {
-      new MutationObserver(() => {
-        renderHeaderBar();
-        renderFooter();
-      }).observe(homeTarget, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      });
-    }
-
-    window.addEventListener("tars:screen-request", (event) => {
-      const requested = event?.detail?.screen;
-      if (requested) setActiveScreen(requested);
-    });
-
     screenUi.shellBuilt = true;
+    shared.runtimeApi = {
+      getActiveScreen,
+      setActiveScreen,
+      renderShellChrome,
+    };
+
     renderShellChrome();
   }
 
@@ -965,8 +907,12 @@
   window.addEventListener("DOMContentLoaded", () => {
     buildShell();
     renderShellChrome();
-    window.setInterval(renderShellChrome, 1500);
   }, { once: true });
+
+  window.addEventListener("tars:screen-request", (event) => {
+    const requested = event?.detail?.screen;
+    if (requested) setActiveScreen(requested);
+  });
 
   [
     "tars:home-updated",
