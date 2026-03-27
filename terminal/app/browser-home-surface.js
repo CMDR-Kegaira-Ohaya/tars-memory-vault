@@ -1,5 +1,5 @@
 (() => {
-  const runtime = { contract: null };
+  const runtime = { contract: null, lastDevScreen: "request-history" };
 
   const shellLabelCacheKey = "__TARS_SHELL_LABEL_CACHE__";
   const shellLabelCache = window[shellLabelCacheKey] || (window[shellLabelCacheKey] = {
@@ -51,6 +51,48 @@
     document.head.appendChild(style);
   }
 
+  function injectDevDestinationStyles() {
+    if (document.getElementById("terminal-dev-destination-style")) return;
+    const style = document.createElement("style");
+    style.id = "terminal-dev-destination-style";
+    style.textContent = `
+      .terminal-dev-hidden-tab {
+        display: none !important;
+      }
+      .terminal-dev-selector-shell {
+        display: grid;
+        gap: 10px;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(186, 156, 255, 0.16);
+      }
+      .terminal-dev-selector-title {
+        color: #b38cff;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 11px;
+      }
+      .terminal-dev-selector-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .terminal-dev-selector-button {
+        border-radius: 999px;
+        border: 1px solid rgba(186, 156, 255, 0.24);
+        background: rgba(255, 255, 255, 0.02);
+        color: #e6ebf2;
+        padding: 10px 14px;
+      }
+      .terminal-dev-selector-button[data-active="true"] {
+        border-color: rgba(88, 231, 243, 0.32);
+        color: #58e7f3;
+        box-shadow: 0 0 14px rgba(88, 231, 243, 0.08);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function splitActionText(value) {
     const raw = normalizeLabelText(value);
     const match = raw.match(/^(.*?)(?:\s*:\s*(.*))?$/);
@@ -83,6 +125,138 @@
       button.setAttribute("aria-disabled", "true");
       button.classList.add("terminal-systems-pill");
     });
+  }
+
+  function getInspectionScreenFromText(value) {
+    const text = normalizeLabelText(value).toLowerCase();
+    if (text === "request history") return "request-history";
+    if (text === "repo verified") return "repo-verified";
+    return null;
+  }
+
+  function getInspectionLabel(screen) {
+    return screen === "repo-verified" ? "Repo Verified" : "Request History";
+  }
+
+  function getCurrentInspectionScreen() {
+    const activeChip = normalizeLabelText(document.querySelector(".terminal-active-screen")?.textContent).toLowerCase();
+    const fromChip = getInspectionScreenFromText(activeChip);
+    if (fromChip) return fromChip;
+
+    const hiddenActive = document.querySelector(
+      "#terminalScreenTabs .terminal-dev-hidden-tab[data-active='true'], #nav .terminal-dev-hidden-tab[data-active='true']",
+    );
+    return getInspectionScreenFromText(hiddenActive?.textContent) || runtime.lastDevScreen || "request-history";
+  }
+
+  function openDevDestination(screen) {
+    const nextScreen = screen || runtime.lastDevScreen || "request-history";
+    runtime.lastDevScreen = nextScreen;
+    window.dispatchEvent(new CustomEvent("tars:screen-request", { detail: { screen: nextScreen } }));
+    const drawer = document.querySelector(".terminal-dev-drawer");
+    if (drawer) drawer.open = true;
+  }
+
+  function markDevButtonActive(button, active) {
+    button.dataset.active = String(active);
+    button.dataset.selected = String(active);
+    if (active) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  }
+
+  function upsertDevDestinationButton(host, activeScreen) {
+    if (!host) return;
+    const exemplar = host.querySelector("button:not(.terminal-dev-hidden-tab):not([data-dev-destination='true'])");
+    let button = host.querySelector("button[data-dev-destination='true']");
+    if (!button) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.dataset.devDestination = "true";
+      button.className = exemplar?.className || "";
+      button.addEventListener("click", () => {
+        openDevDestination(activeScreen || runtime.lastDevScreen || "request-history");
+      });
+      host.appendChild(button);
+    }
+    button.textContent = "Dev";
+    markDevButtonActive(button, Boolean(activeScreen));
+  }
+
+  function formatNavHostAsDevDestination(host) {
+    if (!host) return;
+    injectDevDestinationStyles();
+
+    const buttons = Array.from(host.querySelectorAll("button"));
+    const inspectionButtons = buttons.filter((button) => getInspectionScreenFromText(button.textContent));
+    if (!inspectionButtons.length) return;
+
+    let activeScreen = null;
+    inspectionButtons.forEach((button) => {
+      const screen = getInspectionScreenFromText(button.textContent);
+      if (button.dataset.active === "true" || button.dataset.selected === "true" || button.getAttribute("aria-current") === "page") {
+        activeScreen = screen;
+      }
+      button.classList.add("terminal-dev-hidden-tab");
+      button.tabIndex = -1;
+      button.setAttribute("aria-hidden", "true");
+    });
+
+    runtime.lastDevScreen = activeScreen || runtime.lastDevScreen || "request-history";
+    upsertDevDestinationButton(host, activeScreen);
+  }
+
+  function renderDevSelector() {
+    injectDevDestinationStyles();
+    const drawerContent = document.getElementById("terminalDevDrawerContent");
+    if (!drawerContent) return;
+
+    let selector = document.getElementById("terminalDevSelector");
+    if (!selector) {
+      selector = document.createElement("div");
+      selector.id = "terminalDevSelector";
+      selector.className = "terminal-dev-selector-shell";
+      drawerContent.prepend(selector);
+    }
+
+    const activeScreen = getCurrentInspectionScreen();
+    runtime.lastDevScreen = activeScreen || runtime.lastDevScreen || "request-history";
+
+    selector.innerHTML = `
+      <div class="terminal-dev-selector-title">Dev destination</div>
+      <div class="terminal-dev-selector-row">
+        ${["request-history", "repo-verified"]
+          .map(
+            (screen) => `
+              <button
+                type="button"
+                class="terminal-dev-selector-button"
+                data-dev-screen="${screen}"
+                data-active="${String(activeScreen === screen)}"
+              >
+                ${getInspectionLabel(screen)}
+              </button>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+
+    selector.querySelectorAll("[data-dev-screen]").forEach((button) => {
+      button.addEventListener("click", () => openDevDestination(button.dataset.devScreen));
+    });
+
+    const drawer = document.querySelector(".terminal-dev-drawer");
+    const summary = drawer?.querySelector("summary");
+    if (summary) summary.textContent = "Dev";
+  }
+
+  function syncDevDestinationNavigation() {
+    formatNavHostAsDevDestination(document.getElementById("nav"));
+    formatNavHostAsDevDestination(document.getElementById("terminalScreenTabs"));
+    renderDevSelector();
   }
 
   function stabilizeShellLabels() {
@@ -158,17 +332,17 @@
       mountChip: input.currentMount || "none",
       availabilityChip: input.exportSource || "disabled",
       detail: "Home surface presentation fallback.",
-      recentSaveLabel: input.recentSave || "none"
+      recentSaveLabel: input.recentSave || "none",
     };
   }
 
   function extractRawState(container) {
-    const rows = Array.from(container.querySelectorAll(':scope > div'));
+    const rows = Array.from(container.querySelectorAll(":scope > div"));
     const state = {};
     let found = false;
 
     rows.forEach((row) => {
-      const label = row.querySelector('.muted')?.textContent?.trim()?.replace(/:$/, "");
+      const label = row.querySelector(".muted")?.textContent?.trim()?.replace(/:$/, "");
       if (!label) return;
       const value = row.textContent.replace(label, "").trim();
       found = true;
@@ -229,11 +403,13 @@
     render(surface, rawState, container);
     stabilizeShellLabels();
     formatSystemsCheck();
+    syncDevDestinationNavigation();
   }
 
   async function boot() {
     runtime.contract = await loadJson("app/home-surface.v1.json");
     refresh();
+
     const container = document.getElementById("homeSummary");
     if (container) {
       const observer = new MutationObserver(() => refresh());
@@ -245,6 +421,7 @@
       const headerObserver = new MutationObserver(() => {
         stabilizeShellLabels();
         formatSystemsCheck();
+        syncDevDestinationNavigation();
       });
       headerObserver.observe(headerBar, { childList: true, subtree: true, characterData: true });
     }
@@ -255,6 +432,12 @@
       actionsObserver.observe(actions, { childList: true, subtree: true, characterData: true, attributes: true });
     }
 
+    const navHosts = [document.getElementById("nav"), document.getElementById("terminalScreenTabs"), document.getElementById("terminalDevDrawerContent")].filter(Boolean);
+    navHosts.forEach((host) => {
+      const navObserver = new MutationObserver(() => syncDevDestinationNavigation());
+      navObserver.observe(host, { childList: true, subtree: true, characterData: true, attributes: true });
+    });
+
     [
       "tars:screen-changed",
       "tars:collections-updated",
@@ -262,6 +445,7 @@
     ].forEach((eventName) => window.addEventListener(eventName, () => {
       stabilizeShellLabels();
       formatSystemsCheck();
+      syncDevDestinationNavigation();
     }));
 
     window.setInterval(refresh, 1500);
